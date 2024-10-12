@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "target": "ES2017",
+    "module": "ESNext",
+    "moduleResolution": "Node16",
+    "lib": ["ES2017", "DOM", "DOM.Iterable"],
+    "allowSyntheticDefaultImports": true,
+    "noEmit": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "strict": true,
+    "noImplicitAny": false,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "outDir": "dist",
+    "rootDir": ".",
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules"]
+}
