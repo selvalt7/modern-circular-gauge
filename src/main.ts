@@ -87,7 +87,7 @@ export class ModernCircularGauge extends LitElement {
     // const needle = this._strokeDashArc(state, state);
 
     return html`
-    <ha-card class="${classMap({ "flex-reverse": this._config.header_position == "bottom" })}">
+    <ha-card class="${classMap({ "flex-column-reverse": this._config.header_position == "bottom" })}">
       <div class="header">
         <p class="name">
           ${this._config.name ?? stateObj.attributes.friendly_name ?? ''}
@@ -135,7 +135,7 @@ export class ModernCircularGauge extends LitElement {
       align-items: center;
     }
 
-    .flex-reverse {
+    .flex-column-reverse {
       flex-direction: column-reverse;
     }
     
@@ -163,6 +163,10 @@ export class ModernCircularGauge extends LitElement {
       container-name: container;
       width: 100%;
       height: 100%;
+    }
+
+    .flex-column-reverse .container {
+      margin-bottom: -20px;
     }
 
     .value {
