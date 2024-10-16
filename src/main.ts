@@ -3,10 +3,11 @@ import { customElement, property, state } from "lit/decorators.js";
 import { HomeAssistant } from "custom-card-helpers";
 import { clamp, svgArc } from "./utils";
 import type { ModernCircularGaugeConfig } from "./type";
+import { classMap } from "lit/directives/class-map.js";
 
 const MAX_ANGLE = 270;
 const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
-const RADIUS = 40;
+const RADIUS = 44;
 
 const DEFAULT_MIN = 0;
 const DEFAULT_MAX = 100;
@@ -67,35 +68,39 @@ export class ModernCircularGauge extends LitElement {
     const current = this._strokeDashArc(state > 0 ? 0 : state, state > 0 ? state : 0);
 
     return html`
-    <ha-card>
-      <svg viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid">
-        <g transform="rotate(135)">
-          <path
-            class="arc clear"
-            d=${path}
-          />
-          <path
-            class="arc current"
-            style="stroke: green"
-            d=${path}
-            stroke-dasharray="${current[0]}"
-            stroke-dashoffset="${current[1]}"
-          />
-        </g>
-      </svg>
-      <div class="state">
-        <p class="value">
-          ${state}
-          <span class="unit">
-            ${unit}
-          </span>
-        </p>
-      </div>
-      <div class="bottom">
+    <ha-card class="${classMap({ "flex-reverse": this._config.header_position == "bottom" })}">
+      <div class="header">
         <p class="name">
-          ${this._config.name ?? ""}
+          ${this._config.name ?? stateObj.attributes.friendly_name ?? ''}
         </p>
       </div>
+      <div class="container">
+        <svg viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid"
+          overflow="visible"
+        >
+          <g transform="rotate(135)">
+            <path
+              class="arc clear"
+              d=${path}
+            />
+            <path
+              class="arc current"
+              style="stroke: green"
+              d=${path}
+              stroke-dasharray="${current[0]}"
+              stroke-dashoffset="${current[1]}"
+            />
+          </g>
+        </svg>
+        <div class="state">
+          <p class="value">
+            ${state}
+            <span class="unit">
+              ${unit}
+            </span>
+          </p>
+        </div>
+      </div> 
     </ha-card>
     `;
   }
@@ -106,19 +111,18 @@ export class ModernCircularGauge extends LitElement {
       width: 100%;
       height: 100%;
       display: flex;
+      padding: 16px;
       flex-direction: column;
       align-items: center;
     }
+
+    .flex-reverse {
+      flex-direction: column-reverse;
+    }
     
-    .bottom {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: 0;
-      right: 0;
+    .header {
       display: flex;
       flex-direction: column;
-      justify-content: end;
       text-align: center;
     }
     
@@ -134,12 +138,21 @@ export class ModernCircularGauge extends LitElement {
       text-align: center;
     }
 
+    .container {
+      position: relative;
+      container-type: inline-size;
+      container-name: container;
+      width: 100%;
+      height: 100%;
+    }
+
     .value {
-      font-size: 57px;
+      font-size: 27px;
     }
 
     .name {
       font-size: 16px;
+      margin: 0;
     }
 
     .unit {

@@ -6,4 +6,6 @@ export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     min?: number;
     max?: number;
     unit?: string;
+    header_position?: "top" | "bottom";
+    needle?: boolean;
 }
