@@ -1,4 +1,5 @@
 import { html, LitElement, TemplateResult, css } from "lit";
+import { ResizeController } from "@lit-labs/observers/resize-controller.js";
 import { customElement, property, state } from "lit/decorators.js";
 import { HomeAssistant } from "custom-card-helpers";
 import { clamp, svgArc } from "./utils";
@@ -16,6 +17,23 @@ const DEFAULT_MAX = 100;
 export class ModernCircularGauge extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: ModernCircularGaugeConfig;
+
+  private _sizeController = new ResizeController(this, {
+    callback: (entries) => {
+      const element = entries[0]?.target.shadowRoot?.querySelector(".container") as HTMLElement | undefined;
+      const size = Math.min(element?.clientHeight || 0, element?.clientWidth || 0);
+      if (size < 160) {
+        return "small";
+      }
+      if (size < 200) {
+        return "medium";
+      }
+      if (size < 280) {
+        return "big";
+      }
+      return "";
+    },
+  });
 
   setConfig(config: ModernCircularGaugeConfig): void {
     if (!config.entity) {
@@ -66,6 +84,7 @@ export class ModernCircularGauge extends LitElement {
     const unit = this._config.unit ?? stateObj.attributes.unit_of_measurement;
 
     const current = this._strokeDashArc(state > 0 ? 0 : state, state > 0 ? state : 0);
+    // const needle = this._strokeDashArc(state, state);
 
     return html`
     <ha-card class="${classMap({ "flex-reverse": this._config.header_position == "bottom" })}">
@@ -74,7 +93,7 @@ export class ModernCircularGauge extends LitElement {
           ${this._config.name ?? stateObj.attributes.friendly_name ?? ''}
         </p>
       </div>
-      <div class="container">
+      <div class="container ${this._sizeController.value || ""}">
         <svg viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid"
           overflow="visible"
         >
@@ -147,7 +166,19 @@ export class ModernCircularGauge extends LitElement {
     }
 
     .value {
+      font-size: 57px;
+    }
+    
+    .small .value {
       font-size: 27px;
+    }
+
+    .medium .value {
+      font-size: 37px;
+    }
+
+    .big .value {
+      font-size: 47px;
     }
 
     .name {
@@ -180,6 +211,20 @@ export class ModernCircularGauge extends LitElement {
 
     .arc.current {
       stroke: var(--primary-color);
+    }
+
+    .needle {
+      fill: none;
+      stroke-linecap: round;
+      stroke-width: 4px;
+      stroke: white;
+    }
+
+    .needle-border {
+      fill: none;
+      stroke-linecap: round;
+      stroke-width: 6px;
+      stroke: white;
     }
 
     `;

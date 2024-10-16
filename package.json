@@ -13,6 +13,7 @@
     "typescript": "^5.6.2"
   },
   "dependencies": {
+    "@lit-labs/observers": "^2.0.4",
     "custom-card-helpers": "^1.9.0",
     "lit": "^3.2.0"
   }
