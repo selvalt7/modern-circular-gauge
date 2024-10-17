@@ -1,0 +1,20 @@
+name: Release
+
+on: workflow_dispatch
+
+jobs:
+    release-bundle:
+        runs-on: ubuntu-latest
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Install
+              run: npm ci
+
+            - name: Release
+              run: npx semantic-release
+              env:
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
