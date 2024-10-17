@@ -18,7 +18,7 @@
         "npmPublish": false
       }],
       ["@semantic-release/github", {
-        "assets": "dist/*.js",
+        "assets": "dist/modern-circular-gauge.js",
         "draftRelease": true
       }]
     ],
