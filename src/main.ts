@@ -1,4 +1,4 @@
-import { html, LitElement, TemplateResult, css } from "lit";
+import { html, LitElement, TemplateResult, css, svg, nothing } from "lit";
 import { ResizeController } from "@lit-labs/observers/resize-controller.js";
 import { customElement, property, state } from "lit/decorators.js";
 import { HomeAssistant } from "custom-card-helpers";
@@ -83,8 +83,8 @@ export class ModernCircularGauge extends LitElement {
     const state = stateObj.state;
     const unit = this._config.unit ?? stateObj.attributes.unit_of_measurement;
 
-    const current = this._strokeDashArc(state > 0 ? 0 : state, state > 0 ? state : 0);
-    // const needle = this._strokeDashArc(state, state);
+    const current = this._config.needle ? undefined : this._strokeDashArc(state > 0 ? 0 : state, state > 0 ? state : 0);
+    const needle = this._config.needle ? this._strokeDashArc(state, state) : undefined;
 
     return html`
     <ha-card class="${classMap({ "flex-column-reverse": this._config.header_position == "bottom" })}">
@@ -102,13 +102,33 @@ export class ModernCircularGauge extends LitElement {
               class="arc clear"
               d=${path}
             />
-            <path
-              class="arc current"
-              style="stroke: green"
-              d=${path}
-              stroke-dasharray="${current[0]}"
-              stroke-dashoffset="${current[1]}"
-            />
+            ${current ? svg`
+              <path
+                class="arc current"
+                d=${path}
+                stroke-dasharray="${current[0]}"
+                stroke-dashoffset="${current[1]}"
+              />
+              ` : nothing}
+            ${needle ? svg`
+              <path
+                d=${path}
+                stroke-dasharray="${needle[0]}"
+                stroke-dashoffset="${needle[1]}"
+              />
+              <path
+                class="needle-border"
+                d=${path}
+                stroke-dasharray="${needle[0]}"
+                stroke-dashoffset="${needle[1]}"
+              />
+              <path
+                class="needle"
+                d=${path}
+                stroke-dasharray="${needle[0]}"
+                stroke-dashoffset="${needle[1]}"
+              />
+              ` : nothing}
           </g>
         </svg>
         <div class="state">
@@ -228,7 +248,7 @@ export class ModernCircularGauge extends LitElement {
       fill: none;
       stroke-linecap: round;
       stroke-width: 6px;
-      stroke: white;
+      stroke: var(--primary-color);
     }
 
     `;
