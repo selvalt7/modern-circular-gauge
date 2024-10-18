@@ -2,7 +2,8 @@ import { html, LitElement, TemplateResult, css, svg, nothing } from "lit";
 import { ResizeController } from "@lit-labs/observers/resize-controller.js";
 import { customElement, property, state } from "lit/decorators.js";
 import { HomeAssistant } from "custom-card-helpers";
-import { clamp, svgArc } from "./utils";
+import { clamp, svgArc } from "./utils/gauge";
+import { registerCustomCard } from "./utils/custom-cards";
 import type { ModernCircularGaugeConfig } from "./type";
 import { classMap } from "lit/directives/class-map.js";
 
@@ -12,6 +13,12 @@ const RADIUS = 44;
 
 const DEFAULT_MIN = 0;
 const DEFAULT_MAX = 100;
+
+registerCustomCard({
+  type: "modern-circular-gauge",
+  name: "Modern Cicular Gauge",
+  description: "Modern circular gauge",
+});
 
 @customElement("modern-circular-gauge")
 export class ModernCircularGauge extends LitElement {
@@ -80,7 +87,7 @@ export class ModernCircularGauge extends LitElement {
       r: RADIUS,
     });
 
-    const state = stateObj.state;
+    const state = Number(stateObj.state);
     const unit = this._config.unit ?? stateObj.attributes.unit_of_measurement;
 
     const current = this._config.needle ? undefined : this._strokeDashArc(state > 0 ? 0 : state, state > 0 ? state : 0);
@@ -258,9 +265,3 @@ export class ModernCircularGauge extends LitElement {
     return 1;
   }
 }
-
-window.customCards.push({
-  type: "modern-circular-gauge",
-  name: "Modern Cicular Gauge",
-  preview: false
-});
