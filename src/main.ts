@@ -230,7 +230,7 @@ export class ModernCircularGauge extends LitElement {
     }
 
     .arc.clear {
-      stroke: var(--clear-background-color);
+      stroke: var(--primary-background-color);
     }
 
     .arc.current {
