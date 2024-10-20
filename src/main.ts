@@ -76,7 +76,29 @@ export class ModernCircularGauge extends LitElement {
     const stateObj = this.hass.states[this._config.entity];
 
     if (!stateObj) {
-      return html``;
+      return html`
+      <hui-warning>
+        ${this.hass.localize("ui.panel.lovelace.warning.entity_not_found", { entity: this._config.entity || "[empty]" })}
+      </hui-warning>
+      `;
+    }
+
+    const state = Number(stateObj.state);
+
+    if (stateObj.state === "unavailable") {
+      return html`
+      <hui-warning>
+        ${this.hass.localize("ui.panel.lovelace.warning.entity_unavailable", { entity: this._config.entity })}
+      </hui-warning>
+      `;
+    }
+
+    if (isNaN(state)) {
+      return html`
+      <hui-warning>
+        ${this.hass.localize("ui.panel.lovelace.warning.entity_non_numeric", { entity: this._config.entity })}
+      </hui-warning>
+      `;
     }
 
     const path = svgArc({
@@ -87,7 +109,6 @@ export class ModernCircularGauge extends LitElement {
       r: RADIUS,
     });
 
-    const state = Number(stateObj.state);
     const unit = this._config.unit ?? stateObj.attributes.unit_of_measurement;
 
     const current = this._config.needle ? undefined : this._strokeDashArc(state > 0 ? 0 : state, state > 0 ? state : 0);
