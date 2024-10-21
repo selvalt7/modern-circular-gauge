@@ -1,11 +1,13 @@
 import { html, LitElement, TemplateResult, css, svg, nothing } from "lit";
 import { ResizeController } from "@lit-labs/observers/resize-controller.js";
 import { customElement, property, state } from "lit/decorators.js";
-import { HomeAssistant } from "custom-card-helpers";
+import { ActionHandlerEvent, handleAction, hasAction, HomeAssistant } from "custom-card-helpers";
 import { clamp, svgArc } from "./utils/gauge";
 import { registerCustomCard } from "./utils/custom-cards";
 import type { ModernCircularGaugeConfig } from "./type";
 import { classMap } from "lit/directives/class-map.js";
+import { ifDefined } from "lit/directives/if-defined.js";
+import { actionHandler } from "./utils/action-handler-directive";
 
 const MAX_ANGLE = 270;
 const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
@@ -68,6 +70,14 @@ export class ModernCircularGauge extends LitElement {
     / ((this._config?.max ?? DEFAULT_MAX) - (this._config?.min ?? DEFAULT_MIN));
   }
 
+  private _hasCardAction() {
+    return (!this._config?.tap_action ||
+      hasAction(this._config?.tap_action) ||
+      hasAction(this._config?.hold_action) ||
+      hasAction(this._config?.double_tap_action)
+    );
+  }
+
   protected render(): TemplateResult {
     if (!this.hass || !this._config) {
       return html``;
@@ -115,7 +125,22 @@ export class ModernCircularGauge extends LitElement {
     const needle = this._config.needle ? this._strokeDashArc(state, state) : undefined;
 
     return html`
-    <ha-card class="${classMap({ "flex-column-reverse": this._config.header_position == "bottom" })}">
+    <ha-card
+      class="${classMap({
+        "flex-column-reverse": this._config.header_position == "bottom",
+        "action": this._hasCardAction()
+       })}"
+      @action=${this._handleAction}
+      .actionHandler=${actionHandler({
+        hasHold: hasAction(this._config.hold_action),
+        hasDoubleClick: hasAction(this._config.double_tap_action),
+      })}
+      tabindex=${ifDefined(
+        !this._config.tap_action || hasAction(this._config.tap_action)
+        ? "0"
+        : undefined
+      )}
+    >
       <div class="header">
         <p class="name">
           ${this._config.name ?? stateObj.attributes.friendly_name ?? ''}
@@ -172,6 +197,10 @@ export class ModernCircularGauge extends LitElement {
     `;
   }
 
+  private _handleAction(ev: ActionHandlerEvent) {
+    handleAction(this, this.hass!, this._config!, ev.detail.action!);
+  }
+
   static get styles() {
     return css`
     ha-card {
@@ -181,6 +210,10 @@ export class ModernCircularGauge extends LitElement {
       padding: 16px;
       flex-direction: column;
       align-items: center;
+    }
+
+    ha-card.action {
+      cursor: pointer
     }
 
     .flex-column-reverse {
