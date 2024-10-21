@@ -198,10 +198,12 @@ export class ModernCircularGauge extends LitElement {
         </svg>
         <div class="state">
           <p class="value">
+          ${this._getSegmentLabel(state) ? this._getSegmentLabel(state) : html`
             ${state}
             <span class="unit">
               ${unit}
             </span>
+            `}
           </p>
         </div>
       </div> 
@@ -267,6 +269,20 @@ export class ModernCircularGauge extends LitElement {
       }
     }
     return undefined;
+  }
+
+  private _getSegmentLabel(numberState: number): string {
+    if (this._config?.segments) {
+      let segments = [...this._config.segments].sort((a, b) => a.from - b.from);
+
+      for (let i = segments.length - 1; i >= 0; i--) {
+        let segment = segments[i];
+        if (numberState >= segment.from || i === 0) {
+          return segment.label || "";
+        }
+      }
+    }
+    return "";
   }
 
   private _handleAction(ev: ActionHandlerEvent) {
