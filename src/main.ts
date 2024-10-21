@@ -6,6 +6,7 @@ import { clamp, svgArc } from "./utils/gauge";
 import { registerCustomCard } from "./utils/custom-cards";
 import type { ModernCircularGaugeConfig } from "./type";
 import { classMap } from "lit/directives/class-map.js";
+import { styleMap } from "lit/directives/style-map.js";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { actionHandler } from "./utils/action-handler-directive";
 
@@ -68,6 +69,10 @@ export class ModernCircularGauge extends LitElement {
   private _valueToPercentage(value: number) {
     return (clamp(value, this._config?.min ?? DEFAULT_MIN, this._config?.max ?? DEFAULT_MAX) - (this._config?.min ?? DEFAULT_MIN))
     / ((this._config?.max ?? DEFAULT_MAX) - (this._config?.min ?? DEFAULT_MIN));
+  }
+
+  private _getAngle(value: number) {
+    return this._valueToPercentage(value) * MAX_ANGLE;
   }
 
   private _hasCardAction() {
@@ -149,6 +154,7 @@ export class ModernCircularGauge extends LitElement {
       <div class="container ${this._sizeController.value || ""}">
         <svg viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid"
           overflow="visible"
+          style=${styleMap({ "--gauge-color": this._computeSegments(state) })}
         >
           <g transform="rotate(135)">
             <path
@@ -164,6 +170,12 @@ export class ModernCircularGauge extends LitElement {
               />
               ` : nothing}
             ${needle ? svg`
+              ${this._config.segments ? svg`
+              <g class="segments">
+                ${this._renderSegments()}
+              </g>`
+              : nothing
+              }
               <path
                 d=${path}
                 stroke-dasharray="${needle[0]}"
@@ -197,12 +209,77 @@ export class ModernCircularGauge extends LitElement {
     `;
   }
 
+  private _renderSegments(): TemplateResult[] {
+    if (this._config?.segments) {
+      let segments = [...this._config.segments].sort((a, b) => a.from - b.from);
+
+      return [...segments].map((segment, index) => {
+        let roundEnd: TemplateResult | undefined;
+        const startAngle = index === 0 ? 0 : this._getAngle(segment.from);
+        const angle = index === segments.length - 1 ? MAX_ANGLE : this._getAngle(segments[index + 1].from);
+        const path = svgArc({
+          x: 0,
+          y: 0,
+          start: startAngle,
+          end: angle,
+          r: RADIUS,
+        });
+
+        if (index === 0 || index === segments.length - 1) {
+          const path = svgArc({
+            x: 0,
+            y: 0,
+            start: index === 0 ? 0 : MAX_ANGLE,
+            end: index === 0 ? 0 : MAX_ANGLE,
+            r: RADIUS,
+          });
+          roundEnd = svg`
+          <path
+            class="segment"
+            stroke=${segment.color}
+            d=${path}
+            stroke-linecap="round"
+          />`;
+        }
+
+        return svg`${roundEnd}
+          <path
+            class="segment"
+            stroke=${segment.color}
+            d=${path}
+          />`;
+      });
+    }
+    return [];
+  }
+
+  private _computeSegments(numberState: number): string | undefined {
+    let segments = this._config?.segments;
+    if (segments) {
+      segments = [...segments].sort((a, b) => a.from - b.from);
+
+      for (let i = 0; i < segments.length; i++) {
+        let segment = segments[i];
+        if (segment && (numberState >= segment.from || i === 0) &&
+          (i + 1 == segments?.length || numberState < segments![i + 1].from)) {
+          return segment.color;
+        }
+      }
+    }
+    return undefined;
+  }
+
   private _handleAction(ev: ActionHandlerEvent) {
     handleAction(this, this.hass!, this._config!, ev.detail.action!);
   }
 
   static get styles() {
     return css`
+    :host {
+      --gauge-color: var(--primary-color);
+      --gauge-stroke-width: 6px;
+    }
+
     ha-card {
       width: 100%;
       height: 100%;
@@ -287,7 +364,7 @@ export class ModernCircularGauge extends LitElement {
     .arc {
       fill: none;
       stroke-linecap: round;
-      stroke-width: 6px;
+      stroke-width: var(--gauge-stroke-width);
     }
 
     .arc.clear {
@@ -295,21 +372,34 @@ export class ModernCircularGauge extends LitElement {
     }
 
     .arc.current {
-      stroke: var(--primary-color);
+      stroke: var(--gauge-color);
+      transition: all 1s ease 0s;
+    }
+
+    .segment {
+      fill: none;
+      stroke-width: var(--gauge-stroke-width);
+      filter: brightness(100%);
+    }
+
+    .segments {
+      filter: opacity(0.3) contrast(0.8);
     }
 
     .needle {
       fill: none;
       stroke-linecap: round;
-      stroke-width: 4px;
+      stroke-width: 3px;
       stroke: white;
+      transition: all 1s ease 0s;
     }
 
     .needle-border {
       fill: none;
       stroke-linecap: round;
-      stroke-width: 6px;
-      stroke: var(--primary-color);
+      stroke-width: var(--gauge-stroke-width);
+      stroke: var(--gauge-color);
+      transition: all 1s ease 0s;
     }
 
     `;
