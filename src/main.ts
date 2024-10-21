@@ -283,6 +283,6 @@ export class ModernCircularGauge extends LitElement {
   }
 
   public getCardSize(): Promise<number> | number {
-    return 1;
+    return 4;
   }
 }
