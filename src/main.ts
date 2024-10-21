@@ -5,6 +5,7 @@ import { ActionHandlerEvent, handleAction, hasAction, HomeAssistant } from "cust
 import { clamp, svgArc } from "./utils/gauge";
 import { registerCustomCard } from "./utils/custom-cards";
 import type { ModernCircularGaugeConfig } from "./type";
+import { LovelaceLayoutOptions } from "./utils/lovelace";
 import { classMap } from "lit/directives/class-map.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { ifDefined } from "lit/directives/if-defined.js";
@@ -289,6 +290,19 @@ export class ModernCircularGauge extends LitElement {
     handleAction(this, this.hass!, this._config!, ev.detail.action!);
   }
 
+  public getLayoutOptions(): LovelaceLayoutOptions {
+    return {
+      grid_columns: 2,
+      grid_rows: 3,
+      grid_min_rows: 3,
+      grid_min_columns: 2
+    };
+  }
+
+  public getCardSize(): Promise<number> | number {
+    return 4;
+  }
+
   static get styles() {
     return css`
     :host {
@@ -419,9 +433,5 @@ export class ModernCircularGauge extends LitElement {
     }
 
     `;
-  }
-
-  public getCardSize(): Promise<number> | number {
-    return 4;
   }
 }
