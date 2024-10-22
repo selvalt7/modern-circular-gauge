@@ -3,7 +3,7 @@
     "declaration": true,
     "target": "ES2017",
     "module": "ESNext",
-    "moduleResolution": "Node16",
+    "moduleResolution": "node",
     "lib": ["ES2017", "DOM", "DOM.Iterable"],
     "allowSyntheticDefaultImports": true,
     "noEmit": true,

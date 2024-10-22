@@ -1,10 +1,15 @@
 import { html, LitElement, TemplateResult, css, svg, nothing } from "lit";
 import { ResizeController } from "@lit-labs/observers/resize-controller.js";
 import { customElement, property, state } from "lit/decorators.js";
-import { HomeAssistant } from "custom-card-helpers";
-import { clamp, svgArc } from "./utils";
+import { ActionHandlerEvent, handleAction, hasAction, HomeAssistant } from "custom-card-helpers";
+import { clamp, svgArc } from "./utils/gauge";
+import { registerCustomCard } from "./utils/custom-cards";
 import type { ModernCircularGaugeConfig } from "./type";
+import { LovelaceLayoutOptions } from "./utils/lovelace";
 import { classMap } from "lit/directives/class-map.js";
+import { styleMap } from "lit/directives/style-map.js";
+import { ifDefined } from "lit/directives/if-defined.js";
+import { actionHandler } from "./utils/action-handler-directive";
 
 const MAX_ANGLE = 270;
 const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
@@ -12,6 +17,12 @@ const RADIUS = 44;
 
 const DEFAULT_MIN = 0;
 const DEFAULT_MAX = 100;
+
+registerCustomCard({
+  type: "modern-circular-gauge",
+  name: "Modern Cicular Gauge",
+  description: "Modern circular gauge",
+});
 
 @customElement("modern-circular-gauge")
 export class ModernCircularGauge extends LitElement {
@@ -61,6 +72,18 @@ export class ModernCircularGauge extends LitElement {
     / ((this._config?.max ?? DEFAULT_MAX) - (this._config?.min ?? DEFAULT_MIN));
   }
 
+  private _getAngle(value: number) {
+    return this._valueToPercentage(value) * MAX_ANGLE;
+  }
+
+  private _hasCardAction() {
+    return (!this._config?.tap_action ||
+      hasAction(this._config?.tap_action) ||
+      hasAction(this._config?.hold_action) ||
+      hasAction(this._config?.double_tap_action)
+    );
+  }
+
   protected render(): TemplateResult {
     if (!this.hass || !this._config) {
       return html``;
@@ -69,7 +92,29 @@ export class ModernCircularGauge extends LitElement {
     const stateObj = this.hass.states[this._config.entity];
 
     if (!stateObj) {
-      return html``;
+      return html`
+      <hui-warning>
+        ${this.hass.localize("ui.panel.lovelace.warning.entity_not_found", { entity: this._config.entity || "[empty]" })}
+      </hui-warning>
+      `;
+    }
+
+    const state = Number(stateObj.state);
+
+    if (stateObj.state === "unavailable") {
+      return html`
+      <hui-warning>
+        ${this.hass.localize("ui.panel.lovelace.warning.entity_unavailable", { entity: this._config.entity })}
+      </hui-warning>
+      `;
+    }
+
+    if (isNaN(state)) {
+      return html`
+      <hui-warning>
+        ${this.hass.localize("ui.panel.lovelace.warning.entity_non_numeric", { entity: this._config.entity })}
+      </hui-warning>
+      `;
     }
 
     const path = svgArc({
@@ -80,14 +125,28 @@ export class ModernCircularGauge extends LitElement {
       r: RADIUS,
     });
 
-    const state = stateObj.state;
     const unit = this._config.unit ?? stateObj.attributes.unit_of_measurement;
 
     const current = this._config.needle ? undefined : this._strokeDashArc(state > 0 ? 0 : state, state > 0 ? state : 0);
     const needle = this._config.needle ? this._strokeDashArc(state, state) : undefined;
 
     return html`
-    <ha-card class="${classMap({ "flex-column-reverse": this._config.header_position == "bottom" })}">
+    <ha-card
+      class="${classMap({
+        "flex-column-reverse": this._config.header_position == "bottom",
+        "action": this._hasCardAction()
+       })}"
+      @action=${this._handleAction}
+      .actionHandler=${actionHandler({
+        hasHold: hasAction(this._config.hold_action),
+        hasDoubleClick: hasAction(this._config.double_tap_action),
+      })}
+      tabindex=${ifDefined(
+        !this._config.tap_action || hasAction(this._config.tap_action)
+        ? "0"
+        : undefined
+      )}
+    >
       <div class="header">
         <p class="name">
           ${this._config.name ?? stateObj.attributes.friendly_name ?? ''}
@@ -96,6 +155,7 @@ export class ModernCircularGauge extends LitElement {
       <div class="container ${this._sizeController.value || ""}">
         <svg viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid"
           overflow="visible"
+          style=${styleMap({ "--gauge-color": this._computeSegments(state) })}
         >
           <g transform="rotate(135)">
             <path
@@ -111,6 +171,12 @@ export class ModernCircularGauge extends LitElement {
               />
               ` : nothing}
             ${needle ? svg`
+              ${this._config.segments ? svg`
+              <g class="segments">
+                ${this._renderSegments()}
+              </g>`
+              : nothing
+              }
               <path
                 d=${path}
                 stroke-dasharray="${needle[0]}"
@@ -133,10 +199,12 @@ export class ModernCircularGauge extends LitElement {
         </svg>
         <div class="state">
           <p class="value">
+          ${this._getSegmentLabel(state) ? this._getSegmentLabel(state) : html`
             ${state}
             <span class="unit">
               ${unit}
             </span>
+            `}
           </p>
         </div>
       </div> 
@@ -144,8 +212,104 @@ export class ModernCircularGauge extends LitElement {
     `;
   }
 
+  private _renderSegments(): TemplateResult[] {
+    if (this._config?.segments) {
+      let segments = [...this._config.segments].sort((a, b) => a.from - b.from);
+
+      return [...segments].map((segment, index) => {
+        let roundEnd: TemplateResult | undefined;
+        const startAngle = index === 0 ? 0 : this._getAngle(segment.from);
+        const angle = index === segments.length - 1 ? MAX_ANGLE : this._getAngle(segments[index + 1].from);
+        const path = svgArc({
+          x: 0,
+          y: 0,
+          start: startAngle,
+          end: angle,
+          r: RADIUS,
+        });
+
+        if (index === 0 || index === segments.length - 1) {
+          const path = svgArc({
+            x: 0,
+            y: 0,
+            start: index === 0 ? 0 : MAX_ANGLE,
+            end: index === 0 ? 0 : MAX_ANGLE,
+            r: RADIUS,
+          });
+          roundEnd = svg`
+          <path
+            class="segment"
+            stroke=${segment.color}
+            d=${path}
+            stroke-linecap="round"
+          />`;
+        }
+
+        return svg`${roundEnd}
+          <path
+            class="segment"
+            stroke=${segment.color}
+            d=${path}
+          />`;
+      });
+    }
+    return [];
+  }
+
+  private _computeSegments(numberState: number): string | undefined {
+    let segments = this._config?.segments;
+    if (segments) {
+      segments = [...segments].sort((a, b) => a.from - b.from);
+
+      for (let i = 0; i < segments.length; i++) {
+        let segment = segments[i];
+        if (segment && (numberState >= segment.from || i === 0) &&
+          (i + 1 == segments?.length || numberState < segments![i + 1].from)) {
+          return segment.color;
+        }
+      }
+    }
+    return undefined;
+  }
+
+  private _getSegmentLabel(numberState: number): string {
+    if (this._config?.segments) {
+      let segments = [...this._config.segments].sort((a, b) => a.from - b.from);
+
+      for (let i = segments.length - 1; i >= 0; i--) {
+        let segment = segments[i];
+        if (numberState >= segment.from || i === 0) {
+          return segment.label || "";
+        }
+      }
+    }
+    return "";
+  }
+
+  private _handleAction(ev: ActionHandlerEvent) {
+    handleAction(this, this.hass!, this._config!, ev.detail.action!);
+  }
+
+  public getLayoutOptions(): LovelaceLayoutOptions {
+    return {
+      grid_columns: 2,
+      grid_rows: 3,
+      grid_min_rows: 3,
+      grid_min_columns: 2
+    };
+  }
+
+  public getCardSize(): Promise<number> | number {
+    return 4;
+  }
+
   static get styles() {
     return css`
+    :host {
+      --gauge-color: var(--primary-color);
+      --gauge-stroke-width: 6px;
+    }
+
     ha-card {
       width: 100%;
       height: 100%;
@@ -153,6 +317,10 @@ export class ModernCircularGauge extends LitElement {
       padding: 16px;
       flex-direction: column;
       align-items: center;
+    }
+
+    ha-card.action {
+      cursor: pointer
     }
 
     .flex-column-reverse {
@@ -226,7 +394,7 @@ export class ModernCircularGauge extends LitElement {
     .arc {
       fill: none;
       stroke-linecap: round;
-      stroke-width: 6px;
+      stroke-width: var(--gauge-stroke-width);
     }
 
     .arc.clear {
@@ -234,33 +402,36 @@ export class ModernCircularGauge extends LitElement {
     }
 
     .arc.current {
-      stroke: var(--primary-color);
+      stroke: var(--gauge-color);
+      transition: all 1s ease 0s;
+    }
+
+    .segment {
+      fill: none;
+      stroke-width: var(--gauge-stroke-width);
+      filter: brightness(100%);
+    }
+
+    .segments {
+      filter: opacity(0.3) contrast(0.8);
     }
 
     .needle {
       fill: none;
       stroke-linecap: round;
-      stroke-width: 4px;
+      stroke-width: 3px;
       stroke: white;
+      transition: all 1s ease 0s;
     }
 
     .needle-border {
       fill: none;
       stroke-linecap: round;
-      stroke-width: 6px;
-      stroke: var(--primary-color);
+      stroke-width: var(--gauge-stroke-width);
+      stroke: var(--gauge-color);
+      transition: all 1s ease 0s;
     }
 
     `;
   }
-
-  public getCardSize(): Promise<number> | number {
-    return 1;
-  }
 }
-
-window.customCards.push({
-  type: "modern-circular-gauge",
-  name: "Modern Cicular Gauge",
-  preview: false
-});
