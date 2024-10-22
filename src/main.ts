@@ -413,7 +413,8 @@ export class ModernCircularGauge extends LitElement {
     }
 
     .segments {
-      filter: opacity(0.3) contrast(0.8);
+      opacity: 0.3;
+      filter: contrast(0.8);
     }
 
     .needle {
