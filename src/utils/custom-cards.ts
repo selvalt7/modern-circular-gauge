@@ -12,7 +12,7 @@ export function registerCustomCard(params: RegisterCardParams) {
 
     windowWithCards.customCards.push({
         ...params,
-        preview: false,
+        preview: true,
         documentationURL: `https://github.com/selvalt7/modern-circular-gauge`,
     })
 }

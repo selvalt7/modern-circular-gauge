@@ -2,7 +2,7 @@ import { LovelaceCardConfig } from "custom-card-helpers";
 
 export interface SegmentsConfig {
     from: number;
-    color: string;
+    color: string | [number, number, number];
     label?: string;
 }
 

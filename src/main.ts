@@ -10,13 +10,12 @@ import { classMap } from "lit/directives/class-map.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { actionHandler } from "./utils/action-handler-directive";
+import { rgbToHex } from "./utils/color";
+import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS } from "./const";
 
 const MAX_ANGLE = 270;
 const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
 const RADIUS = 44;
-
-const DEFAULT_MIN = 0;
-const DEFAULT_MAX = 100;
 
 registerCustomCard({
   type: "modern-circular-gauge",
@@ -45,6 +44,22 @@ export class ModernCircularGauge extends LitElement {
       return "";
     },
   });
+
+  public static async getConfigElement(): Promise<HTMLElement> {
+    await import("./editor");
+    return document.createElement("modern-circular-gauge-editor");
+  }
+
+  public static async getStubConfig(hass: HomeAssistant): Promise<ModernCircularGaugeConfig> {
+    const entities = Object.keys(hass.states);
+    const numbers = entities.filter((e) =>
+      NUMBER_ENTITY_DOMAINS.includes(e.split(".")[0])
+    );
+    return {
+      type: "custom:modern-circular-gauge",
+      entity: numbers[0],
+    };
+  }
 
   setConfig(config: ModernCircularGaugeConfig): void {
     if (!config.entity) {
@@ -157,7 +172,7 @@ export class ModernCircularGauge extends LitElement {
           overflow="visible"
           style=${styleMap({ "--gauge-color": this._computeSegments(state) })}
         >
-          <g transform="rotate(135)">
+          <g transform="rotate(${ROTATE_ANGLE})">
             <path
               class="arc clear"
               d=${path}
@@ -220,6 +235,7 @@ export class ModernCircularGauge extends LitElement {
         let roundEnd: TemplateResult | undefined;
         const startAngle = index === 0 ? 0 : this._getAngle(segment.from);
         const angle = index === segments.length - 1 ? MAX_ANGLE : this._getAngle(segments[index + 1].from);
+        const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
         const path = svgArc({
           x: 0,
           y: 0,
@@ -239,7 +255,7 @@ export class ModernCircularGauge extends LitElement {
           roundEnd = svg`
           <path
             class="segment"
-            stroke=${segment.color}
+            stroke=${color}
             d=${path}
             stroke-linecap="round"
           />`;
@@ -248,7 +264,7 @@ export class ModernCircularGauge extends LitElement {
         return svg`${roundEnd}
           <path
             class="segment"
-            stroke=${segment.color}
+            stroke=${color}
             d=${path}
           />`;
       });
@@ -265,7 +281,8 @@ export class ModernCircularGauge extends LitElement {
         let segment = segments[i];
         if (segment && (numberState >= segment.from || i === 0) &&
           (i + 1 == segments?.length || numberState < segments![i + 1].from)) {
-          return segment.color;
+            const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
+            return color;
         }
       }
     }
