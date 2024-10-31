@@ -2,7 +2,7 @@ import { fireEvent, HomeAssistant } from "custom-card-helpers";
 import { html, LitElement, nothing, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { ModernCircularGaugeConfig, SegmentsConfig } from "./type";
-import { mdiSegment, mdiPlus } from "@mdi/js";
+import { mdiSegment, mdiPlus, mdiClose } from "@mdi/js";
 import { hexToRgb } from "./utils/color";
 import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS } from "./const";
 
@@ -149,6 +149,11 @@ export class ModernCircularGaugeEditor extends LitElement {
                             .computeLabel=${this._computeLabel}
                             @value-changed=${this._segmentChanged}
                         ></ha-form>
+                        <ha-icon-button
+                            .label=${this.hass.localize("ui.common.remove")}
+                            .path=${mdiClose}
+                            @click=${this._removeSegment}
+                        >
                     </div>
                     `)}
             </div>
@@ -173,6 +178,19 @@ export class ModernCircularGaugeEditor extends LitElement {
         }
 
         fireEvent(this, "config-changed", { config: { ...this._config, segments: [...this._config.segments, value] } });
+    }
+
+    private _removeSegment(ev: CustomEvent): void {
+        ev.stopPropagation();
+        if (!this.hass || !this._config) {
+            return;
+        }
+        const index = (ev.target as any).index;
+        const newSegment = this._config.segments?.concat();
+
+        newSegment?.splice(index, 1);
+
+        fireEvent(this, "config-changed", { config: { ...this._config, segments: newSegment } } as any);
     }
 
     private _segmentChanged(ev: CustomEvent): void {
