@@ -1,11 +1,15 @@
 import { html, LitElement, TemplateResult, css, svg, nothing } from "lit";
 import { ResizeController } from "@lit-labs/observers/resize-controller.js";
 import { customElement, property, state } from "lit/decorators.js";
-import { ActionHandlerEvent, handleAction, hasAction, HomeAssistant } from "custom-card-helpers";
+import { ActionHandlerEvent, formatNumber, hasAction } from "custom-card-helpers";
 import { clamp, svgArc } from "./utils/gauge";
 import { registerCustomCard } from "./utils/custom-cards";
 import type { ModernCircularGaugeConfig } from "./type";
-import { LovelaceLayoutOptions } from "./utils/lovelace";
+import { LovelaceLayoutOptions } from "./ha/lovelace";
+import { handleAction } from "./ha/handle-action";
+import { HomeAssistant } from "./ha/types";
+import { HassEntity } from "home-assistant-js-websocket";
+import { getNumberFormatOptions } from "./utils/format_number";
 import { classMap } from "lit/directives/class-map.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { ifDefined } from "lit/directives/if-defined.js";
@@ -114,7 +118,7 @@ export class ModernCircularGauge extends LitElement {
       `;
     }
 
-    const state = Number(stateObj.state);
+    const numberState = Number(stateObj.state);
 
     if (stateObj.state === "unavailable") {
       return html`
@@ -124,7 +128,7 @@ export class ModernCircularGauge extends LitElement {
       `;
     }
 
-    if (isNaN(state)) {
+    if (isNaN(numberState)) {
       return html`
       <hui-warning>
         ${this.hass.localize("ui.panel.lovelace.warning.entity_non_numeric", { entity: this._config.entity })}
@@ -140,10 +144,15 @@ export class ModernCircularGauge extends LitElement {
       r: RADIUS,
     });
 
+    const attributes = stateObj.attributes;
+
     const unit = this._config.unit ?? stateObj.attributes.unit_of_measurement;
 
-    const current = this._config.needle ? undefined : this._strokeDashArc(state > 0 ? 0 : state, state > 0 ? state : 0);
-    const needle = this._config.needle ? this._strokeDashArc(state, state) : undefined;
+    const current = this._config.needle ? undefined : this._strokeDashArc(numberState > 0 ? 0 : numberState, numberState > 0 ? numberState : 0);
+    const needle = this._config.needle ? this._strokeDashArc(numberState, numberState) : undefined;
+
+    const state = stateObj.state;
+    const entityState = formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj.entity_id]));
 
     return html`
     <ha-card
@@ -170,7 +179,7 @@ export class ModernCircularGauge extends LitElement {
       <div class="container ${this._sizeController.value || ""}">
         <svg viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid"
           overflow="visible"
-          style=${styleMap({ "--gauge-color": this._computeSegments(state) })}
+          style=${styleMap({ "--gauge-color": this._computeSegments(numberState) })}
         >
           <g transform="rotate(${ROTATE_ANGLE})">
             <path
@@ -214,8 +223,8 @@ export class ModernCircularGauge extends LitElement {
         </svg>
         <div class="state">
           <p class="value">
-          ${this._getSegmentLabel(state) ? this._getSegmentLabel(state) : html`
-            ${state}
+          ${this._getSegmentLabel(numberState) ? this._getSegmentLabel(numberState) : html`
+            ${entityState}
             <span class="unit">
               ${unit}
             </span>

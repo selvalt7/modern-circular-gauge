@@ -1,4 +1,5 @@
-import { fireEvent, HomeAssistant } from "custom-card-helpers";
+import { fireEvent } from "custom-card-helpers";
+import { HomeAssistant } from "./ha/types";
 import { html, LitElement, nothing, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { ModernCircularGaugeConfig, SegmentsConfig } from "./type";
@@ -219,7 +220,15 @@ export class ModernCircularGaugeEditor extends LitElement {
     static get styles() {
         return css`
             .segment-entry {
+                display: flex;
+                flex-direction: row;
+                justify-content: center;
+                align-items: center;
                 margin-bottom: 24px;
+            }
+
+            .segment-entry ha-form {
+                flex: 1;
             }
             
             ha-expansion-panel {
