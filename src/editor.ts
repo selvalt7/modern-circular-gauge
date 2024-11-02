@@ -3,7 +3,7 @@ import { HomeAssistant } from "./ha/types";
 import { html, LitElement, nothing, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { ModernCircularGaugeConfig, SegmentsConfig } from "./type";
-import { mdiSegment, mdiPlus, mdiClose } from "@mdi/js";
+import { mdiSegment, mdiPlus, mdiClose, mdiInformationOutline } from "@mdi/js";
 import { hexToRgb } from "./utils/color";
 import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS } from "./const";
 
@@ -39,6 +39,24 @@ const FORM = [
                 label: "generic.maximum",
                 selector: { number: {} },
             },
+        ],
+    },
+    {
+        name: "secondary_entity",
+        type: "expandable",
+        label: "Secondary entity",
+        iconPath: mdiInformationOutline,
+        schema: [
+            {
+                name: "entity",
+                selector: { entity: { 
+                    domain: NUMBER_ENTITY_DOMAINS,
+                }},
+            },
+            {
+                name: "unit",
+                selector: { text: {} },
+            }
         ],
     },
     {

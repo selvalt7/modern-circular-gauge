@@ -222,17 +222,49 @@ export class ModernCircularGauge extends LitElement {
           </g>
         </svg>
         <div class="state">
-          <p class="value">
+          <div class="secondary"></div>
+          <div class="value">
           ${this._getSegmentLabel(numberState) ? this._getSegmentLabel(numberState) : html`
+            <span>
             ${entityState}
+            </span>
             <span class="unit">
               ${unit}
             </span>
             `}
+          </div>
+          <p class="secondary">
+            ${this._renderSecondary()}
           </p>
         </div>
       </div> 
     </ha-card>
+    `;
+  }
+
+  private _renderSecondary(): TemplateResult {
+    const secondaryEntity = this._config?.secondary_entity;
+    if (!secondaryEntity) {
+      return html``;
+    }
+    const stateObj = this.hass.states[secondaryEntity.entity];
+
+    if (!stateObj) {
+      return html``;
+    }
+
+    const attributes = stateObj.attributes;
+
+    const unit = secondaryEntity.unit ?? attributes.unit_of_measurement;
+
+    const state = stateObj.state;
+    const entityState = formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj.entity_id]));
+
+    return html`
+    ${entityState}
+    <span>
+    ${unit}
+    </span>
     `;
   }
 
@@ -369,6 +401,7 @@ export class ModernCircularGauge extends LitElement {
       flex-direction: column;
       justify-content: center;
       text-align: center;
+      gap: 8px;
     }
 
     .container {
@@ -383,8 +416,20 @@ export class ModernCircularGauge extends LitElement {
       margin-bottom: -20px;
     }
 
+    .secondary {
+      height: 60%;
+      margin: 0;
+      color: var(--secondary-text-color);
+    }
+
     .value {
+      display: inline-flex;
+      line-height: 1;
+      align-items: center;
+      justify-content: center;
       font-size: 57px;
+      margin: 0;
+      gap: 2px;
     }
     
     .small .value {
@@ -407,6 +452,8 @@ export class ModernCircularGauge extends LitElement {
     .unit {
       font-size: .33em;
       opacity: 0.6;
+      align-self: flex-start;
+      padding: 4px 0;
     }
 
     svg {
