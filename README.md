@@ -2,8 +2,8 @@
 
 Modern gauge inspired and based on `ha-control-circular-slider`
 
-![gauge_light](https://github.com/user-attachments/assets/85c04764-ab11-4677-92b6-3265ed8b0aea)
-![gauge_dark](https://github.com/user-attachments/assets/4742d28e-5156-46ab-b3d1-f5d9eceb4d81)
+![Gauges](https://github.com/user-attachments/assets/a1a07268-a94c-4f12-9d73-0aba3d2b79c7)
+
 
 ## Install
 
@@ -36,6 +36,8 @@ https://github.com/selvalt7/modern-circular-gauge
 
 ## Options
 
+Card can be configured through visual editor or by `yaml`.
+
 ### Card options
 
 | Name | Type | Default | Description |
@@ -49,6 +51,7 @@ https://github.com/selvalt7/modern-circular-gauge
 | header_position | `string` | `top` | Header position (`top`, `bottom`)
 | needle | `boolean` | `false` | 
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
+| secondary_entity | `object` | Optional | Secondary entity to display under the state, see [secondary entity object](#secondary-entity-object)
 
 ### Color segment object
 | Name | Type | Default | Description |
@@ -56,6 +59,12 @@ https://github.com/selvalt7/modern-circular-gauge
 | from | `number` | Required | Starting value of color segment
 | color | `string` | Required | Color value of color segment
 | label | `string` | Optional | Color segment label
+
+### Secondary entity object
+| Name | Type | Default | Description |
+|------|:----:|:-------:|:------------|
+| entity | `string` | Required | Secondary entity
+| unit | `string` | Optional | Custom unit
 
 ## Development
 
