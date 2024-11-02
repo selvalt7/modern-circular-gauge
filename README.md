@@ -15,6 +15,8 @@ https://github.com/selvalt7/modern-circular-gauge
 
 ([How to add Custom Repositories](https://hacs.xyz/docs/faq/custom_repositories/))
 
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=selvalt7&repository=modern-circular-gauge&category=plugin)
+
 ### Manual
 
 1. Download `modern-circular-gauge.js` from [latest release](https://github.com/selvalt7/modern-circular-gauge/releases/latest)
