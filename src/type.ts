@@ -2,9 +2,14 @@ import { LovelaceCardConfig } from "custom-card-helpers";
 
 export interface SegmentsConfig {
     from: number;
-    color: string;
+    color: string | [number, number, number];
     label?: string;
 }
+
+export type SecondaryEntity = {
+    entity: string;
+    unit?: string;
+};
 
 export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     entity: string;
@@ -15,4 +20,5 @@ export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     header_position?: "top" | "bottom";
     needle?: boolean;
     segments?: SegmentsConfig[];
+    secondary_entity?: SecondaryEntity;
 }

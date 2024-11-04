@@ -1,22 +1,25 @@
 import { html, LitElement, TemplateResult, css, svg, nothing } from "lit";
 import { ResizeController } from "@lit-labs/observers/resize-controller.js";
 import { customElement, property, state } from "lit/decorators.js";
-import { ActionHandlerEvent, handleAction, hasAction, HomeAssistant } from "custom-card-helpers";
+import { ActionHandlerEvent, formatNumber, hasAction } from "custom-card-helpers";
 import { clamp, svgArc } from "./utils/gauge";
 import { registerCustomCard } from "./utils/custom-cards";
 import type { ModernCircularGaugeConfig } from "./type";
-import { LovelaceLayoutOptions } from "./utils/lovelace";
+import { LovelaceLayoutOptions } from "./ha/lovelace";
+import { handleAction } from "./ha/handle-action";
+import { HomeAssistant } from "./ha/types";
+import { HassEntity } from "home-assistant-js-websocket";
+import { getNumberFormatOptions } from "./utils/format_number";
 import { classMap } from "lit/directives/class-map.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { actionHandler } from "./utils/action-handler-directive";
+import { rgbToHex } from "./utils/color";
+import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS } from "./const";
 
 const MAX_ANGLE = 270;
 const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
 const RADIUS = 44;
-
-const DEFAULT_MIN = 0;
-const DEFAULT_MAX = 100;
 
 registerCustomCard({
   type: "modern-circular-gauge",
@@ -45,6 +48,22 @@ export class ModernCircularGauge extends LitElement {
       return "";
     },
   });
+
+  public static async getConfigElement(): Promise<HTMLElement> {
+    await import("./editor");
+    return document.createElement("modern-circular-gauge-editor");
+  }
+
+  public static async getStubConfig(hass: HomeAssistant): Promise<ModernCircularGaugeConfig> {
+    const entities = Object.keys(hass.states);
+    const numbers = entities.filter((e) =>
+      NUMBER_ENTITY_DOMAINS.includes(e.split(".")[0])
+    );
+    return {
+      type: "custom:modern-circular-gauge",
+      entity: numbers[0],
+    };
+  }
 
   setConfig(config: ModernCircularGaugeConfig): void {
     if (!config.entity) {
@@ -99,7 +118,7 @@ export class ModernCircularGauge extends LitElement {
       `;
     }
 
-    const state = Number(stateObj.state);
+    const numberState = Number(stateObj.state);
 
     if (stateObj.state === "unavailable") {
       return html`
@@ -109,7 +128,7 @@ export class ModernCircularGauge extends LitElement {
       `;
     }
 
-    if (isNaN(state)) {
+    if (isNaN(numberState)) {
       return html`
       <hui-warning>
         ${this.hass.localize("ui.panel.lovelace.warning.entity_non_numeric", { entity: this._config.entity })}
@@ -125,10 +144,15 @@ export class ModernCircularGauge extends LitElement {
       r: RADIUS,
     });
 
+    const attributes = stateObj.attributes;
+
     const unit = this._config.unit ?? stateObj.attributes.unit_of_measurement;
 
-    const current = this._config.needle ? undefined : this._strokeDashArc(state > 0 ? 0 : state, state > 0 ? state : 0);
-    const needle = this._config.needle ? this._strokeDashArc(state, state) : undefined;
+    const current = this._config.needle ? undefined : this._strokeDashArc(numberState > 0 ? 0 : numberState, numberState > 0 ? numberState : 0);
+    const needle = this._config.needle ? this._strokeDashArc(numberState, numberState) : undefined;
+
+    const state = stateObj.state;
+    const entityState = formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj.entity_id]));
 
     return html`
     <ha-card
@@ -155,9 +179,9 @@ export class ModernCircularGauge extends LitElement {
       <div class="container ${this._sizeController.value || ""}">
         <svg viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid"
           overflow="visible"
-          style=${styleMap({ "--gauge-color": this._computeSegments(state) })}
+          style=${styleMap({ "--gauge-color": this._computeSegments(numberState) })}
         >
-          <g transform="rotate(135)">
+          <g transform="rotate(${ROTATE_ANGLE})">
             <path
               class="arc clear"
               d=${path}
@@ -198,17 +222,49 @@ export class ModernCircularGauge extends LitElement {
           </g>
         </svg>
         <div class="state">
-          <p class="value">
-          ${this._getSegmentLabel(state) ? this._getSegmentLabel(state) : html`
-            ${state}
+          <div class="secondary"></div>
+          <div class="value">
+          ${this._getSegmentLabel(numberState) ? this._getSegmentLabel(numberState) : html`
+            <span>
+            ${entityState}
+            </span>
             <span class="unit">
               ${unit}
             </span>
             `}
+          </div>
+          <p class="secondary">
+            ${this._renderSecondary()}
           </p>
         </div>
       </div> 
     </ha-card>
+    `;
+  }
+
+  private _renderSecondary(): TemplateResult {
+    const secondaryEntity = this._config?.secondary_entity;
+    if (!secondaryEntity) {
+      return html``;
+    }
+    const stateObj = this.hass.states[secondaryEntity.entity];
+
+    if (!stateObj) {
+      return html``;
+    }
+
+    const attributes = stateObj.attributes;
+
+    const unit = secondaryEntity.unit ?? attributes.unit_of_measurement;
+
+    const state = stateObj.state;
+    const entityState = formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj.entity_id]));
+
+    return html`
+    ${entityState}
+    <span>
+    ${unit}
+    </span>
     `;
   }
 
@@ -220,6 +276,7 @@ export class ModernCircularGauge extends LitElement {
         let roundEnd: TemplateResult | undefined;
         const startAngle = index === 0 ? 0 : this._getAngle(segment.from);
         const angle = index === segments.length - 1 ? MAX_ANGLE : this._getAngle(segments[index + 1].from);
+        const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
         const path = svgArc({
           x: 0,
           y: 0,
@@ -239,7 +296,7 @@ export class ModernCircularGauge extends LitElement {
           roundEnd = svg`
           <path
             class="segment"
-            stroke=${segment.color}
+            stroke=${color}
             d=${path}
             stroke-linecap="round"
           />`;
@@ -248,7 +305,7 @@ export class ModernCircularGauge extends LitElement {
         return svg`${roundEnd}
           <path
             class="segment"
-            stroke=${segment.color}
+            stroke=${color}
             d=${path}
           />`;
       });
@@ -265,7 +322,8 @@ export class ModernCircularGauge extends LitElement {
         let segment = segments[i];
         if (segment && (numberState >= segment.from || i === 0) &&
           (i + 1 == segments?.length || numberState < segments![i + 1].from)) {
-          return segment.color;
+            const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
+            return color;
         }
       }
     }
@@ -343,6 +401,7 @@ export class ModernCircularGauge extends LitElement {
       flex-direction: column;
       justify-content: center;
       text-align: center;
+      gap: 8px;
     }
 
     .container {
@@ -357,8 +416,20 @@ export class ModernCircularGauge extends LitElement {
       margin-bottom: -20px;
     }
 
+    .secondary {
+      height: 60%;
+      margin: 0;
+      color: var(--secondary-text-color);
+    }
+
     .value {
+      display: inline-flex;
+      line-height: 1;
+      align-items: center;
+      justify-content: center;
       font-size: 57px;
+      margin: 0;
+      gap: 2px;
     }
     
     .small .value {
@@ -381,6 +452,8 @@ export class ModernCircularGauge extends LitElement {
     .unit {
       font-size: .33em;
       opacity: 0.6;
+      align-self: flex-start;
+      padding: 4px 0;
     }
 
     svg {
