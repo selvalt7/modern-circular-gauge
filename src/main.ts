@@ -1,7 +1,7 @@
 import { html, LitElement, TemplateResult, css, svg, nothing } from "lit";
 import { ResizeController } from "@lit-labs/observers/resize-controller.js";
 import { customElement, property, state } from "lit/decorators.js";
-import { ActionHandlerEvent, formatNumber, hasAction } from "custom-card-helpers";
+import { ActionHandlerEvent, hasAction } from "custom-card-helpers";
 import { clamp, svgArc } from "./utils/gauge";
 import { registerCustomCard } from "./utils/custom-cards";
 import type { ModernCircularGaugeConfig } from "./type";
@@ -9,7 +9,7 @@ import { LovelaceLayoutOptions } from "./ha/lovelace";
 import { handleAction } from "./ha/handle-action";
 import { HomeAssistant } from "./ha/types";
 import { HassEntity } from "home-assistant-js-websocket";
-import { getNumberFormatOptions } from "./utils/format_number";
+import { getNumberFormatOptions, formatNumber } from "./utils/format_number";
 import { classMap } from "lit/directives/class-map.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { ifDefined } from "lit/directives/if-defined.js";
