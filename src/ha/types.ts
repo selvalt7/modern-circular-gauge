@@ -8,7 +8,8 @@ import type {
   MessageBase,
   HassEntity
 } from "home-assistant-js-websocket";
-import { LocalizeFunc, FrontendLocaleData, Themes } from "custom-card-helpers";
+import { FrontendLocaleData } from "./translation";
+import { LocalizeFunc, Themes } from "custom-card-helpers";
 
 export interface EntityRegistryDisplayEntry {
   entity_id: string;
