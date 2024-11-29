@@ -5,7 +5,7 @@ import { ActionHandlerEvent, hasAction } from "custom-card-helpers";
 import { clamp, svgArc } from "./utils/gauge";
 import { registerCustomCard } from "./utils/custom-cards";
 import type { ModernCircularGaugeConfig } from "./type";
-import { LovelaceLayoutOptions } from "./ha/lovelace";
+import { LovelaceLayoutOptions, LovelaceGridOptions } from "./ha/lovelace";
 import { handleAction } from "./ha/handle-action";
 import { HomeAssistant } from "./ha/types";
 import { HassEntity } from "home-assistant-js-websocket";
@@ -346,6 +346,15 @@ export class ModernCircularGauge extends LitElement {
 
   private _handleAction(ev: ActionHandlerEvent) {
     handleAction(this, this.hass!, this._config!, ev.detail.action!);
+  }
+
+  public getGridOptions(): LovelaceGridOptions {
+    return {
+      columns: 6,
+      rows: 4,
+      min_rows: 3,
+      min_columns: 4
+    };
   }
 
   public getLayoutOptions(): LovelaceLayoutOptions {
