@@ -204,7 +204,7 @@ export class ModernCircularGauge extends LitElement {
           </g>
         </svg>
         <svg class="state" viewBox="-50 -50 100 100">
-          <text class="value">
+          <text class="value" style=${styleMap({ "font-size": this._calcStateSize(entityState) })}>
             ${this._getSegmentLabel(numberState) ? this._getSegmentLabel(numberState) : svg`
               ${entityState}
               <tspan class="unit" baseline-shift="super" dx="-2">${unit}</tspan>
@@ -217,6 +217,14 @@ export class ModernCircularGauge extends LitElement {
       </div> 
     </ha-card>
     `;
+  }
+
+  private _calcStateSize(state: string): string {
+    const initialSize = 21;
+    if (state.length >= 7) {
+      return `${initialSize - (state.length - 5)}px`
+    }
+    return `${initialSize}px`;
   }
 
   private _renderSecondary(): TemplateResult {
