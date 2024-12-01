@@ -207,7 +207,7 @@ export class ModernCircularGauge extends LitElement {
           <text class="value" style=${styleMap({ "font-size": this._calcStateSize(entityState) })}>
             ${this._getSegmentLabel(numberState) ? this._getSegmentLabel(numberState) : svg`
               ${entityState}
-              <tspan class="unit" baseline-shift="super" dx="-2">${unit}</tspan>
+              <tspan class="unit" baseline-shift="super" dx="-4">${unit}</tspan>
             `}
           </text>
           <text class="secondary" dy="18">
