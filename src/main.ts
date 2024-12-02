@@ -1,15 +1,14 @@
 import { html, LitElement, TemplateResult, css, svg, nothing } from "lit";
-import { ResizeController } from "@lit-labs/observers/resize-controller.js";
 import { customElement, property, state } from "lit/decorators.js";
-import { ActionHandlerEvent, formatNumber, hasAction } from "custom-card-helpers";
+import { ActionHandlerEvent, hasAction } from "custom-card-helpers";
 import { clamp, svgArc } from "./utils/gauge";
 import { registerCustomCard } from "./utils/custom-cards";
 import type { ModernCircularGaugeConfig } from "./type";
-import { LovelaceLayoutOptions } from "./ha/lovelace";
+import { LovelaceLayoutOptions, LovelaceGridOptions } from "./ha/lovelace";
 import { handleAction } from "./ha/handle-action";
 import { HomeAssistant } from "./ha/types";
 import { HassEntity } from "home-assistant-js-websocket";
-import { getNumberFormatOptions } from "./utils/format_number";
+import { getNumberFormatOptions, formatNumber } from "./utils/format_number";
 import { classMap } from "lit/directives/class-map.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { ifDefined } from "lit/directives/if-defined.js";
@@ -31,23 +30,6 @@ registerCustomCard({
 export class ModernCircularGauge extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: ModernCircularGaugeConfig;
-
-  private _sizeController = new ResizeController(this, {
-    callback: (entries) => {
-      const element = entries[0]?.target.shadowRoot?.querySelector(".container") as HTMLElement | undefined;
-      const size = Math.min(element?.clientHeight || 0, element?.clientWidth || 0);
-      if (size < 160) {
-        return "small";
-      }
-      if (size < 200) {
-        return "medium";
-      }
-      if (size < 280) {
-        return "big";
-      }
-      return "";
-    },
-  });
 
   public static async getConfigElement(): Promise<HTMLElement> {
     await import("./editor");
@@ -176,7 +158,7 @@ export class ModernCircularGauge extends LitElement {
           ${this._config.name ?? stateObj.attributes.friendly_name ?? ''}
         </p>
       </div>
-      <div class="container ${this._sizeController.value || ""}">
+      <div class="container">
         <svg viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid"
           overflow="visible"
           style=${styleMap({ "--gauge-color": this._computeSegments(numberState) })}
@@ -221,36 +203,39 @@ export class ModernCircularGauge extends LitElement {
               ` : nothing}
           </g>
         </svg>
-        <div class="state">
-          <div class="secondary"></div>
-          <div class="value">
-          ${this._getSegmentLabel(numberState) ? this._getSegmentLabel(numberState) : html`
-            <span>
-            ${entityState}
-            </span>
-            <span class="unit">
-              ${unit}
-            </span>
+        <svg class="state" viewBox="-50 -50 100 100">
+          <text class="value" style=${styleMap({ "font-size": this._calcStateSize(entityState) })}>
+            ${this._getSegmentLabel(numberState) ? this._getSegmentLabel(numberState) : svg`
+              ${entityState}
+              <tspan class="unit" baseline-shift="super" dx="-4">${unit}</tspan>
             `}
-          </div>
-          <p class="secondary">
+          </text>
+          <text class="secondary" dy="18">
             ${this._renderSecondary()}
-          </p>
-        </div>
+          </text>
+        </svg>
       </div> 
     </ha-card>
     `;
   }
 
+  private _calcStateSize(state: string): string {
+    const initialSize = 21;
+    if (state.length >= 7) {
+      return `${initialSize - (state.length - 5)}px`
+    }
+    return `${initialSize}px`;
+  }
+
   private _renderSecondary(): TemplateResult {
     const secondaryEntity = this._config?.secondary_entity;
     if (!secondaryEntity) {
-      return html``;
+      return svg``;
     }
     const stateObj = this.hass.states[secondaryEntity.entity];
 
     if (!stateObj) {
-      return html``;
+      return svg``;
     }
 
     const attributes = stateObj.attributes;
@@ -260,11 +245,11 @@ export class ModernCircularGauge extends LitElement {
     const state = stateObj.state;
     const entityState = formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj.entity_id]));
 
-    return html`
+    return svg`
     ${entityState}
-    <span>
+    <tspan>
     ${unit}
-    </span>
+    </tspan>
     `;
   }
 
@@ -348,6 +333,15 @@ export class ModernCircularGauge extends LitElement {
     handleAction(this, this.hass!, this._config!, ev.detail.action!);
   }
 
+  public getGridOptions(): LovelaceGridOptions {
+    return {
+      columns: 6,
+      rows: 4,
+      min_rows: 3,
+      min_columns: 4
+    };
+  }
+
   public getLayoutOptions(): LovelaceLayoutOptions {
     return {
       grid_columns: 2,
@@ -397,11 +391,7 @@ export class ModernCircularGauge extends LitElement {
       bottom: 0;
       left: 0;
       right: 0;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      text-align: center;
-      gap: 8px;
+      text-anchor: middle;
     }
 
     .container {
@@ -417,31 +407,14 @@ export class ModernCircularGauge extends LitElement {
     }
 
     .secondary {
-      height: 60%;
-      margin: 0;
-      color: var(--secondary-text-color);
+      font-size: 7px;
+      fill: var(--secondary-text-color);
     }
 
     .value {
-      display: inline-flex;
-      line-height: 1;
-      align-items: center;
-      justify-content: center;
-      font-size: 57px;
-      margin: 0;
-      gap: 2px;
-    }
-    
-    .small .value {
-      font-size: 27px;
-    }
-
-    .medium .value {
-      font-size: 37px;
-    }
-
-    .big .value {
-      font-size: 47px;
+      font-size: 21px;
+      fill: var(--primary-text-color);
+      alignment-baseline: middle;
     }
 
     .name {
@@ -452,8 +425,6 @@ export class ModernCircularGauge extends LitElement {
     .unit {
       font-size: .33em;
       opacity: 0.6;
-      align-self: flex-start;
-      padding: 4px 0;
     }
 
     svg {
