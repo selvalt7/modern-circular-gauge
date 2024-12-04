@@ -51,7 +51,7 @@ Card can be configured through visual editor or by `yaml`.
 | header_position | `string` | `top` | Header position (`top`, `bottom`)
 | needle | `boolean` | `false` | 
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
-| secondary_entity | `object` | Optional | Secondary entity to display under the state, see [secondary entity object](#secondary-entity-object)
+| secondary_entity | `object` | Optional | Secondary info to display under the state, see [secondary entity object](#secondary-entity-object)
 
 ### Color segment object
 | Name | Type | Default | Description |
@@ -63,8 +63,9 @@ Card can be configured through visual editor or by `yaml`.
 ### Secondary entity object
 | Name | Type | Default | Description |
 |------|:----:|:-------:|:------------|
-| entity | `string` | Required | Secondary entity
+| entity | `string` | Optional | Secondary entity
 | unit | `string` | Optional | Custom unit
+| template | `string` | Optional | 
 
 ## Development
 
