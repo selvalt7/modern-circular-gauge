@@ -109,8 +109,6 @@ export class ModernCircularGauge extends LitElement {
       return html``;
     }
 
-    console.log(this._templateResult);
-
     const stateObj = this.hass.states[this._config.entity];
 
     if (!stateObj) {
