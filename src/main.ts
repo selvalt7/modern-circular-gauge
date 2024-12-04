@@ -7,7 +7,7 @@ import type { ModernCircularGaugeConfig } from "./type";
 import { LovelaceLayoutOptions, LovelaceGridOptions } from "./ha/lovelace";
 import { handleAction } from "./ha/handle-action";
 import { HomeAssistant } from "./ha/types";
-import { HassEntity } from "home-assistant-js-websocket";
+import { HassEntity, UnsubscribeFunc } from "home-assistant-js-websocket";
 import { getNumberFormatOptions, formatNumber } from "./utils/format_number";
 import { classMap } from "lit/directives/class-map.js";
 import { styleMap } from "lit/directives/style-map.js";
@@ -15,6 +15,7 @@ import { ifDefined } from "lit/directives/if-defined.js";
 import { actionHandler } from "./utils/action-handler-directive";
 import { rgbToHex } from "./utils/color";
 import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS } from "./const";
+import { RenderTemplateResult, subscribeRenderTemplate } from "./ha/ws-templates";
 
 const MAX_ANGLE = 270;
 const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
@@ -30,6 +31,10 @@ registerCustomCard({
 export class ModernCircularGauge extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: ModernCircularGaugeConfig;
+
+  @state() private _templateResult?: RenderTemplateResult;
+
+  private _unsubRenderTemplate?: Promise<UnsubscribeFunc>;
 
   public static async getConfigElement(): Promise<HTMLElement> {
     await import("./editor");
@@ -51,8 +56,22 @@ export class ModernCircularGauge extends LitElement {
     if (!config.entity) {
       throw new Error("Entity must be specified");
     }
+
+    if (this._config?.content !== config.content) {
+      this._tryDisconnect();
+    }
     
     this._config = { min: DEFAULT_MIN, max: DEFAULT_MAX, ...config };
+  }
+
+  public connectedCallback() {
+    super.connectedCallback();
+    this._tryConnect();
+  }
+
+  public disconnectedCallback() {
+    super.disconnectedCallback();
+    this._tryDisconnect();
   }
 
   private _strokeDashArc(from: number, to: number): [string, string] {
@@ -89,6 +108,8 @@ export class ModernCircularGauge extends LitElement {
     if (!this.hass || !this._config) {
       return html``;
     }
+
+    console.log(this._templateResult);
 
     const stateObj = this.hass.states[this._config.entity];
 
@@ -232,7 +253,7 @@ export class ModernCircularGauge extends LitElement {
     if (!secondaryEntity) {
       return svg``;
     }
-    const stateObj = this.hass.states[secondaryEntity.entity];
+    const stateObj = this.hass.states[secondaryEntity.entity || ""];
 
     if (!stateObj) {
       return svg``;
@@ -245,7 +266,12 @@ export class ModernCircularGauge extends LitElement {
     const state = stateObj.state;
     const entityState = formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj.entity_id]));
 
-    return svg`
+    const template = this._config?.secondary_entity?.template || "";
+
+    return template?.length > 0 ? 
+    svg`
+    ${this._templateResult?.result}
+    ` : svg`
     ${entityState}
     <tspan>
     ${unit}
@@ -327,6 +353,53 @@ export class ModernCircularGauge extends LitElement {
       }
     }
     return "";
+  }
+
+  private async _tryConnect(): Promise<void> {
+    if (
+      this._unsubRenderTemplate !== undefined ||
+      !this.hass ||
+      !this._config
+    ) {
+      return;
+    }
+
+    try {
+      this._unsubRenderTemplate = subscribeRenderTemplate(
+        this.hass.connection,
+        (result) => {
+          if ("error" in result) {
+            return;
+          }
+          this._templateResult = result;
+        },
+        {
+          template: this._config.secondary_entity?.template || "",
+          entity_ids: this._config.secondary_entity?.entity,
+          variables: {
+            config: this._config,
+            user: this.hass.user!.name,
+          },
+          strict: true,
+        }
+      );
+      await this._unsubRenderTemplate;
+    } catch (e: any) {
+      this._templateResult = {
+        result: this._config!.secondary_entity?.template || "",
+        listeners: { all: false, domains: [], entities: [], time: false },
+      };
+      this._unsubRenderTemplate = undefined;
+    }
+  }
+
+  private async _tryDisconnect(): Promise<void> {
+    if (!this._unsubRenderTemplate) {
+      return;
+    }
+
+    this._unsubRenderTemplate.then((unsub) => unsub()).catch(() => {});
+    this._unsubRenderTemplate = undefined;
   }
 
   private _handleAction(ev: ActionHandlerEvent) {

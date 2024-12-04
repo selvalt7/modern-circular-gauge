@@ -44,7 +44,7 @@ const FORM = [
     {
         name: "secondary_entity",
         type: "expandable",
-        label: "Secondary entity",
+        label: "Secondary info",
         iconPath: mdiInformationOutline,
         schema: [
             {
@@ -56,6 +56,10 @@ const FORM = [
             {
                 name: "unit",
                 selector: { text: {} },
+            },
+            {
+                name: "template",
+                selector: { template: {} },
             }
         ],
     },
