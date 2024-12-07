@@ -254,6 +254,9 @@ export class ModernCircularGaugeEditor extends LitElement {
                     unit: config.secondary.unit || undefined
                 };
             }
+            else {
+                secondary = undefined;
+            }
             if (config.secondary.template !== undefined) {
                 secondary = config.secondary.template;
             }
