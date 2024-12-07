@@ -61,7 +61,20 @@ export class ModernCircularGauge extends LitElement {
       this._tryDisconnect();
     }
     
-    this._config = { min: DEFAULT_MIN, max: DEFAULT_MAX, ...config };
+    let secondary = config.secondary;
+
+    if (secondary === undefined && config.secondary_entity !== undefined) {
+        secondary = config.secondary_entity;
+    }
+    
+    if (typeof secondary === "object") {
+        const template = secondary.template || "";
+        if (template.length > 0) {
+            secondary = template;
+        }
+    }
+
+    this._config = { min: DEFAULT_MIN, max: DEFAULT_MAX, ...config, secondary: secondary, secondary_entity: undefined };
   }
 
   public connectedCallback() {
@@ -247,11 +260,16 @@ export class ModernCircularGauge extends LitElement {
   }
 
   private _renderSecondary(): TemplateResult {
-    const secondaryEntity = this._config?.secondary_entity;
-    if (!secondaryEntity) {
+    const secondary = this._config?.secondary;
+    if (!secondary) {
       return svg``;
     }
-    const stateObj = this.hass.states[secondaryEntity.entity || ""];
+
+    if (typeof secondary === "string") {
+      return svg`${this._templateResult?.result}`;
+    }
+
+    const stateObj = this.hass.states[secondary.entity || ""];
 
     if (!stateObj) {
       return svg``;
@@ -259,17 +277,12 @@ export class ModernCircularGauge extends LitElement {
 
     const attributes = stateObj.attributes;
 
-    const unit = secondaryEntity.unit ?? attributes.unit_of_measurement;
+    const unit = secondary.unit ?? attributes.unit_of_measurement;
 
     const state = stateObj.state;
     const entityState = formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj.entity_id]));
 
-    const template = this._config?.secondary_entity?.template || "";
-
-    return template?.length > 0 ? 
-    svg`
-    ${this._templateResult?.result}
-    ` : svg`
+    return svg`
     ${entityState}
     <tspan>
     ${unit}
@@ -372,8 +385,7 @@ export class ModernCircularGauge extends LitElement {
           this._templateResult = result;
         },
         {
-          template: this._config.secondary_entity?.template || "",
-          entity_ids: this._config.secondary_entity?.entity,
+          template: this._config.secondary as string || "",
           variables: {
             config: this._config,
             user: this.hass.user!.name,
@@ -384,7 +396,7 @@ export class ModernCircularGauge extends LitElement {
       await this._unsubRenderTemplate;
     } catch (e: any) {
       this._templateResult = {
-        result: this._config!.secondary_entity?.template || "",
+        result: this._config!.secondary as string || "",
         listeners: { all: false, domains: [], entities: [], time: false },
       };
       this._unsubRenderTemplate = undefined;

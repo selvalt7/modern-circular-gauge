@@ -42,7 +42,7 @@ const FORM = [
         ],
     },
     {
-        name: "secondary_entity",
+        name: "secondary",
         type: "expandable",
         label: "Secondary info",
         iconPath: mdiInformationOutline,
@@ -56,10 +56,6 @@ const FORM = [
             {
                 name: "unit",
                 selector: { text: {} },
-            },
-            {
-                name: "template",
-                selector: { template: {} },
             }
         ],
     },
@@ -121,7 +117,20 @@ export class ModernCircularGaugeEditor extends LitElement {
     @state() private _config?: ModernCircularGaugeConfig;
 
     setConfig(config: ModernCircularGaugeConfig): void {
-        this._config = config;
+        let secondary = config.secondary;
+
+        if (secondary === undefined && config.secondary_entity !== undefined) {
+            secondary = config.secondary_entity;
+        }
+        
+        if (typeof secondary === "object") {
+            const template = secondary.template || "";
+            if (template.length > 0) {
+                secondary = template;
+            }
+        }
+
+        this._config = { ...config, secondary: secondary, secondary_entity: undefined };
     }
 
     protected render() {
@@ -231,12 +240,26 @@ export class ModernCircularGaugeEditor extends LitElement {
     }
 
     private _valueChanged(ev: CustomEvent): void {
-        let config = ev.detail.value;
+        let config = ev.detail.value as ModernCircularGaugeConfig;
         if (!config) {
             return;
         }
 
-        fireEvent(this, "config-changed", { config });
+        let secondary = this._config?.secondary;
+
+        if (typeof config.secondary === "object") {
+            if (config.secondary.entity !== undefined) {
+                secondary = {
+                    entity: config.secondary.entity,
+                    unit: config.secondary.unit || undefined
+                };
+            }
+            if (config.secondary.template !== undefined) {
+                secondary = config.secondary.template;
+            }
+        }
+
+        fireEvent(this, "config-changed", { config: { ...config, secondary } });
     }
 
     static get styles() {
