@@ -51,7 +51,7 @@ Card can be configured through visual editor or by `yaml`.
 | header_position | `string` | `top` | Header position (`top`, `bottom`)
 | needle | `boolean` | `false` | 
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
-| secondary_entity | `object` | Optional | Secondary entity to display under the state, see [secondary entity object](#secondary-entity-object)
+| secondary | `object` or `string` | Optional | Secondary info to display under the state, see [secondary entity object](#secondary-entity-object). May contain [templates](https://www.home-assistant.io/docs/configuration/templating/) see [example](#gauge-with-templated-additional-info-and-segments)
 
 ### Color segment object
 | Name | Type | Default | Description |
@@ -63,8 +63,66 @@ Card can be configured through visual editor or by `yaml`.
 ### Secondary entity object
 | Name | Type | Default | Description |
 |------|:----:|:-------:|:------------|
-| entity | `string` | Required | Secondary entity
+| entity | `string` | Optional | Secondary entity
 | unit | `string` | Optional | Custom unit
+
+## Examples
+
+### Simple gauge
+
+![simple_gauge](https://github.com/user-attachments/assets/3b895d21-2f03-4eea-903a-43590e687846)
+
+```yaml
+type: custom:modern-circular-gauge
+entity: sensor.power_consumption
+max: 1000
+```
+
+### Gauge with additional info
+
+![simple_gauge_secondary_info](https://github.com/user-attachments/assets/93a411ef-88b1-477b-b6f7-896cdc32dbff)
+
+```yaml
+type: custom:modern-circular-gauge
+entity: sensor.power_consumption
+secondary:
+  entity: sensor.voltage
+max: 1000
+```
+
+### Gauge with templated additional info and segments
+
+![gauge_templates](https://github.com/user-attachments/assets/b4cc720b-7433-4729-b09e-3800ea578de3)
+
+```yaml
+type: custom:modern-circular-gauge
+entity: sensor.room_temp
+unit: °C
+name: Temperature
+secondary: >-
+  {% if is_state("binary_sensor.room_temp_rising", "on") %} Rising {% elif
+  is_state("binary_sensor.room_temp_falling", "on") %} Falling {% endif %}
+max: 30
+min: 10
+header_position: bottom
+needle: true
+segments:
+  - from: 13
+    color:
+      - 11
+      - 182
+      - 239
+  - from: 19
+    color:
+      - 43
+      - 255
+      - 0
+  - from: 24
+    color:
+      - 252
+      - 161
+      - 3
+```
 
 ## Development
 
