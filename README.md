@@ -70,6 +70,8 @@ Card can be configured through visual editor or by `yaml`.
 
 ### Simple gauge
 
+![simple_gauge](https://github.com/user-attachments/assets/3b895d21-2f03-4eea-903a-43590e687846)
+
 ```yaml
 type: custom:modern-circular-gauge
 entity: sensor.power_consumption
@@ -77,6 +79,8 @@ max: 1000
 ```
 
 ### Gauge with additional info
+
+![simple_gauge_secondary_info](https://github.com/user-attachments/assets/93a411ef-88b1-477b-b6f7-896cdc32dbff)
 
 ```yaml
 type: custom:modern-circular-gauge
@@ -87,6 +91,8 @@ max: 1000
 ```
 
 ### Gauge with templated additional info and segments
+
+![gauge_templates](https://github.com/user-attachments/assets/b4cc720b-7433-4729-b09e-3800ea578de3)
 
 ```yaml
 type: custom:modern-circular-gauge
