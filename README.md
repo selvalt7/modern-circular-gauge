@@ -86,7 +86,7 @@ max: 1000
 type: custom:modern-circular-gauge
 entity: sensor.power_consumption
 secondary:
-  entity: input_number.voltage
+  entity: sensor.voltage
 max: 1000
 ```
 
