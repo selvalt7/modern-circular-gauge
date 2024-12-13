@@ -1,4 +1,4 @@
-import { LitElement, TemplateResult, html, css } from "lit";
+import { LitElement, TemplateResult, html, css, nothing } from "lit";
 import { HomeAssistant } from "../ha/types";
 import { ModernCircularGaugeBadgeConfig } from "./gauge-badge-config";
 import { customElement, property, state } from "lit/decorators.js";
@@ -8,10 +8,11 @@ import { registerCustomBadge } from "../utils/custom-badges";
 import { HassEntity } from "home-assistant-js-websocket";
 import { styleMap } from "lit/directives/style-map.js";
 import { svgArc, clamp } from "../utils/gauge";
+import { classMap } from "lit/directives/class-map.js";
 
 const MAX_ANGLE = 270;
 const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
-const RADIUS = 44;
+const RADIUS = 42;
 
 registerCustomBadge({
   type: "modern-circular-gauge-badge",
@@ -84,36 +85,44 @@ export class ModernCircularGaugeBadge extends LitElement {
 
     const numberState = Number(stateObj.state);
 
-    const unit = stateObj.attributes.unit_of_measurement;
+    const unit = this._config.unit ?? stateObj.attributes.unit_of_measurement;
 
     const current = this._strokeDashArc(numberState > 0 ? 0 : numberState, numberState > 0 ? numberState : 0);
     const state = stateObj.state;
     const entityState = formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj.entity_id]));
 
+    const name = this._config.name || stateObj.attributes.friendly_name;
+    const label = this._config.show_name ? name : undefined;
+
     return html`
     <ha-badge
-      .iconOnly=${true}
+      .iconOnly=${!this._config.show_name}
     >
-      <svg class="gauge" viewBox="-50 -50 100 100" slot="icon">
-        <g transform="rotate(${ROTATE_ANGLE})">
-          <path
-            class="arc clear"
-            d=${path}
-          />
-          <path
-            class="arc current"
-            d=${path}
-            stroke-dasharray="${current[0]}"
-            stroke-dashoffset="${current[1]}"
-          />
-        </g>
-      </svg>
-      <svg class="state" viewBox="-50 -50 100 100" slot="icon">
-        <text class="value" style=${styleMap({ "font-size": this._calcStateSize(entityState) })}>
-          ${entityState}
-          <tspan class="unit" baseline-shift="super" dx="-4">${unit}</tspan>
-        </text>
-      </svg>
+      <div class=${classMap({ "container": true, "icon-only": !this._config.show_name })} slot="icon">
+        <svg class="gauge" viewBox="-50 -50 100 100">
+          <g transform="rotate(${ROTATE_ANGLE})">
+            <path
+              class="arc clear"
+              d=${path}
+            />
+            <path
+              class="arc current"
+              d=${path}
+              stroke-dasharray="${current[0]}"
+              stroke-dashoffset="${current[1]}"
+            />
+          </g>
+        </svg>
+        ${this._config.show_state ? html`
+          <svg class="state" viewBox="-50 -50 100 100">
+          <text class="value" style=${styleMap({ "font-size": this._calcStateSize(entityState) })}>
+            ${entityState}
+            <tspan class="unit" baseline-shift="super" dx="-4">${unit}</tspan>
+          </text>
+        </svg>
+          ` : nothing}
+      </div>
+      ${label}
     </ha-badge>
     `;
   }
@@ -131,11 +140,6 @@ export class ModernCircularGaugeBadge extends LitElement {
     :host {
       --gauge-color: var(--primary-color);
       --gauge-stroke-width: 14px;
-    }
-
-    .gauge {
-      margin-left: 0;
-      margin-inline-start: 0;
     }
 
     .badge::slotted([slot=icon]) {
@@ -161,8 +165,23 @@ export class ModernCircularGaugeBadge extends LitElement {
     }
 
     .unit {
-      font-size: .33em;
+      font-size: .43em;
       opacity: 0.6;
+    }
+
+    .container {
+      position: relative;
+      container-type: normal;
+      container-name: container;
+      width: var(--ha-badge-size, 36px);
+      height: var(--ha-badge-size, 36px);
+      margin-left: -12px;
+      margin-inline-start: -12px;
+    }
+
+    .container.icon-only {
+      margin-left: 0;
+      margin-inline-start: 0;
     }
 
     ha-badge {
