@@ -37,7 +37,7 @@ export class ModernCircularGauge extends LitElement {
   private _unsubRenderTemplate?: Promise<UnsubscribeFunc>;
 
   public static async getConfigElement(): Promise<HTMLElement> {
-    await import("./editor");
+    await import("./mcg-editor");
     return document.createElement("modern-circular-gauge-editor");
   }
 

@@ -9,6 +9,10 @@ import { HassEntity } from "home-assistant-js-websocket";
 import { styleMap } from "lit/directives/style-map.js";
 import { svgArc, clamp } from "../utils/gauge";
 import { classMap } from "lit/directives/class-map.js";
+import { ActionHandlerEvent, hasAction } from "custom-card-helpers";
+import { handleAction } from "../ha/handle-action";
+import { actionHandler } from "../utils/action-handler-directive";
+import { mdiAlertCircle } from "@mdi/js";
 
 const MAX_ANGLE = 270;
 const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
@@ -36,12 +40,26 @@ export class ModernCircularGaugeBadge extends LitElement {
     };
   }
 
+  public static async getConfigElement(): Promise<HTMLElement> {
+    await import("./gauge-badge-editor");
+    return document.createElement("modern-circular-gauge-badge-editor");
+  }
+
   setConfig(config: ModernCircularGaugeBadgeConfig): void {
     if (!config.entity) {
       throw new Error("Entity must be specified");
     }
 
-    this._config = { min: DEFAULT_MIN, max: DEFAULT_MAX, ...config };
+    this._config = { min: DEFAULT_MIN, max: DEFAULT_MAX, show_state: true, ...config };
+  }
+
+  get hasAction() {
+    return (
+      !this._config?.tap_action ||
+      hasAction(this._config?.tap_action) ||
+      hasAction(this._config?.hold_action) ||
+      hasAction(this._config?.double_tap_action)
+    );
   }
 
   private _strokeDashArc(from: number, to: number): [string, string] {
@@ -73,6 +91,19 @@ export class ModernCircularGaugeBadge extends LitElement {
 
     const stateObj = this.hass.states[this._config.entity];
 
+    if (!stateObj) {
+      return html`
+        <ha-badge .label=${this._config.entity} class="error">
+          <ha-svg-icon
+            slot="icon"
+            .hass=${this.hass}
+            .path=${mdiAlertCircle}
+          ></ha-svg-icon>
+          ${this.hass.localize("ui.badge.entity.not_found")}
+        </ha-badge>
+      `;
+    }
+
     const path = svgArc({
       x: 0,
       y: 0,
@@ -96,6 +127,12 @@ export class ModernCircularGaugeBadge extends LitElement {
 
     return html`
     <ha-badge
+      .type=${this.hasAction ? "button" : "badge"}
+      @action=${this._handleAction}
+      .actionHandler=${actionHandler({
+        hasHold: hasAction(this._config.hold_action),
+        hasDoubleClick: hasAction(this._config.double_tap_action),
+      })}
       .iconOnly=${!this._config.show_name}
     >
       <div class=${classMap({ "container": true, "icon-only": !this._config.show_name })} slot="icon">
@@ -133,6 +170,10 @@ export class ModernCircularGaugeBadge extends LitElement {
       return `${initialSize - (state.length - 5)}px`
     }
     return `${initialSize}px`;
+  }
+
+  private _handleAction(ev: ActionHandlerEvent) {
+    handleAction(this, this.hass!, this._config!, ev.detail.action!);
   }
 
   static get styles() {
@@ -191,6 +232,11 @@ export class ModernCircularGaugeBadge extends LitElement {
       flex-direction: column;
       align-items: center;
     }
+
+    ha-badge.error {
+      --badge-color: var(--red-color);
+    }
+
     svg {
       width: 100%;
       height: 100%;

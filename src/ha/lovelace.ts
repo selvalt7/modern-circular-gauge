@@ -2,6 +2,7 @@
 export interface LovelaceBadgeConfig {
     type: string;
     visibility?: any;
+    [key: string]: any;
 }
 
 export interface LovelaceLayoutOptions {
