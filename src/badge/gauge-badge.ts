@@ -237,6 +237,7 @@ export class ModernCircularGaugeBadge extends LitElement {
       height: var(--ha-badge-size, 36px);
       margin-left: -12px;
       margin-inline-start: -12px;
+      pointer-events: none;
     }
 
     .container.icon-only {
