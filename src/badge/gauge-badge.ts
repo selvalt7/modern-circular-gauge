@@ -13,6 +13,7 @@ import { ActionHandlerEvent, hasAction } from "custom-card-helpers";
 import { handleAction } from "../ha/handle-action";
 import { actionHandler } from "../utils/action-handler-directive";
 import { mdiAlertCircle } from "@mdi/js";
+import { rgbToHex } from "../utils/color";
 
 const MAX_ANGLE = 270;
 const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
@@ -134,6 +135,7 @@ export class ModernCircularGaugeBadge extends LitElement {
         hasDoubleClick: hasAction(this._config.double_tap_action),
       })}
       .iconOnly=${!this._config.show_name}
+      style=${styleMap({ "--gauge-color": this._computeSegments(numberState) })}
     >
       <div class=${classMap({ "container": true, "icon-only": !this._config.show_name })} slot="icon">
         <svg class="gauge" viewBox="-50 -50 100 100">
@@ -164,10 +166,27 @@ export class ModernCircularGaugeBadge extends LitElement {
     `;
   }
 
+  private _computeSegments(numberState: number): string | undefined {
+    let segments = this._config?.segments;
+    if (segments) {
+      segments = [...segments].sort((a, b) => a.from - b.from);
+
+      for (let i = 0; i < segments.length; i++) {
+        let segment = segments[i];
+        if (segment && (numberState >= segment.from || i === 0) &&
+          (i + 1 == segments?.length || numberState < segments![i + 1].from)) {
+            const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
+            return color;
+        }
+      }
+    }
+    return undefined;
+  }
+
   private _calcStateSize(state: string): string {
     const initialSize = 25;
-    if (state.length >= 7) {
-      return `${initialSize - (state.length - 5)}px`
+    if (state.length >= 4) {
+      return `${initialSize - (state.length - 3)}px`
     }
     return `${initialSize}px`;
   }
@@ -214,7 +233,7 @@ export class ModernCircularGaugeBadge extends LitElement {
       position: relative;
       container-type: normal;
       container-name: container;
-      width: var(--ha-badge-size, 36px);
+      width: calc(var(--ha-badge-size, 36px) - 2px);
       height: var(--ha-badge-size, 36px);
       margin-left: -12px;
       margin-inline-start: -12px;
@@ -231,6 +250,7 @@ export class ModernCircularGaugeBadge extends LitElement {
       display: flex;
       flex-direction: column;
       align-items: center;
+      --badge-color: var(--gauge-color)
     }
 
     ha-badge.error {
