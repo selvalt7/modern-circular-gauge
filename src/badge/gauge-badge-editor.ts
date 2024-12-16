@@ -181,8 +181,6 @@ export class ModernCircularGaugeBadgeEditor extends LitElement {
     const index = (ev.target as any).index;
     const newSegment = this._config.segments?.concat();
 
-    console.log(index);
-
     newSegment?.splice(index, 1);
 
     fireEvent(this, "config-changed", { config: { ...this._config, segments: newSegment } } as any);
