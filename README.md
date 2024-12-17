@@ -36,6 +36,7 @@ https://github.com/selvalt7/modern-circular-gauge
 ## Options
 
 Card and badge can be configured through visual editor or by `yaml`.
+Templates are supported on selected options, configurable only via `yaml`.
 
 ### Card options
 
@@ -44,8 +45,8 @@ Card and badge can be configured through visual editor or by `yaml`.
 | type | `string` | 'custom:modern-circular-gauge' |
 | entity | `string` | Required | Entity
 | name | `string` | Optional | Custom title
-| min | `number` | `0` | Minimum gauge value
-| max | `number` | `100` | Maximum gauge value
+| min | `number` or `string` | `0` | Minimum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/) see [example](#gauge-with-templated-additional-info-and-segments)
+| max | `number` or `string` | `100` | Maximum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
 | unit | `string` | Optional | Custom unit
 | header_position | `string` | `top` | Header position (`top`, `bottom`)
 | needle | `boolean` | `false` | 
@@ -59,8 +60,8 @@ Card and badge can be configured through visual editor or by `yaml`.
 | type | `string` | 'custom:modern-circular-gauge-badge' |
 | entity | `string` | Required | Entity
 | name | `string` | Optional | Custom title
-| min | `number` | `0` | Minimum gauge value
-| max | `number` | `100` | Maximum gauge value
+| min | `number` or `string` | `0` | Minimum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
+| max | `number` or `string` | `100` | Maximum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
 | unit | `string` | Optional | Custom unit
 | show_name | `bool` | `false` | Show badge name
 | show_state | `bool` | `true` | Show entity state
@@ -115,7 +116,7 @@ name: Temperature
 secondary: >-
   {% if is_state("binary_sensor.room_temp_rising", "on") %} Rising {% elif
   is_state("binary_sensor.room_temp_falling", "on") %} Falling {% endif %}
-max: 30
+max: "{{states('input_number.max_number')}}"
 min: 10
 header_position: bottom
 needle: true
