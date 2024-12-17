@@ -1,4 +1,10 @@
 
+export interface LovelaceBadgeConfig {
+    type: string;
+    visibility?: any;
+    [key: string]: any;
+}
+
 export interface LovelaceLayoutOptions {
     grid_columns?: number | "full";
     grid_rows?: number | "auto";

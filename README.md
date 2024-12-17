@@ -1,9 +1,8 @@
 # Modern Circular Gauge
 
-Modern gauge inspired and based on `ha-control-circular-slider`
+Modern gauge inspired by `ha-control-circular-slider`, now with smaller form factor as a badge.
 
-![Gauges](https://github.com/user-attachments/assets/a1a07268-a94c-4f12-9d73-0aba3d2b79c7)
-
+![gauges](https://github.com/user-attachments/assets/bfc46c1c-6c27-48e7-8bc3-3169adf2d804)
 
 ## Install
 
@@ -36,7 +35,7 @@ https://github.com/selvalt7/modern-circular-gauge
 
 ## Options
 
-Card can be configured through visual editor or by `yaml`.
+Card and badge can be configured through visual editor or by `yaml`.
 
 ### Card options
 
@@ -53,14 +52,28 @@ Card can be configured through visual editor or by `yaml`.
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
 | secondary | `object` or `string` | Optional | Secondary info to display under the state, see [secondary entity object](#secondary-entity-object). May contain [templates](https://www.home-assistant.io/docs/configuration/templating/) see [example](#gauge-with-templated-additional-info-and-segments)
 
-### Color segment object
+### Badge options
+
+| Name | Type | Default | Description |
+|------|:----:|:-------:|:------------|
+| type | `string` | 'custom:modern-circular-gauge-badge' |
+| entity | `string` | Required | Entity
+| name | `string` | Optional | Custom title
+| min | `number` | `0` | Minimum gauge value
+| max | `number` | `100` | Maximum gauge value
+| unit | `string` | Optional | Custom unit
+| show_name | `bool` | `false` | Show badge name
+| show_state | `bool` | `true` | Show entity state
+| segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
+
+#### Color segment object
 | Name | Type | Default | Description |
 |------|:----:|:-------:|:------------|
 | from | `number` | Required | Starting value of color segment
 | color | `string` | Required | Color value of color segment
 | label | `string` | Optional | Color segment label
 
-### Secondary entity object
+#### Secondary entity object
 | Name | Type | Default | Description |
 |------|:----:|:-------:|:------------|
 | entity | `string` | Optional | Secondary entity

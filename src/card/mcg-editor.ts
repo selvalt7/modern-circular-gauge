@@ -1,11 +1,11 @@
 import { fireEvent } from "custom-card-helpers";
-import { HomeAssistant } from "./ha/types";
+import { HomeAssistant } from "../ha/types";
 import { html, LitElement, nothing, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { ModernCircularGaugeConfig, SegmentsConfig } from "./type";
 import { mdiSegment, mdiPlus, mdiClose, mdiInformationOutline } from "@mdi/js";
-import { hexToRgb } from "./utils/color";
-import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS } from "./const";
+import { hexToRgb } from "../utils/color";
+import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS } from "../const";
 
 const FORM = [
     {
