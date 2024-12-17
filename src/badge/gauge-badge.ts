@@ -1,11 +1,11 @@
-import { LitElement, TemplateResult, html, css, nothing } from "lit";
+import { LitElement, TemplateResult, html, css, nothing, PropertyValues } from "lit";
 import { HomeAssistant } from "../ha/types";
 import { ModernCircularGaugeBadgeConfig } from "./gauge-badge-config";
 import { customElement, property, state } from "lit/decorators.js";
 import { NUMBER_ENTITY_DOMAINS, DEFAULT_MIN, DEFAULT_MAX } from "../const";
 import { getNumberFormatOptions, formatNumber } from "../utils/format_number";
 import { registerCustomBadge } from "../utils/custom-badges";
-import { HassEntity } from "home-assistant-js-websocket";
+import { HassEntity, UnsubscribeFunc } from "home-assistant-js-websocket";
 import { styleMap } from "lit/directives/style-map.js";
 import { svgArc, clamp } from "../utils/gauge";
 import { classMap } from "lit/directives/class-map.js";
@@ -14,6 +14,8 @@ import { handleAction } from "../ha/handle-action";
 import { actionHandler } from "../utils/action-handler-directive";
 import { mdiAlertCircle } from "@mdi/js";
 import { rgbToHex } from "../utils/color";
+import { RenderTemplateResult, subscribeRenderTemplate } from "../ha/ws-templates";
+import { isTemplate } from "../utils/template";
 
 const MAX_ANGLE = 270;
 const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
@@ -25,10 +27,16 @@ registerCustomBadge({
   description: "Modern circular gauge badge",
 });
 
+const TEMPLATE_KEYS = ["min", "max"];
+
 @customElement("modern-circular-gauge-badge")
 export class ModernCircularGaugeBadge extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: ModernCircularGaugeBadgeConfig;
+
+  @state() private _templateResults?: Partial<Record<string, RenderTemplateResult | undefined>> = {};
+
+  @state() private _unsubRenderTemplates?: Map<string, Promise<UnsubscribeFunc>> = new Map();
 
   public static async getStubConfig(hass: HomeAssistant): Promise<ModernCircularGaugeBadgeConfig> {
     const entities = Object.keys(hass.states);
@@ -51,7 +59,109 @@ export class ModernCircularGaugeBadge extends LitElement {
       throw new Error("Entity must be specified");
     }
 
+    TEMPLATE_KEYS.forEach((key) => {
+      if (this._config?.[key] !== config[key]) {
+        this._tryDisconnectKey(key);
+      }
+    });
+
     this._config = { min: DEFAULT_MIN, max: DEFAULT_MAX, show_state: true, ...config };
+  }
+
+  public connectedCallback() {
+    super.connectedCallback();
+    this._tryConnect();
+  }
+
+  public disconnectedCallback() {
+    super.disconnectedCallback();
+    this._tryDisconnect();
+  }
+
+  protected updated(changedProps: PropertyValues): void {
+    super.updated(changedProps);
+    if (!this._config || !this.hass) {
+      return;
+    }
+
+    this._tryConnect();
+  }
+
+  private async _tryConnect(): Promise<void> {
+    TEMPLATE_KEYS.forEach((key) => {
+      this._tryConnectKey(key);
+    });
+  }
+
+  private async _tryConnectKey(key: string): Promise<void> {
+    if (
+      this._unsubRenderTemplates?.get(key) !== undefined ||
+      !this.hass ||
+      !this._config ||
+      !isTemplate(this._config?.[key])
+    ) {
+      return;
+    }
+
+    try {
+      const sub = subscribeRenderTemplate(
+        this.hass.connection,
+        (result) => {
+          if ("error" in result) {
+            return;
+          }
+          this._templateResults = {
+            ...this._templateResults,
+            [key]: result,
+          };
+        },
+        {
+          template: this._config[key] as string || "",
+          variables: {
+            config: this._config,
+            user: this.hass.user!.name,
+          },
+          strict: true,
+        }
+      );
+      this._unsubRenderTemplates?.set(key, sub);
+      await sub;
+    } catch (e: any) {
+      const result = {
+        result: this._config[key] as string || "",
+        listeners: { all: false, domains: [], entities: [], time: false },
+      };
+      this._templateResults = {
+        ...this._templateResults,
+        [key]: result,
+      };
+      this._unsubRenderTemplates?.delete(key);
+    }
+  }
+
+  private async _tryDisconnect(): Promise<void> {
+    TEMPLATE_KEYS.forEach((key) => {
+      this._tryDisconnectKey(key);
+    });
+  }
+
+  private async _tryDisconnectKey(key: string): Promise<void> {
+    const unsubRenderTemplate = this._unsubRenderTemplates?.get(key);
+    if (!unsubRenderTemplate) {
+      return;
+    }
+
+    try {
+      const unsub = await unsubRenderTemplate;
+      unsub();
+      this._unsubRenderTemplates?.delete(key);
+    } catch (e: any) {
+      if (e.code === "not_found" || e.code === "template_error") {
+
+      } else {
+        throw e;
+      }
+    }
   }
 
   get hasAction() {
@@ -77,8 +187,9 @@ export class ModernCircularGaugeBadge extends LitElement {
   }
 
   private _valueToPercentage(value: number) {
-    return (clamp(value, this._config?.min ?? DEFAULT_MIN, this._config?.max ?? DEFAULT_MAX) - (this._config?.min ?? DEFAULT_MIN))
-    / ((this._config?.max ?? DEFAULT_MAX) - (this._config?.min ?? DEFAULT_MIN));
+    const min = Number(this._getValue("min")) ?? DEFAULT_MIN;
+    const max = Number(this._getValue("max")) ?? DEFAULT_MAX;
+    return (clamp(value, min, max) - min) / (max - min);
   }
 
   private _getAngle(value: number) {
@@ -193,6 +304,12 @@ export class ModernCircularGaugeBadge extends LitElement {
 
   private _handleAction(ev: ActionHandlerEvent) {
     handleAction(this, this.hass!, this._config!, ev.detail.action!);
+  }
+
+  private _getValue(key: string) {
+    return isTemplate(this._config?.[key])
+      ? this._templateResults?.[key]?.result?.toString()
+      : this._config?.[key];
   }
 
   static get styles() {

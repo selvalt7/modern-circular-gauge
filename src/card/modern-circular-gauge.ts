@@ -1,4 +1,4 @@
-import { html, LitElement, TemplateResult, css, svg, nothing } from "lit";
+import { html, LitElement, TemplateResult, css, svg, nothing, PropertyValues } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { ActionHandlerEvent, hasAction } from "custom-card-helpers";
 import { clamp, svgArc } from "../utils/gauge";
@@ -16,6 +16,7 @@ import { actionHandler } from "../utils/action-handler-directive";
 import { rgbToHex } from "../utils/color";
 import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS } from "../const";
 import { RenderTemplateResult, subscribeRenderTemplate } from "../ha/ws-templates";
+import { isTemplate } from "../utils/template";
 
 const MAX_ANGLE = 270;
 const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
@@ -27,14 +28,16 @@ registerCustomCard({
   description: "Modern circular gauge",
 });
 
+export const TEMPLATE_KEYS = ["min", "max", "secondary"];
+
 @customElement("modern-circular-gauge")
 export class ModernCircularGauge extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: ModernCircularGaugeConfig;
 
-  @state() private _templateResult?: RenderTemplateResult;
+  @state() private _templateResults?: Partial<Record<string, RenderTemplateResult | undefined>> = {};
 
-  private _unsubRenderTemplate?: Promise<UnsubscribeFunc>;
+  @state() private _unsubRenderTemplates?: Map<string, Promise<UnsubscribeFunc>> = new Map();
 
   public static async getConfigElement(): Promise<HTMLElement> {
     await import("./mcg-editor");
@@ -57,9 +60,11 @@ export class ModernCircularGauge extends LitElement {
       throw new Error("Entity must be specified");
     }
 
-    if (this._config?.content !== config.content) {
-      this._tryDisconnect();
-    }
+    TEMPLATE_KEYS.forEach((key) => {
+      if (this._config?.[key] !== config[key]) {
+        this._tryDisconnectKey(key);
+      }
+    });
     
     let secondary = config.secondary;
 
@@ -87,6 +92,15 @@ export class ModernCircularGauge extends LitElement {
     this._tryDisconnect();
   }
 
+  protected updated(changedProps: PropertyValues): void {
+    super.updated(changedProps);
+    if (!this._config || !this.hass) {
+      return;
+    }
+
+    this._tryConnect();
+  }
+
   private _strokeDashArc(from: number, to: number): [string, string] {
     const start = this._valueToPercentage(from);
     const end = this._valueToPercentage(to);
@@ -101,8 +115,9 @@ export class ModernCircularGauge extends LitElement {
   }
 
   private _valueToPercentage(value: number) {
-    return (clamp(value, this._config?.min ?? DEFAULT_MIN, this._config?.max ?? DEFAULT_MAX) - (this._config?.min ?? DEFAULT_MIN))
-    / ((this._config?.max ?? DEFAULT_MAX) - (this._config?.min ?? DEFAULT_MIN));
+    const min = Number(this._getValue("min")) ?? DEFAULT_MIN;
+    const max = Number(this._getValue("max")) ?? DEFAULT_MAX;
+    return (clamp(value, min, max) - min) / (max - min);
   }
 
   private _getAngle(value: number) {
@@ -266,7 +281,7 @@ export class ModernCircularGauge extends LitElement {
     }
 
     if (typeof secondary === "string") {
-      return svg`${this._templateResult?.result}`;
+      return svg`${this._getValue("secondary")}`;
     }
 
     const stateObj = this.hass.states[secondary.entity || ""];
@@ -367,25 +382,35 @@ export class ModernCircularGauge extends LitElement {
   }
 
   private async _tryConnect(): Promise<void> {
+    TEMPLATE_KEYS.forEach((key) => {
+      this._tryConnectKey(key);
+    });
+  }
+
+  private async _tryConnectKey(key: string): Promise<void> {
     if (
-      this._unsubRenderTemplate !== undefined ||
+      this._unsubRenderTemplates?.get(key) !== undefined ||
       !this.hass ||
-      !this._config
+      !this._config ||
+      !isTemplate(this._config?.[key])
     ) {
       return;
     }
 
     try {
-      this._unsubRenderTemplate = subscribeRenderTemplate(
+      const sub = subscribeRenderTemplate(
         this.hass.connection,
         (result) => {
           if ("error" in result) {
             return;
           }
-          this._templateResult = result;
+          this._templateResults = {
+            ...this._templateResults,
+            [key]: result,
+          };
         },
         {
-          template: this._config.secondary as string || "",
+          template: this._config[key] as string || "",
           variables: {
             config: this._config,
             user: this.hass.user!.name,
@@ -393,27 +418,54 @@ export class ModernCircularGauge extends LitElement {
           strict: true,
         }
       );
-      await this._unsubRenderTemplate;
+      this._unsubRenderTemplates?.set(key, sub);
+      await sub;
     } catch (e: any) {
-      this._templateResult = {
-        result: this._config!.secondary as string || "",
+      const result = {
+        result: this._config[key] as string || "",
         listeners: { all: false, domains: [], entities: [], time: false },
       };
-      this._unsubRenderTemplate = undefined;
+      this._templateResults = {
+        ...this._templateResults,
+        [key]: result,
+      };
+      this._unsubRenderTemplates?.delete(key);
     }
   }
 
   private async _tryDisconnect(): Promise<void> {
-    if (!this._unsubRenderTemplate) {
+    TEMPLATE_KEYS.forEach((key) => {
+      this._tryDisconnectKey(key);
+    });
+  }
+
+  private async _tryDisconnectKey(key: string): Promise<void> {
+    const unsubRenderTemplate = this._unsubRenderTemplates?.get(key);
+    if (!unsubRenderTemplate) {
       return;
     }
 
-    this._unsubRenderTemplate.then((unsub) => unsub()).catch(() => {});
-    this._unsubRenderTemplate = undefined;
+    try {
+      const unsub = await unsubRenderTemplate;
+      unsub();
+      this._unsubRenderTemplates?.delete(key);
+    } catch (e: any) {
+      if (e.code === "not_found" || e.code === "template_error") {
+
+      } else {
+        throw e;
+      }
+    }
   }
 
   private _handleAction(ev: ActionHandlerEvent) {
     handleAction(this, this.hass!, this._config!, ev.detail.action!);
+  }
+
+  private _getValue(key: string) {
+    return isTemplate(this._config?.[key])
+      ? this._templateResults?.[key]?.result?.toString()
+      : this._config?.[key];
   }
 
   public getGridOptions(): LovelaceGridOptions {
