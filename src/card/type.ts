@@ -7,18 +7,20 @@ export interface SegmentsConfig {
 }
 
 export type SecondaryEntity = {
-    entity: string;
+    entity?: string;
     unit?: string;
+    template?: string;
 };
 
 export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     entity: string;
     name?: string;
-    min?: number;
-    max?: number;
+    min?: number | string;
+    max?: number | string;
     unit?: string;
     header_position?: "top" | "bottom";
     needle?: boolean;
     segments?: SegmentsConfig[];
+    secondary?: SecondaryEntity | string;
     secondary_entity?: SecondaryEntity;
 }
