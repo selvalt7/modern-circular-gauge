@@ -264,10 +264,10 @@ export class ModernCircularGaugeBadge extends LitElement {
           </g>
         </svg>
         ${this._config.show_state ? html`
-          <svg class="state" viewBox="-50 -50 100 100">
-          <text class="value" style=${styleMap({ "font-size": this._calcStateSize(entityState) })}>
+        <svg class="state" viewBox="-50 -50 100 100">
+          <text x="0" y="0" class="value" style=${styleMap({ "font-size": this._calcStateSize(entityState) })}>
             ${entityState}
-            <tspan class="unit" baseline-shift="super" dx="-4">${unit}</tspan>
+            <tspan class="unit" dx="-4" dy="-6">${unit}</tspan>
           </text>
         </svg>
           ` : nothing}
@@ -338,7 +338,7 @@ export class ModernCircularGaugeBadge extends LitElement {
     .value {
       font-size: 21px;
       fill: var(--primary-text-color);
-      alignment-baseline: middle;
+      dominant-baseline: middle;
     }
 
     .unit {
