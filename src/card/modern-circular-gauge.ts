@@ -20,7 +20,7 @@ import { isTemplate } from "../utils/template";
 
 const MAX_ANGLE = 270;
 const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
-const RADIUS = 44;
+const RADIUS = 47;
 
 registerCustomCard({
   type: "modern-circular-gauge",
@@ -257,7 +257,7 @@ export class ModernCircularGauge extends LitElement {
               <tspan class="unit" baseline-shift="super" dx="-4">${unit}</tspan>
             `}
           </text>
-          <text class="secondary" dy="18">
+          <text class="secondary" dy="19">
             ${this._renderSecondary()}
           </text>
         </svg>
@@ -267,9 +267,9 @@ export class ModernCircularGauge extends LitElement {
   }
 
   private _calcStateSize(state: string): string {
-    const initialSize = 21;
+    const initialSize = 24;
     if (state.length >= 7) {
-      return `${initialSize - (state.length - 5)}px`
+      return `${initialSize - (state.length - 4)}px`
     }
     return `${initialSize}px`;
   }
@@ -501,7 +501,7 @@ export class ModernCircularGauge extends LitElement {
       width: 100%;
       height: 100%;
       display: flex;
-      padding: 16px;
+      padding: 10px;
       flex-direction: column;
       align-items: center;
     }
@@ -515,9 +515,16 @@ export class ModernCircularGauge extends LitElement {
     }
     
     .header {
+      width: 100%;
       display: flex;
       flex-direction: column;
       text-align: center;
+      padding: 0 10px;
+      box-sizing: border-box;
+    }
+
+    .flex-column-reverse .header {
+      position: absolute;
     }
     
     .state {
@@ -538,11 +545,11 @@ export class ModernCircularGauge extends LitElement {
     }
 
     .flex-column-reverse .container {
-      margin-bottom: -20px;
+      margin-bottom: 0px;
     }
 
     .secondary {
-      font-size: 7px;
+      font-size: 8px;
       fill: var(--secondary-text-color);
     }
 
@@ -553,8 +560,16 @@ export class ModernCircularGauge extends LitElement {
     }
 
     .name {
-      font-size: 16px;
+      width: 100%;
+      font-size: 14px;
       margin: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      line-height: 20px;
+      letter-spacing: .1px;
+      color: var(--primary-text-color);
     }
 
     .unit {
