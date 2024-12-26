@@ -3,7 +3,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import { ActionHandlerEvent, hasAction } from "custom-card-helpers";
 import { clamp, svgArc } from "../utils/gauge";
 import { registerCustomCard } from "../utils/custom-cards";
-import type { ModernCircularGaugeConfig } from "./type";
+import type { ModernCircularGaugeConfig, SecondaryEntity } from "./type";
 import { LovelaceLayoutOptions, LovelaceGridOptions } from "../ha/lovelace";
 import { handleAction } from "../ha/handle-action";
 import { HomeAssistant } from "../ha/types";
@@ -21,6 +21,23 @@ import { isTemplate } from "../utils/template";
 const MAX_ANGLE = 270;
 const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
 const RADIUS = 47;
+const INNER_RADIUS = 42;
+
+const path = svgArc({
+  x: 0,
+  y: 0,
+  start: 0,
+  end: MAX_ANGLE,
+  r: RADIUS,
+});
+
+const innerPath = svgArc({
+  x: 0,
+  y: 0,
+  start: 0,
+  end: MAX_ANGLE,
+  r: INNER_RADIUS,
+});
 
 registerCustomCard({
   type: "modern-circular-gauge",
@@ -101,9 +118,9 @@ export class ModernCircularGauge extends LitElement {
     this._tryConnect();
   }
 
-  private _strokeDashArc(from: number, to: number): [string, string] {
-    const start = this._valueToPercentage(from);
-    const end = this._valueToPercentage(to);
+  private _strokeDashArc(from: number, to: number, min: number, max: number): [string, string] {
+    const start = this._valueToPercentage(from, min, max);
+    const end = this._valueToPercentage(to, min, max);
 
     const track = (RADIUS * 2 * Math.PI * MAX_ANGLE) / 360;
     const arc = Math.max((end - start) * track, 0);
@@ -114,14 +131,12 @@ export class ModernCircularGauge extends LitElement {
     return [strokeDasharray, strokeDashOffset];
   }
 
-  private _valueToPercentage(value: number) {
-    const min = Number(this._getValue("min")) ?? DEFAULT_MIN;
-    const max = Number(this._getValue("max")) ?? DEFAULT_MAX;
+  private _valueToPercentage(value: number, min: number, max: number) {
     return (clamp(value, min, max) - min) / (max - min);
   }
 
-  private _getAngle(value: number) {
-    return this._valueToPercentage(value) * MAX_ANGLE;
+  private _getAngle(value: number, min: number, max: number) {
+    return this._valueToPercentage(value, min, max) * MAX_ANGLE;
   }
 
   private _hasCardAction() {
@@ -165,20 +180,12 @@ export class ModernCircularGauge extends LitElement {
       `;
     }
 
-    const path = svgArc({
-      x: 0,
-      y: 0,
-      start: 0,
-      end: MAX_ANGLE,
-      r: RADIUS,
-    });
-
     const attributes = stateObj.attributes;
 
     const unit = this._config.unit ?? stateObj.attributes.unit_of_measurement;
 
-    const current = this._config.needle ? undefined : this._strokeDashArc(numberState > 0 ? 0 : numberState, numberState > 0 ? numberState : 0);
-    const needle = this._config.needle ? this._strokeDashArc(numberState, numberState) : undefined;
+    const current = this._config.needle ? undefined : this._strokeDashArc(numberState > 0 ? 0 : numberState, numberState > 0 ? numberState : 0, this._getValue("min") || DEFAULT_MIN, this._getValue("max") || DEFAULT_MAX);
+    const needle = this._config.needle ? this._strokeDashArc(numberState, numberState, this._getValue("min") || DEFAULT_MIN, this._getValue("max") || DEFAULT_MAX) : undefined;
 
     const state = stateObj.state;
     const entityState = formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj.entity_id]));
@@ -209,6 +216,7 @@ export class ModernCircularGauge extends LitElement {
         <svg viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid"
           overflow="visible"
           style=${styleMap({ "--gauge-color": this._computeSegments(numberState) })}
+          class=${classMap({ "dual-gauge": typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner" })}
         >
           <g transform="rotate(${ROTATE_ANGLE})">
             <path
@@ -222,7 +230,12 @@ export class ModernCircularGauge extends LitElement {
                 stroke-dasharray="${current[0]}"
                 stroke-dashoffset="${current[1]}"
               />
-              ` : nothing}
+            ` : nothing}
+            ${typeof this._config.secondary != "string" ? 
+              this._config.secondary?.show_gauge == "outter" ? this._renderOutterSecondary()
+              : this._config.secondary?.show_gauge == "inner" ? this._renderInnerGauge()
+              : nothing
+              : nothing}
             ${needle ? svg`
               ${this._config.segments ? svg`
               <g class="segments">
@@ -274,6 +287,97 @@ export class ModernCircularGauge extends LitElement {
     return `${initialSize}px`;
   }
 
+  private _renderInnerGauge(): TemplateResult {
+    const secondaryObj = this._config?.secondary as SecondaryEntity;
+    const stateObj = this.hass.states[secondaryObj.entity || ""];
+
+    if (!stateObj || !secondaryObj) {
+      return svg``;
+    }
+
+    const numberState = Number(stateObj.state);
+
+    if (stateObj.state === "unavailable") {
+      return svg``;
+    }
+
+    if (isNaN(numberState)) {
+      return svg``;
+    }
+
+    const current = secondaryObj.needle ? undefined : this._strokeDashArc(numberState > 0 ? 0 : numberState, numberState > 0 ? numberState : 0, Number(secondaryObj.min) || DEFAULT_MIN, Number(secondaryObj.max) || DEFAULT_MAX);
+    const needle = secondaryObj.needle ? this._strokeDashArc(numberState, numberState, Number(secondaryObj.min) || DEFAULT_MIN, Number(secondaryObj.max) || DEFAULT_MAX) : undefined;
+
+    return svg`
+    <g>
+      <path
+        class="arc clear"
+        d=${innerPath}
+      />
+      ${current ? svg`
+        <path
+          class="arc current"
+          d=${innerPath}
+          stroke-dasharray="${current[0]}"
+          stroke-dashoffset="${current[1]}"
+        />
+      ` : nothing}
+      ${needle ? svg`
+        <path
+          d=${innerPath}
+          stroke-dasharray="${needle[0]}"
+          stroke-dashoffset="${needle[1]}"
+        />
+        <path
+          class="needle-border"
+          d=${innerPath}
+          stroke-dasharray="${needle[0]}"
+          stroke-dashoffset="${needle[1]}"
+        />
+        <path
+          class="needle"
+          d=${innerPath}
+          stroke-dasharray="${needle[0]}"
+          stroke-dashoffset="${needle[1]}"
+        />
+      ` : nothing}
+    </g>
+    `;
+  }
+
+  private _renderOutterSecondary(): TemplateResult {
+    const secondaryObj = this._config?.secondary as SecondaryEntity;
+    const stateObj = this.hass.states[secondaryObj.entity || ""];
+    const mainStateObj = this.hass.states[this._config?.entity || ""];
+
+    if (!stateObj) {
+      return svg``;
+    }
+
+    const numberState = Number(stateObj.state);
+    const mainNumberState = Number(mainStateObj.state);
+
+    if (stateObj.state === "unavailable") {
+      return svg``;
+    }
+
+    if (isNaN(numberState)) {
+      return svg``;
+    }
+
+    const current = this._strokeDashArc(numberState, numberState, this._getValue("min") || DEFAULT_MIN, this._getValue("max") || DEFAULT_MAX);
+
+    return svg`
+    <path
+      class="dot"
+      d=${path}
+      style=${styleMap({ "opacity": numberState <= mainNumberState ? 0.8 : 0.5 })}
+      stroke-dasharray="${current[0]}"
+      stroke-dashoffset="${current[1]}"
+    />
+    `;
+  }
+
   private _renderSecondary(): TemplateResult {
     const secondary = this._config?.secondary;
     if (!secondary) {
@@ -311,10 +415,10 @@ export class ModernCircularGauge extends LitElement {
 
       return [...segments].map((segment, index) => {
         let roundEnd: TemplateResult | undefined;
-        const startAngle = index === 0 ? 0 : this._getAngle(segment.from);
-        const angle = index === segments.length - 1 ? MAX_ANGLE : this._getAngle(segments[index + 1].from);
+        const startAngle = index === 0 ? 0 : this._getAngle(segment.from, this._getValue("min") || DEFAULT_MIN, this._getValue("max") || DEFAULT_MAX);
+        const angle = index === segments.length - 1 ? MAX_ANGLE : this._getAngle(segments[index + 1].from, this._getValue("min") || DEFAULT_MIN, this._getValue("max") || DEFAULT_MAX);
         const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
-        const path = svgArc({
+        const segmentPath = svgArc({
           x: 0,
           y: 0,
           start: startAngle,
@@ -323,7 +427,7 @@ export class ModernCircularGauge extends LitElement {
         });
 
         if (index === 0 || index === segments.length - 1) {
-          const path = svgArc({
+          const endPath = svgArc({
             x: 0,
             y: 0,
             start: index === 0 ? 0 : MAX_ANGLE,
@@ -334,7 +438,7 @@ export class ModernCircularGauge extends LitElement {
           <path
             class="segment"
             stroke=${color}
-            d=${path}
+            d=${endPath}
             stroke-linecap="round"
           />`;
         }
@@ -343,7 +447,7 @@ export class ModernCircularGauge extends LitElement {
           <path
             class="segment"
             stroke=${color}
-            d=${path}
+            d=${segmentPath}
           />`;
       });
     }
@@ -627,6 +731,22 @@ export class ModernCircularGauge extends LitElement {
       transition: all 1s ease 0s;
     }
 
+    .dual-gauge {
+      --gauge-stroke-width: 4px;
+    }
+
+    .dual-gauge .needle {
+      stroke-width: 2px;
+    }
+
+    .dot {
+      fill: none;
+      stroke-linecap: round;
+      stroke-width: 3px;
+      stroke: var(--primary-text-color);
+      transition: all 1s ease 0s;
+      opacity: 0.5;
+    }
     `;
   }
 }
