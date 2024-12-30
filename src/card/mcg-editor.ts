@@ -7,6 +7,7 @@ import { mdiSegment, mdiPlus, mdiClose, mdiInformationOutline } from "@mdi/js";
 import { hexToRgb } from "../utils/color";
 import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS } from "../const";
 import memoizeOne from "memoize-one";
+import "../components/ha-form-mcg-list";
 
 const SEGMENT = [
     {
@@ -149,7 +150,34 @@ export class ModernCircularGaugeEditor extends LitElement {
                 selector: { boolean: {} },
               },
             ],
-          }
+          },
+          {
+            name: "segments",
+            type: "mcg-list",
+            title: "Color segments",
+            iconPath: mdiSegment,
+            disabled: !showInnerGaugeOptions,
+            schema: [
+              {
+                name: "",
+                type: "grid",
+                schema: [
+                  {
+                    name: "from",
+                    label: "From",
+                    required: true,
+                    selector: { number: {} },
+                  },
+                  {
+                    name: "color",
+                    label: "heading.entity_config.color",
+                    required: true,
+                    selector: { color_rgb: {} },
+                  },
+                ],
+              },
+            ],
+          },
         ],
       },
       {
@@ -293,21 +321,27 @@ export class ModernCircularGaugeEditor extends LitElement {
       return;
     }
 
-    // let secondary = this._config?.secondary;
+    let newSecondary = {};
 
-    // if (typeof config.secondary === "object") {
-    //   if (config.secondary.entity !== undefined) {
-    //     secondary = {
-    //       ...config.secondary
-    //     };
-    //   }
-    //   else {
-    //     secondary = undefined;
-    //   }
-    //   if (config.secondary.template !== undefined) {
-    //     secondary = config.secondary.template;
-    //   }
-    // }
+    if (typeof this._config?.secondary === "string") {
+      newSecondary = {
+        ...newSecondary,
+        entity: this._config.secondary,
+      };
+    }
+
+    if (typeof config.secondary === "object") {
+      Object.entries(config.secondary).forEach(([key, value]) => {
+        if (isNaN(Number(key))) {
+          newSecondary = {
+            ...newSecondary,
+            [key]: value
+          }
+        }
+      })
+    }
+
+    config.secondary = newSecondary;
 
     fireEvent(this, "config-changed", { config });
   }
