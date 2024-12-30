@@ -4,10 +4,9 @@ import { customElement, property, state } from "lit/decorators.js";
 import { ModernCircularGaugeBadgeConfig } from "./gauge-badge-config";
 import { NUMBER_ENTITY_DOMAINS, DEFAULT_MAX, DEFAULT_MIN } from "../const";
 import { fireEvent } from "custom-card-helpers";
-import { mdiSegment, mdiPlus, mdiClose } from "@mdi/js";
+import { mdiSegment } from "@mdi/js";
 import { hexToRgb } from "../utils/color";
-import type { SegmentsConfig } from "../card/type";
-
+import "../components/ha-form-mcg-list";
 
 const FORM = [
   {
@@ -56,6 +55,33 @@ const FORM = [
     ]
   },
   {
+    name: "segments",
+    type: "mcg-list",
+    title: "Color segments",
+    iconPath: mdiSegment,
+    schema: [
+      {
+        name: "",
+        type: "grid",
+        column_min_width: "100px",
+        schema: [
+          {
+            name: "from",
+            label: "From",
+            required: true,
+            selector: { number: {} },
+          },
+          {
+            name: "color",
+            label: "heading.entity_config.color",
+            required: true,
+            selector: { color_rgb: {} },
+          },
+        ],
+      },
+    ],
+  },
+  {
     name: "tap_action",
     selector: {
         ui_action: {
@@ -63,27 +89,6 @@ const FORM = [
     },
   }
 ]
-
-const SEGMENT = [
-  {
-      name: "",
-      type: "grid",
-      schema: [
-          {
-              name: "from",
-              label: "From",
-              required: true,
-              selector: { number: {} },
-          },
-          {
-              name: "color",
-              label: "heading.entity_config.color",
-              required: true,
-              selector: { color_rgb: {} },
-          },
-      ],
-  }
-];
 
 @customElement("modern-circular-gauge-badge-editor")
 export class ModernCircularGaugeBadgeEditor extends LitElement {
@@ -118,39 +123,6 @@ export class ModernCircularGaugeBadgeEditor extends LitElement {
       .computeLabel=${this._computeLabel}
       @value-changed=${this._valueChanged}
     ></ha-form>
-    <ha-expansion-panel outlined>
-      <div
-        slot="header"
-        role="heading"
-      >
-        <ha-svg-icon .path=${mdiSegment}></ha-svg-icon>
-        Color segments
-      </div>
-      <div class="content">
-        ${DATA.segments?.map((row, index) => html`
-        <div class="segment-entry">
-          <ha-form
-            .hass=${this.hass}
-            .data=${row}
-            .schema=${SEGMENT}
-            .index=${index}
-            .computeLabel=${this._computeLabel}
-            @value-changed=${this._segmentChanged}
-          ></ha-form>
-          <ha-icon-button
-            .label=${this.hass.localize("ui.common.remove")}
-            .path=${mdiClose}
-            .index=${index}
-            @click=${this._removeSegment}
-          >
-        </div>
-        `)}
-        <ha-button @click=${this._addSegment}>
-          ${this.hass?.localize("ui.common.add") ?? "Add"}
-          <ha-svg-icon slot="icon" .path=${mdiPlus}></ha-svg-icon>
-        </ha-button>
-      </div>
-    </ha-expansion-panel>
     `;
   }
 
@@ -161,44 +133,6 @@ export class ModernCircularGaugeBadgeEditor extends LitElement {
     if (label) return label;
     return schema.label;
   };
-
-  private _addSegment(ev: CustomEvent): void {
-    ev.stopPropagation();
-    const value = { from: 0, color: [0, 0, 0] } as SegmentsConfig;
-    if (!this._config?.segments) {
-      fireEvent(this, "config-changed", { config: { ...this._config, segments: [value] } });
-      return;
-    }
-
-    fireEvent(this, "config-changed", { config: { ...this._config, segments: [...this._config.segments, value] } });
-  }
-
-  private _removeSegment(ev: CustomEvent): void {
-    ev.stopPropagation();
-    if (!this.hass || !this._config) {
-      return;
-    }
-    const index = (ev.target as any).index;
-    const newSegment = this._config.segments?.concat();
-
-    newSegment?.splice(index, 1);
-
-    fireEvent(this, "config-changed", { config: { ...this._config, segments: newSegment } } as any);
-  }
-
-  private _segmentChanged(ev: CustomEvent): void {
-    ev.stopPropagation();
-    if (!this.hass || !this._config) {
-      return;
-    }
-    const value = ev.detail.value;
-    const index = (ev.target as any).index;
-    const newSegment = this._config.segments!.concat();
-
-    newSegment[index] = value;
-
-    fireEvent(this, "config-changed", { config: { ...this._config, segments: newSegment } } as any);
-  }
 
   private _valueChanged(ev: CustomEvent): void {
     let config = ev.detail.value as ModernCircularGaugeBadgeConfig;
@@ -211,27 +145,6 @@ export class ModernCircularGaugeBadgeEditor extends LitElement {
 
   static get styles() {
     return css`
-      .content {
-        display: flex;
-        justify-items: center;
-        flex-direction: column;
-      }
-
-      .segment-entry {
-        display: flex;
-        flex-direction: row;
-        justify-content: center;
-        align-items: center;
-        margin-bottom: 24px;
-      }
-
-      .segment-entry ha-form {
-        flex: 1;
-      }
-      
-      ha-expansion-panel {
-        margin-top: 24px;
-      }
     `;
   }
 }
