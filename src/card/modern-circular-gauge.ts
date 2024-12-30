@@ -314,7 +314,8 @@ export class ModernCircularGauge extends LitElement {
   }
 
   private _calcStateSize(state: string): string {
-    const initialSize = 24;
+    const initialSize = typeof this._config?.secondary != "string" && this._config?.secondary?.show_gauge == "inner" ? 
+      22 : 24;
     if (state.length >= 7) {
       return `${initialSize - (state.length - 4)}px`
     }
