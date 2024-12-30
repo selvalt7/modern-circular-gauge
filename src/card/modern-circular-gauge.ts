@@ -670,7 +670,12 @@ export class ModernCircularGauge extends LitElement {
   }
 
   private _handleAction(ev: ActionHandlerEvent) {
-    handleAction(this, this.hass!, this._config!, ev.detail.action!);
+    const config = {
+      ...this._config,
+      entity: isTemplate(this._config?.entity ?? "") ? "" : this._config?.entity
+    };
+
+    handleAction(this, this.hass!, config, ev.detail.action!);
   }
 
   public getGridOptions(): LovelaceGridOptions {
