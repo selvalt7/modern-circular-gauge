@@ -10,6 +10,11 @@ export type SecondaryEntity = {
     entity?: string;
     unit?: string;
     template?: string;
+    show_gauge?: "none" | "inner" | "outter";
+    min?: number | string;
+    max?: number | string;
+    needle?: boolean;
+    segments?: SegmentsConfig[];
 };
 
 export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
@@ -22,5 +27,5 @@ export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     needle?: boolean;
     segments?: SegmentsConfig[];
     secondary?: SecondaryEntity | string;
-    secondary_entity?: SecondaryEntity;
+    secondary_entity?: SecondaryEntity; // Unused
 }

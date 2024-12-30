@@ -3,7 +3,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import { ActionHandlerEvent, hasAction } from "custom-card-helpers";
 import { clamp, svgArc } from "../utils/gauge";
 import { registerCustomCard } from "../utils/custom-cards";
-import type { ModernCircularGaugeConfig } from "./type";
+import type { ModernCircularGaugeConfig, SecondaryEntity, SegmentsConfig } from "./type";
 import { LovelaceLayoutOptions, LovelaceGridOptions } from "../ha/lovelace";
 import { handleAction } from "../ha/handle-action";
 import { HomeAssistant } from "../ha/types";
@@ -21,14 +21,29 @@ import { isTemplate } from "../utils/template";
 const MAX_ANGLE = 270;
 const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
 const RADIUS = 47;
+const INNER_RADIUS = 42;
+
+const path = svgArc({
+  x: 0,
+  y: 0,
+  start: 0,
+  end: MAX_ANGLE,
+  r: RADIUS,
+});
+
+const innerPath = svgArc({
+  x: 0,
+  y: 0,
+  start: 0,
+  end: MAX_ANGLE,
+  r: INNER_RADIUS,
+});
 
 registerCustomCard({
   type: "modern-circular-gauge",
   name: "Modern Cicular Gauge",
   description: "Modern circular gauge",
 });
-
-export const TEMPLATE_KEYS = ["min", "max", "secondary"];
 
 @customElement("modern-circular-gauge")
 export class ModernCircularGauge extends LitElement {
@@ -59,12 +74,6 @@ export class ModernCircularGauge extends LitElement {
     if (!config.entity) {
       throw new Error("Entity must be specified");
     }
-
-    TEMPLATE_KEYS.forEach((key) => {
-      if (this._config?.[key] !== config[key]) {
-        this._tryDisconnectKey(key);
-      }
-    });
     
     let secondary = config.secondary;
 
@@ -101,9 +110,9 @@ export class ModernCircularGauge extends LitElement {
     this._tryConnect();
   }
 
-  private _strokeDashArc(from: number, to: number): [string, string] {
-    const start = this._valueToPercentage(from);
-    const end = this._valueToPercentage(to);
+  private _strokeDashArc(from: number, to: number, min: number, max: number): [string, string] {
+    const start = this._valueToPercentage(from, min, max);
+    const end = this._valueToPercentage(to, min, max);
 
     const track = (RADIUS * 2 * Math.PI * MAX_ANGLE) / 360;
     const arc = Math.max((end - start) * track, 0);
@@ -114,14 +123,12 @@ export class ModernCircularGauge extends LitElement {
     return [strokeDasharray, strokeDashOffset];
   }
 
-  private _valueToPercentage(value: number) {
-    const min = Number(this._getValue("min")) ?? DEFAULT_MIN;
-    const max = Number(this._getValue("max")) ?? DEFAULT_MAX;
+  private _valueToPercentage(value: number, min: number, max: number) {
     return (clamp(value, min, max) - min) / (max - min);
   }
 
-  private _getAngle(value: number) {
-    return this._valueToPercentage(value) * MAX_ANGLE;
+  private _getAngle(value: number, min: number, max: number) {
+    return this._valueToPercentage(value, min, max) * MAX_ANGLE;
   }
 
   private _hasCardAction() {
@@ -165,20 +172,15 @@ export class ModernCircularGauge extends LitElement {
       `;
     }
 
-    const path = svgArc({
-      x: 0,
-      y: 0,
-      start: 0,
-      end: MAX_ANGLE,
-      r: RADIUS,
-    });
-
     const attributes = stateObj.attributes;
 
     const unit = this._config.unit ?? stateObj.attributes.unit_of_measurement;
 
-    const current = this._config.needle ? undefined : this._strokeDashArc(numberState > 0 ? 0 : numberState, numberState > 0 ? numberState : 0);
-    const needle = this._config.needle ? this._strokeDashArc(numberState, numberState) : undefined;
+    const min = Number(this._templateResults?.min?.result ?? this._config.min) || DEFAULT_MIN;
+    const max = Number(this._templateResults?.max?.result ?? this._config.max) || DEFAULT_MAX;
+
+    const current = this._config.needle ? undefined : this._strokeDashArc(numberState > 0 ? 0 : numberState, numberState > 0 ? numberState : 0, min, max);
+    const needle = this._config.needle ? this._strokeDashArc(numberState, numberState, min, max) : undefined;
 
     const state = stateObj.state;
     const entityState = formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj.entity_id]));
@@ -208,7 +210,8 @@ export class ModernCircularGauge extends LitElement {
       <div class="container">
         <svg viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid"
           overflow="visible"
-          style=${styleMap({ "--gauge-color": this._computeSegments(numberState) })}
+          style=${styleMap({ "--gauge-color": this._computeSegments(numberState, this._config.segments) })}
+          class=${classMap({ "dual-gauge": typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner" })}
         >
           <g transform="rotate(${ROTATE_ANGLE})">
             <path
@@ -222,11 +225,16 @@ export class ModernCircularGauge extends LitElement {
                 stroke-dasharray="${current[0]}"
                 stroke-dashoffset="${current[1]}"
               />
-              ` : nothing}
+            ` : nothing}
+            ${typeof this._config.secondary != "string" ? 
+              this._config.secondary?.show_gauge == "outter" ? this._renderOutterSecondary()
+              : this._config.secondary?.show_gauge == "inner" ? this._renderInnerGauge()
+              : nothing
+              : nothing}
             ${needle ? svg`
               ${this._config.segments ? svg`
               <g class="segments">
-                ${this._renderSegments()}
+                ${this._renderSegments(this._config.segments, min, max, RADIUS)}
               </g>`
               : nothing
               }
@@ -252,7 +260,7 @@ export class ModernCircularGauge extends LitElement {
         </svg>
         <svg class="state" viewBox="-50 -50 100 100">
           <text x="0" y="0" class="value" style=${styleMap({ "font-size": this._calcStateSize(entityState) })}>
-            ${this._getSegmentLabel(numberState) ? this._getSegmentLabel(numberState) : svg`
+            ${this._getSegmentLabel(numberState, this._config.segments) ? this._getSegmentLabel(numberState, this._config.segments) : svg`
               ${entityState}
               <tspan class="unit" dx="-4" dy="-6">${unit}</tspan>
             `}
@@ -274,6 +282,121 @@ export class ModernCircularGauge extends LitElement {
     return `${initialSize}px`;
   }
 
+  private _renderInnerGauge(): TemplateResult {
+    const secondaryObj = this._config?.secondary as SecondaryEntity;
+    const stateObj = this.hass.states[secondaryObj.entity || ""];
+    const templatedState = this._templateResults?.secondaryEntity?.result;
+
+    if ((!stateObj || !secondaryObj) && !templatedState) {
+      return svg`
+      <g class="inner">
+        <path
+          class="arc clear"
+          d=${innerPath}
+        />
+      </g>
+      `;
+    }
+
+    const numberState = Number(stateObj?.state) || Number(templatedState);
+
+    if (stateObj?.state === "unavailable" && templatedState) {
+      return svg``;
+    }
+
+    if (isNaN(numberState)) {
+      return svg``;
+    }
+
+    const min = Number(this._templateResults?.secondaryMin?.result ?? secondaryObj.min) || DEFAULT_MIN; 
+    const max = Number(this._templateResults?.secondaryMax?.result ?? secondaryObj.max) || DEFAULT_MAX;
+
+    const current = secondaryObj.needle ? undefined : this._strokeDashArc(numberState > 0 ? 0 : numberState, numberState > 0 ? numberState : 0, min, max);
+    const needle = secondaryObj.needle ? this._strokeDashArc(numberState, numberState, min, max) : undefined;
+
+    return svg`
+    <g 
+      class="inner"
+      style=${styleMap({ "--gauge-color": this._computeSegments(numberState, secondaryObj.segments) })}
+      >
+      <path
+        class="arc clear"
+        d=${innerPath}
+      />
+      ${current ? svg`
+        <path
+          class="arc current"
+          d=${innerPath}
+          stroke-dasharray="${current[0]}"
+          stroke-dashoffset="${current[1]}"
+        />
+      ` : nothing}
+      ${needle ? svg`
+        ${secondaryObj.segments ? svg`
+        <g class="segments">
+          ${this._renderSegments(secondaryObj.segments, min, max, INNER_RADIUS)}
+        </g>`
+        : nothing
+        }
+        <path
+          d=${innerPath}
+          stroke-dasharray="${needle[0]}"
+          stroke-dashoffset="${needle[1]}"
+        />
+        <path
+          class="needle-border"
+          d=${innerPath}
+          stroke-dasharray="${needle[0]}"
+          stroke-dashoffset="${needle[1]}"
+        />
+        <path
+          class="needle"
+          d=${innerPath}
+          stroke-dasharray="${needle[0]}"
+          stroke-dashoffset="${needle[1]}"
+        />
+      ` : nothing}
+    </g>
+    `;
+  }
+
+  private _renderOutterSecondary(): TemplateResult {
+    const secondaryObj = this._config?.secondary as SecondaryEntity;
+    const stateObj = this.hass.states[secondaryObj.entity || ""];
+    const mainStateObj = this.hass.states[this._config?.entity || ""];
+    const templatedState = this._templateResults?.secondaryEntity?.result;
+
+    if (!stateObj && !templatedState) {
+      return svg``;
+    }
+
+    const numberState = Number(stateObj?.state) || Number(templatedState);
+    const mainNumberState = Number(mainStateObj.state);
+
+    if (stateObj?.state === "unavailable" && templatedState) {
+      return svg``;
+    }
+
+    if (isNaN(numberState)) {
+      return svg``;
+    }
+
+    const min = Number(this._templateResults?.min?.result ?? this._config?.min) || DEFAULT_MIN; 
+    const max = Number(this._templateResults?.max?.result ?? this._config?.max) || DEFAULT_MAX;
+
+    const current = this._strokeDashArc(numberState, numberState, min, max);
+
+    return svg`
+    <path
+      class="dot"
+      d=${path}
+      style=${styleMap({ "opacity": numberState <= mainNumberState ? 0.8 : 0.5 })}
+      stroke-dasharray="${current[0]}"
+      stroke-dashoffset="${current[1]}"
+    />
+    `;
+  }
+
   private _renderSecondary(): TemplateResult {
     const secondary = this._config?.secondary;
     if (!secondary) {
@@ -281,21 +404,22 @@ export class ModernCircularGauge extends LitElement {
     }
 
     if (typeof secondary === "string") {
-      return svg`${this._getValue("secondary")}`;
+      return svg`${this._templateResults?.secondary?.result ?? this._config?.secondary}`;
     }
 
     const stateObj = this.hass.states[secondary.entity || ""];
+    const templatedState = this._templateResults?.secondaryEntity?.result;
 
-    if (!stateObj) {
+    if (!stateObj && !templatedState) {
       return svg``;
     }
 
-    const attributes = stateObj.attributes;
+    const attributes = stateObj?.attributes ?? undefined;
 
-    const unit = secondary.unit ?? attributes.unit_of_measurement;
+    const unit = secondary.unit ?? attributes?.unit_of_measurement;
 
-    const state = stateObj.state;
-    const entityState = formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj.entity_id]));
+    const state = templatedState ?? stateObj.state;
+    const entityState = formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj?.entity_id])) ?? templatedState;
 
     return svg`
     ${entityState}
@@ -305,36 +429,36 @@ export class ModernCircularGauge extends LitElement {
     `;
   }
 
-  private _renderSegments(): TemplateResult[] {
-    if (this._config?.segments) {
-      let segments = [...this._config.segments].sort((a, b) => a.from - b.from);
+  private _renderSegments(segments: SegmentsConfig[], min: number, max: number, radius: number): TemplateResult[] {
+    if (segments) {
+      let sortedSegments = [...segments].sort((a, b) => a.from - b.from);
 
-      return [...segments].map((segment, index) => {
+      return [...sortedSegments].map((segment, index) => {
         let roundEnd: TemplateResult | undefined;
-        const startAngle = index === 0 ? 0 : this._getAngle(segment.from);
-        const angle = index === segments.length - 1 ? MAX_ANGLE : this._getAngle(segments[index + 1].from);
+        const startAngle = index === 0 ? 0 : this._getAngle(segment.from, min, max);
+        const angle = index === sortedSegments.length - 1 ? MAX_ANGLE : this._getAngle(sortedSegments[index + 1].from, min, max);
         const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
-        const path = svgArc({
+        const segmentPath = svgArc({
           x: 0,
           y: 0,
           start: startAngle,
           end: angle,
-          r: RADIUS,
+          r: radius,
         });
 
-        if (index === 0 || index === segments.length - 1) {
-          const path = svgArc({
+        if (index === 0 || index === sortedSegments.length - 1) {
+          const endPath = svgArc({
             x: 0,
             y: 0,
             start: index === 0 ? 0 : MAX_ANGLE,
             end: index === 0 ? 0 : MAX_ANGLE,
-            r: RADIUS,
+            r: radius,
           });
           roundEnd = svg`
           <path
             class="segment"
             stroke=${color}
-            d=${path}
+            d=${endPath}
             stroke-linecap="round"
           />`;
         }
@@ -343,22 +467,21 @@ export class ModernCircularGauge extends LitElement {
           <path
             class="segment"
             stroke=${color}
-            d=${path}
+            d=${segmentPath}
           />`;
       });
     }
     return [];
   }
 
-  private _computeSegments(numberState: number): string | undefined {
-    let segments = this._config?.segments;
+  private _computeSegments(numberState: number, segments: SegmentsConfig[] | undefined): string | undefined {
     if (segments) {
-      segments = [...segments].sort((a, b) => a.from - b.from);
+      let sortedSegments = [...segments].sort((a, b) => a.from - b.from);
 
-      for (let i = 0; i < segments.length; i++) {
-        let segment = segments[i];
+      for (let i = 0; i < sortedSegments.length; i++) {
+        let segment = sortedSegments[i];
         if (segment && (numberState >= segment.from || i === 0) &&
-          (i + 1 == segments?.length || numberState < segments![i + 1].from)) {
+          (i + 1 == sortedSegments?.length || numberState < sortedSegments![i + 1].from)) {
             const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
             return color;
         }
@@ -367,12 +490,12 @@ export class ModernCircularGauge extends LitElement {
     return undefined;
   }
 
-  private _getSegmentLabel(numberState: number): string {
-    if (this._config?.segments) {
-      let segments = [...this._config.segments].sort((a, b) => a.from - b.from);
+  private _getSegmentLabel(numberState: number, segments: SegmentsConfig[] | undefined): string {
+    if (segments) {
+      let sortedSegments = [...segments].sort((a, b) => a.from - b.from);
 
-      for (let i = segments.length - 1; i >= 0; i--) {
-        let segment = segments[i];
+      for (let i = sortedSegments.length - 1; i >= 0; i--) {
+        let segment = sortedSegments[i];
         if (numberState >= segment.from || i === 0) {
           return segment.label || "";
         }
@@ -382,17 +505,40 @@ export class ModernCircularGauge extends LitElement {
   }
 
   private async _tryConnect(): Promise<void> {
-    TEMPLATE_KEYS.forEach((key) => {
-      this._tryConnectKey(key);
+    const templates = {
+      min: this._config?.min,
+      max: this._config?.max,
+      secondary: this._config?.secondary
+    };
+    
+    Object.entries(templates).forEach(([key, value]) => {
+      if (typeof value == "string") {
+        this._tryConnectKey(key, value);
+      }
     });
+
+    if (typeof this._config?.secondary != "string") {
+      const secondary = this._config?.secondary;
+      const secondaryTemplates = {
+        secondaryMin: secondary?.min,
+        secondaryMax: secondary?.max,
+        secondaryEntity: secondary?.entity
+      };
+
+      Object.entries(secondaryTemplates).forEach(([key, value]) => {
+        if (typeof value == "string") {
+          this._tryConnectKey(key, value);
+        }
+      });
+    }
   }
 
-  private async _tryConnectKey(key: string): Promise<void> {
+  private async _tryConnectKey(key: string, templateValue: string): Promise<void> {
     if (
       this._unsubRenderTemplates?.get(key) !== undefined ||
       !this.hass ||
       !this._config ||
-      !isTemplate(this._config?.[key])
+      !isTemplate(templateValue)
     ) {
       return;
     }
@@ -410,7 +556,7 @@ export class ModernCircularGauge extends LitElement {
           };
         },
         {
-          template: this._config[key] as string || "",
+          template: templateValue as string || "",
           variables: {
             config: this._config,
             user: this.hass.user!.name,
@@ -422,7 +568,7 @@ export class ModernCircularGauge extends LitElement {
       await sub;
     } catch (e: any) {
       const result = {
-        result: this._config[key] as string || "",
+        result: templateValue as string || "",
         listeners: { all: false, domains: [], entities: [], time: false },
       };
       this._templateResults = {
@@ -434,9 +580,32 @@ export class ModernCircularGauge extends LitElement {
   }
 
   private async _tryDisconnect(): Promise<void> {
-    TEMPLATE_KEYS.forEach((key) => {
-      this._tryDisconnectKey(key);
+    const templates = {
+      min: this._config?.min,
+      max: this._config?.max,
+      secondary: this._config?.secondary
+    };
+    
+    Object.entries(templates).forEach(([key, value]) => {
+      if (typeof value == "string") {
+        this._tryDisconnectKey(key);
+      }
     });
+
+    if (typeof this._config?.secondary != "string") {
+      const secondary = this._config?.secondary;
+      const secondaryTemplates = {
+        secondaryMin: secondary?.min,
+        secondaryMax: secondary?.max,
+        secondaryEntity: secondary?.entity
+      };
+
+      Object.entries(secondaryTemplates).forEach(([key, value]) => {
+        if (typeof value == "string") {
+          this._tryDisconnectKey(key);
+        }
+      });
+    }
   }
 
   private async _tryDisconnectKey(key: string): Promise<void> {
@@ -460,12 +629,6 @@ export class ModernCircularGauge extends LitElement {
 
   private _handleAction(ev: ActionHandlerEvent) {
     handleAction(this, this.hass!, this._config!, ev.detail.action!);
-  }
-
-  private _getValue(key: string) {
-    return isTemplate(this._config?.[key])
-      ? this._templateResults?.[key]?.result?.toString()
-      : this._config?.[key];
   }
 
   public getGridOptions(): LovelaceGridOptions {
@@ -627,6 +790,26 @@ export class ModernCircularGauge extends LitElement {
       transition: all 1s ease 0s;
     }
 
+    .inner {
+      --gauge-color: var(--accent-color);
+    }
+
+    .dual-gauge {
+      --gauge-stroke-width: 4px;
+    }
+
+    .dual-gauge .needle {
+      stroke-width: 2px;
+    }
+
+    .dot {
+      fill: none;
+      stroke-linecap: round;
+      stroke-width: 3px;
+      stroke: var(--primary-text-color);
+      transition: all 1s ease 0s;
+      opacity: 0.5;
+    }
     `;
   }
 }
