@@ -27,7 +27,15 @@ registerCustomBadge({
   description: "Modern circular gauge badge",
 });
 
-const TEMPLATE_KEYS = ["min", "max"];
+const path = svgArc({
+  x: 0,
+  y: 0,
+  start: 0,
+  end: MAX_ANGLE,
+  r: RADIUS,
+});
+
+const TEMPLATE_KEYS = ["min", "max", "entity"];
 
 @customElement("modern-circular-gauge-badge")
 export class ModernCircularGaugeBadge extends LitElement {
@@ -202,9 +210,34 @@ export class ModernCircularGaugeBadge extends LitElement {
     }
 
     const stateObj = this.hass.states[this._config.entity];
+    const templatedState = this._templateResults?.entity?.result;    
 
-    if (!stateObj) {
-      return html`
+    if (!stateObj && !templatedState) {
+      if (isTemplate(this._config.entity)) {
+        return html`
+        <ha-badge
+          .type=${this.hasAction ? "button" : "badge"}
+          @action=${this._handleAction}
+          .actionHandler=${actionHandler({
+            hasHold: hasAction(this._config.hold_action),
+            hasDoubleClick: hasAction(this._config.double_tap_action),
+          })}
+          .iconOnly=${!this._config.show_name}
+        >
+          <div class=${classMap({ "container": true, "icon-only": !this._config.show_name })} slot="icon">
+            <svg class="gauge" viewBox="-50 -50 100 100">
+              <g transform="rotate(${ROTATE_ANGLE})">
+                <path
+                  class="arc clear"
+                  d=${path}
+                />
+              </g>
+            </svg>
+          </div>
+        </ha-badge>
+        `;
+      } else {
+        return html`
         <ha-badge .label=${this._config.entity} class="error">
           <ha-svg-icon
             slot="icon"
@@ -213,28 +246,21 @@ export class ModernCircularGaugeBadge extends LitElement {
           ></ha-svg-icon>
           ${this.hass.localize("ui.badge.entity.not_found")}
         </ha-badge>
-      `;
+        `;
+      }
     }
 
-    const path = svgArc({
-      x: 0,
-      y: 0,
-      start: 0,
-      end: MAX_ANGLE,
-      r: RADIUS,
-    });
+    const attributes = stateObj?.attributes ?? undefined;
 
-    const attributes = stateObj.attributes;
+    const numberState = Number(stateObj?.state) || Number(templatedState);
 
-    const numberState = Number(stateObj.state);
-
-    const unit = this._config.unit ?? stateObj.attributes.unit_of_measurement;
+    const unit = this._config.unit ?? stateObj?.attributes.unit_of_measurement;
 
     const current = this._strokeDashArc(numberState > 0 ? 0 : numberState, numberState > 0 ? numberState : 0);
-    const state = stateObj.state;
-    const entityState = formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj.entity_id]));
+    const state = templatedState ?? stateObj.state;
+    const entityState = formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj?.entity_id])) ?? templatedState;
 
-    const name = this._config.name || stateObj.attributes.friendly_name;
+    const name = this._config.name || stateObj?.attributes.friendly_name;
     const label = this._config.show_name ? name : undefined;
 
     return html`
@@ -303,7 +329,12 @@ export class ModernCircularGaugeBadge extends LitElement {
   }
 
   private _handleAction(ev: ActionHandlerEvent) {
-    handleAction(this, this.hass!, this._config!, ev.detail.action!);
+    const config = {
+      ...this._config,
+      entity: isTemplate(this._config?.entity ?? "") ? "" : this._config?.entity
+    };
+
+    handleAction(this, this.hass!, config, ev.detail.action!);
   }
 
   private _getValue(key: string) {
