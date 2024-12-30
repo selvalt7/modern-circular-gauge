@@ -285,14 +285,22 @@ export class ModernCircularGauge extends LitElement {
   private _renderInnerGauge(): TemplateResult {
     const secondaryObj = this._config?.secondary as SecondaryEntity;
     const stateObj = this.hass.states[secondaryObj.entity || ""];
+    const templatedState = this._templateResults?.secondaryEntity?.result;
 
-    if (!stateObj || !secondaryObj) {
-      return svg``;
+    if ((!stateObj || !secondaryObj) && !templatedState) {
+      return svg`
+      <g class="inner">
+        <path
+          class="arc clear"
+          d=${innerPath}
+        />
+      </g>
+      `;
     }
 
-    const numberState = Number(stateObj.state);
+    const numberState = Number(stateObj?.state) || Number(templatedState);
 
-    if (stateObj.state === "unavailable") {
+    if (stateObj?.state === "unavailable" && templatedState) {
       return svg``;
     }
 
@@ -356,15 +364,16 @@ export class ModernCircularGauge extends LitElement {
     const secondaryObj = this._config?.secondary as SecondaryEntity;
     const stateObj = this.hass.states[secondaryObj.entity || ""];
     const mainStateObj = this.hass.states[this._config?.entity || ""];
+    const templatedState = this._templateResults?.secondaryEntity?.result;
 
-    if (!stateObj) {
+    if (!stateObj && !templatedState) {
       return svg``;
     }
 
-    const numberState = Number(stateObj.state);
+    const numberState = Number(stateObj?.state) || Number(templatedState);
     const mainNumberState = Number(mainStateObj.state);
 
-    if (stateObj.state === "unavailable") {
+    if (stateObj?.state === "unavailable" && templatedState) {
       return svg``;
     }
 
@@ -399,17 +408,18 @@ export class ModernCircularGauge extends LitElement {
     }
 
     const stateObj = this.hass.states[secondary.entity || ""];
+    const templatedState = this._templateResults?.secondaryEntity?.result;
 
-    if (!stateObj) {
+    if (!stateObj && !templatedState) {
       return svg``;
     }
 
-    const attributes = stateObj.attributes;
+    const attributes = stateObj?.attributes ?? undefined;
 
-    const unit = secondary.unit ?? attributes.unit_of_measurement;
+    const unit = secondary.unit ?? attributes?.unit_of_measurement;
 
-    const state = stateObj.state;
-    const entityState = formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj.entity_id]));
+    const state = templatedState ?? stateObj.state;
+    const entityState = formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj?.entity_id])) ?? templatedState;
 
     return svg`
     ${entityState}
@@ -511,7 +521,8 @@ export class ModernCircularGauge extends LitElement {
       const secondary = this._config?.secondary;
       const secondaryTemplates = {
         secondaryMin: secondary?.min,
-        secondaryMax: secondary?.max
+        secondaryMax: secondary?.max,
+        secondaryEntity: secondary?.entity
       };
 
       Object.entries(secondaryTemplates).forEach(([key, value]) => {
@@ -585,7 +596,8 @@ export class ModernCircularGauge extends LitElement {
       const secondary = this._config?.secondary;
       const secondaryTemplates = {
         secondaryMin: secondary?.min,
-        secondaryMax: secondary?.max
+        secondaryMax: secondary?.max,
+        secondaryEntity: secondary?.entity
       };
 
       Object.entries(secondaryTemplates).forEach(([key, value]) => {
