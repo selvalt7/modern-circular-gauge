@@ -252,7 +252,7 @@ export class ModernCircularGaugeBadge extends LitElement {
 
     const attributes = stateObj?.attributes ?? undefined;
 
-    const numberState = templatedState === undefined ? Number(stateObj?.state) : Number(templatedState);
+    const numberState = Number(templatedState ?? stateObj.state);
 
     const unit = this._config.unit ?? stateObj?.attributes.unit_of_measurement;
 

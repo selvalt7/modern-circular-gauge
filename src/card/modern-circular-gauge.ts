@@ -193,7 +193,7 @@ export class ModernCircularGauge extends LitElement {
       }
     }
 
-    const numberState = templatedState === undefined ? Number(stateObj?.state) : Number(templatedState);
+    const numberState = Number(templatedState ?? stateObj.state);
 
     if (stateObj?.state === "unavailable") {
       return html`
@@ -337,7 +337,7 @@ export class ModernCircularGauge extends LitElement {
       `;
     }
 
-    const numberState = templatedState === undefined ? Number(stateObj?.state) : Number(templatedState);
+    const numberState = Number(templatedState ?? stateObj.state);
 
     if (stateObj?.state === "unavailable" && templatedState) {
       return svg``;
@@ -410,8 +410,8 @@ export class ModernCircularGauge extends LitElement {
       return svg``;
     }
 
-    const numberState = templatedState === undefined ? Number(stateObj?.state) : Number(templatedState);
-    const mainNumberState = mainTemplatedState === undefined ? Number(mainStateObj?.state) : Number(mainTemplatedState);
+    const numberState = Number(templatedState ?? stateObj.state);
+    const mainNumberState = Number(mainTemplatedState ?? mainStateObj.state);
 
     if (stateObj?.state === "unavailable" && templatedState) {
       return svg``;
