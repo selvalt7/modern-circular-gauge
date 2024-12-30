@@ -43,10 +43,10 @@ Templates are supported on selected options, configurable only via `yaml`.
 | Name | Type | Default | Description |
 |------|:----:|:-------:|:------------|
 | type | `string` | 'custom:modern-circular-gauge' |
-| entity | `string` | Required | Entity
+| entity | `string` | Required | Entity. May contain templates
 | name | `string` | Optional | Custom title
-| min | `number` or `string` | `0` | Minimum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/) see [example](#gauge-with-templated-additional-info-and-segments)
-| max | `number` or `string` | `100` | Maximum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
+| min | `number` or `string` | `0` | Minimum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
+| max | `number` or `string` | `100` | Maximum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/) see [example](#gauge-with-templated-additional-info-and-segments)
 | unit | `string` | Optional | Custom unit
 | header_position | `string` | `top` | Header position (`top`, `bottom`)
 | needle | `boolean` | `false` | 
@@ -58,7 +58,7 @@ Templates are supported on selected options, configurable only via `yaml`.
 | Name | Type | Default | Description |
 |------|:----:|:-------:|:------------|
 | type | `string` | 'custom:modern-circular-gauge-badge' |
-| entity | `string` | Required | Entity
+| entity | `string` | Required | Entity. May contain templates.
 | name | `string` | Optional | Custom title
 | min | `number` or `string` | `0` | Minimum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
 | max | `number` or `string` | `100` | Maximum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
@@ -77,8 +77,13 @@ Templates are supported on selected options, configurable only via `yaml`.
 #### Secondary entity object
 | Name | Type | Default | Description |
 |------|:----:|:-------:|:------------|
-| entity | `string` | Optional | Secondary entity
+| entity | `string` | Optional | Secondary entity. May contain templates
 | unit | `string` | Optional | Custom unit
+| show_gauge | `none`, `inner`, `outter` | `none` | Display secondary info as dot on main gauge or on inner gauge
+| min | `number` | Optional | Minimum inner gauge value. May contain templates
+| max | `number` | Optional | Maximum inner gauge value. May contain templates
+| needle | `boolean` | `false` |
+| segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
 
 ## Examples
 
