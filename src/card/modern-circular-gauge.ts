@@ -145,18 +145,57 @@ export class ModernCircularGauge extends LitElement {
     }
 
     const stateObj = this.hass.states[this._config.entity];
+    const templatedState = this._templateResults?.entity?.result;
 
-    if (!stateObj) {
-      return html`
-      <hui-warning>
-        ${this.hass.localize("ui.panel.lovelace.warning.entity_not_found", { entity: this._config.entity || "[empty]" })}
-      </hui-warning>
-      `;
+    if (!stateObj && !templatedState) {
+      if (isTemplate(this._config.entity)) {
+        return html`
+        <ha-card
+        class="${classMap({
+          "flex-column-reverse": this._config.header_position == "bottom",
+          "action": this._hasCardAction()
+        })}"
+        @action=${this._handleAction}
+        .actionHandler=${actionHandler({
+          hasHold: hasAction(this._config.hold_action),
+          hasDoubleClick: hasAction(this._config.double_tap_action),
+        })}
+        tabindex=${ifDefined(
+          !this._config.tap_action || hasAction(this._config.tap_action)
+          ? "0"
+          : undefined
+        )}
+        >
+        <div class="header">
+          <p class="name">
+          </p>
+        </div>
+        <div class="container">
+          <svg viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid"
+            overflow="visible"
+            class=${classMap({ "dual-gauge": typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner" })}
+          >
+            <g transform="rotate(${ROTATE_ANGLE})">
+              <path
+                class="arc clear"
+                d=${path}
+              />
+            </g>
+          </svg>
+        </ha-card>
+        `;
+      } else {
+        return html`
+        <hui-warning>
+          ${this.hass.localize("ui.panel.lovelace.warning.entity_not_found", { entity: this._config.entity || "[empty]" })}
+        </hui-warning>
+        `;
+      }
     }
 
-    const numberState = Number(stateObj.state);
+    const numberState = Number(stateObj?.state) || Number(templatedState);
 
-    if (stateObj.state === "unavailable") {
+    if (stateObj?.state === "unavailable") {
       return html`
       <hui-warning>
         ${this.hass.localize("ui.panel.lovelace.warning.entity_unavailable", { entity: this._config.entity })}
@@ -172,9 +211,9 @@ export class ModernCircularGauge extends LitElement {
       `;
     }
 
-    const attributes = stateObj.attributes;
+    const attributes = stateObj?.attributes ?? undefined;
 
-    const unit = this._config.unit ?? stateObj.attributes.unit_of_measurement;
+    const unit = this._config.unit ?? stateObj?.attributes.unit_of_measurement;
 
     const min = Number(this._templateResults?.min?.result ?? this._config.min) || DEFAULT_MIN;
     const max = Number(this._templateResults?.max?.result ?? this._config.max) || DEFAULT_MAX;
@@ -182,8 +221,8 @@ export class ModernCircularGauge extends LitElement {
     const current = this._config.needle ? undefined : this._strokeDashArc(numberState > 0 ? 0 : numberState, numberState > 0 ? numberState : 0, min, max);
     const needle = this._config.needle ? this._strokeDashArc(numberState, numberState, min, max) : undefined;
 
-    const state = stateObj.state;
-    const entityState = formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj.entity_id]));
+    const state = templatedState ?? stateObj.state;
+    const entityState = formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj?.entity_id])) ?? templatedState;
 
     return html`
     <ha-card
@@ -364,6 +403,7 @@ export class ModernCircularGauge extends LitElement {
     const secondaryObj = this._config?.secondary as SecondaryEntity;
     const stateObj = this.hass.states[secondaryObj.entity || ""];
     const mainStateObj = this.hass.states[this._config?.entity || ""];
+    const mainTemplatedState = this._templateResults?.entity?.result;
     const templatedState = this._templateResults?.secondaryEntity?.result;
 
     if (!stateObj && !templatedState) {
@@ -371,7 +411,7 @@ export class ModernCircularGauge extends LitElement {
     }
 
     const numberState = Number(stateObj?.state) || Number(templatedState);
-    const mainNumberState = Number(mainStateObj.state);
+    const mainNumberState = Number(mainStateObj?.state) || Number(mainTemplatedState);
 
     if (stateObj?.state === "unavailable" && templatedState) {
       return svg``;
@@ -506,6 +546,7 @@ export class ModernCircularGauge extends LitElement {
 
   private async _tryConnect(): Promise<void> {
     const templates = {
+      entity: this._config?.entity,
       min: this._config?.min,
       max: this._config?.max,
       secondary: this._config?.secondary
@@ -581,6 +622,7 @@ export class ModernCircularGauge extends LitElement {
 
   private async _tryDisconnect(): Promise<void> {
     const templates = {
+      entity: this._config?.entity,
       min: this._config?.min,
       max: this._config?.max,
       secondary: this._config?.secondary
@@ -628,7 +670,12 @@ export class ModernCircularGauge extends LitElement {
   }
 
   private _handleAction(ev: ActionHandlerEvent) {
-    handleAction(this, this.hass!, this._config!, ev.detail.action!);
+    const config = {
+      ...this._config,
+      entity: isTemplate(this._config?.entity ?? "") ? "" : this._config?.entity
+    };
+
+    handleAction(this, this.hass!, config, ev.detail.action!);
   }
 
   public getGridOptions(): LovelaceGridOptions {
