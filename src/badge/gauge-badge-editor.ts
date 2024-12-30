@@ -32,13 +32,13 @@ const FORM = [
         name: "min",
         default: DEFAULT_MIN,
         label: "generic.minimum",
-        selector: { number: {} },
+        selector: { number: { step: 0.1 } },
       },
       {
         name: "max",
         default: DEFAULT_MAX,
         label: "generic.maximum",
-        selector: { number: {} },
+        selector: { number: { step: 0.1 } },
       },
       {
         name: "show_name",
@@ -69,7 +69,7 @@ const FORM = [
             name: "from",
             label: "From",
             required: true,
-            selector: { number: {} },
+            selector: { number: { step: 0.1 } },
           },
           {
             name: "color",
