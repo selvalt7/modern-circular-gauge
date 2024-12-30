@@ -147,7 +147,7 @@ export class ModernCircularGauge extends LitElement {
     const stateObj = this.hass.states[this._config.entity];
     const templatedState = this._templateResults?.entity?.result;
 
-    if (!stateObj && !templatedState) {
+    if (!stateObj && templatedState === undefined) {
       if (isTemplate(this._config.entity)) {
         return html`
         <ha-card
@@ -193,7 +193,7 @@ export class ModernCircularGauge extends LitElement {
       }
     }
 
-    const numberState = Number(stateObj?.state) || Number(templatedState);
+    const numberState = templatedState === undefined ? Number(stateObj?.state) : Number(templatedState);
 
     if (stateObj?.state === "unavailable") {
       return html`
@@ -326,7 +326,7 @@ export class ModernCircularGauge extends LitElement {
     const stateObj = this.hass.states[secondaryObj.entity || ""];
     const templatedState = this._templateResults?.secondaryEntity?.result;
 
-    if ((!stateObj || !secondaryObj) && !templatedState) {
+    if ((!stateObj || !secondaryObj) && templatedState === undefined) {
       return svg`
       <g class="inner">
         <path
@@ -337,7 +337,7 @@ export class ModernCircularGauge extends LitElement {
       `;
     }
 
-    const numberState = Number(stateObj?.state) || Number(templatedState);
+    const numberState = templatedState === undefined ? Number(stateObj?.state) : Number(templatedState);
 
     if (stateObj?.state === "unavailable" && templatedState) {
       return svg``;
@@ -406,12 +406,12 @@ export class ModernCircularGauge extends LitElement {
     const mainTemplatedState = this._templateResults?.entity?.result;
     const templatedState = this._templateResults?.secondaryEntity?.result;
 
-    if (!stateObj && !templatedState) {
+    if (!stateObj && templatedState === undefined) {
       return svg``;
     }
 
-    const numberState = Number(stateObj?.state) || Number(templatedState);
-    const mainNumberState = Number(mainStateObj?.state) || Number(mainTemplatedState);
+    const numberState = templatedState === undefined ? Number(stateObj?.state) : Number(templatedState);
+    const mainNumberState = mainTemplatedState === undefined ? Number(mainStateObj?.state) : Number(mainTemplatedState);
 
     if (stateObj?.state === "unavailable" && templatedState) {
       return svg``;
@@ -450,7 +450,7 @@ export class ModernCircularGauge extends LitElement {
     const stateObj = this.hass.states[secondary.entity || ""];
     const templatedState = this._templateResults?.secondaryEntity?.result;
 
-    if (!stateObj && !templatedState) {
+    if (!stateObj && templatedState === undefined) {
       return svg``;
     }
 

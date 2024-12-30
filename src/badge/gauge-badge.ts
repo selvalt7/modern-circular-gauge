@@ -212,7 +212,7 @@ export class ModernCircularGaugeBadge extends LitElement {
     const stateObj = this.hass.states[this._config.entity];
     const templatedState = this._templateResults?.entity?.result;    
 
-    if (!stateObj && !templatedState) {
+    if (!stateObj && templatedState === undefined) {
       if (isTemplate(this._config.entity)) {
         return html`
         <ha-badge
@@ -252,7 +252,7 @@ export class ModernCircularGaugeBadge extends LitElement {
 
     const attributes = stateObj?.attributes ?? undefined;
 
-    const numberState = Number(stateObj?.state) || Number(templatedState);
+    const numberState = templatedState === undefined ? Number(stateObj?.state) : Number(templatedState);
 
     const unit = this._config.unit ?? stateObj?.attributes.unit_of_measurement;
 
