@@ -24,7 +24,8 @@
         "@semantic-release/github",
         {
           "assets": "dist/*.js",
-          "draftRelease": true
+          "draftRelease": true,
+          "successComment": false
         }
       ]
     ],
