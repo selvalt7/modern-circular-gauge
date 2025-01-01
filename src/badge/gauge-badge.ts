@@ -258,7 +258,6 @@ export class ModernCircularGaugeBadge extends LitElement {
     const unit = (this._config.unit ?? stateObj?.attributes.unit_of_measurement) || "";
 
     const current = this._config.needle ? undefined : this._strokeDashArc(numberState > 0 ? 0 : numberState, numberState > 0 ? numberState : 0);
-    const needle = this._config.needle ? this._strokeDashArc(numberState, numberState) : undefined;
     const state = templatedState ?? stateObj.state;
     const entityState = formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj?.entity_id])) ?? templatedState;
 
@@ -281,7 +280,7 @@ export class ModernCircularGaugeBadge extends LitElement {
       <div class=${classMap({ "container": true, "icon-only": content === undefined })} slot="icon">
         <svg class="gauge" viewBox="-50 -50 100 100">
           <g transform="rotate(${ROTATE_ANGLE})">
-          ${needle ? svg`
+          ${this._config.needle ? svg`
             <mask id="needle-mask">
               <rect x="-50" y="-50" width="100" height="100" fill="white"/>
               <circle cx="42" cy="0" r="12" fill="black" transform="rotate(${this._getAngle(numberState)})"/>
@@ -293,18 +292,13 @@ export class ModernCircularGaugeBadge extends LitElement {
               d=${path}
               mask="url(#needle-mask)"
             />
-          ${needle ? svg`
+          ${this._config.needle ? svg`
             ${this._config.segments ? svg`
             <g class="segments" mask="url(#needle-mask)">
               ${this._renderSegments(this._config.segments)}
             </g>  
             ` : nothing}
-            <path
-              class="needle"
-              d=${path}
-              stroke-dasharray=${needle[0]}
-              stroke-dashoffset=${needle[1]}
-            />
+            <circle class="needle" cx="42" cy="0" r="7" transform="rotate(${this._getAngle(numberState)})"/>
           ` : nothing}
           ${current ? svg`
               <path
@@ -528,9 +522,7 @@ export class ModernCircularGaugeBadge extends LitElement {
     }
 
     .needle {
-      fill: none;
-      stroke-linecap: round;
-      stroke-width: var(--gauge-stroke-width);
+      fill: var(--gauge-color);
       stroke: var(--gauge-color);
       transition: all 1s ease 0s;
     }
