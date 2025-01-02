@@ -88,7 +88,7 @@ export class ModernCircularGauge extends LitElement {
         }
     }
 
-    this._config = { min: DEFAULT_MIN, max: DEFAULT_MAX, ...config, secondary: secondary, secondary_entity: undefined };
+    this._config = { min: DEFAULT_MIN, max: DEFAULT_MAX, header_position: "bottom", ...config, secondary: secondary, secondary_entity: undefined };
   }
 
   public connectedCallback() {

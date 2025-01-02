@@ -48,7 +48,7 @@ Templates are supported on selected options, configurable only via `yaml`.
 | min | `number` or `string` | `0` | Minimum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
 | max | `number` or `string` | `100` | Maximum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/) see [example](#gauge-with-templated-additional-info-and-segments)
 | unit | `string` | Optional | Custom unit
-| header_position | `string` | `top` | Header position (`top`, `bottom`)
+| header_position | `top` or `bottom` | `bottom` | Header position
 | needle | `boolean` | `false` | 
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
 | secondary | `object` or `string` | Optional | Secondary info to display under the state, see [secondary entity object](#secondary-entity-object). May contain [templates](https://www.home-assistant.io/docs/configuration/templating/) see [example](#gauge-with-templated-additional-info-and-segments)
