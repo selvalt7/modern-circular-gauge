@@ -251,6 +251,8 @@ export class ModernCircularGaugeBadge extends LitElement {
       }
     }
 
+    const min = Number(this._getValue("min")) ?? DEFAULT_MIN;
+
     const attributes = stateObj?.attributes ?? undefined;
 
     const numberState = Number(templatedState ?? stateObj.state);
@@ -303,6 +305,7 @@ export class ModernCircularGaugeBadge extends LitElement {
           ${current ? svg`
               <path
                 class="arc current"
+                style=${styleMap({ "visibility": numberState <= min && min >= 0 ? "hidden" : "visible" })}
                 d=${path}
                 stroke-dasharray="${current[0]}"
                 stroke-dashoffset="${current[1]}"
