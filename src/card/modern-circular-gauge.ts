@@ -260,6 +260,7 @@ export class ModernCircularGauge extends LitElement {
             ${current ? svg`
               <path
                 class="arc current"
+                style=${styleMap({ "visibility": numberState <= min && min >= 0 ? "hidden" : "visible" })}
                 d=${path}
                 stroke-dasharray="${current[0]}"
                 stroke-dashoffset="${current[1]}"
@@ -361,6 +362,7 @@ export class ModernCircularGauge extends LitElement {
       ${current ? svg`
         <path
           class="arc current"
+          style=${styleMap({ "visibility": numberState <= min && min >= 0 ? "hidden" : "visible" })}
           d=${innerPath}
           stroke-dasharray="${current[0]}"
           stroke-dashoffset="${current[1]}"
@@ -830,7 +832,7 @@ export class ModernCircularGauge extends LitElement {
       stroke-linecap: round;
       stroke-width: calc(var(--gauge-stroke-width) + 2px);
       stroke: var(--card-background-color);
-      transition: all 1s ease 0s;
+      transition: all 1s ease 0s, stroke 0.3s ease-out;
     }
 
     .inner {
