@@ -82,6 +82,10 @@ export class MCG_List extends LitElement {
   }
 
   private _addRow() {
+    if (this.data === undefined) {
+      fireEvent(this, "value-changed", { value: [{}] });
+      return;
+    }
     const data = [
       ...this.data,
       {}
