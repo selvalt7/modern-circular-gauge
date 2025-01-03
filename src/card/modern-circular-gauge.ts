@@ -799,7 +799,11 @@ export class ModernCircularGauge extends LitElement {
     }
 
     .secondary.dual-state {
-      opacity: 0.7;
+      fill: var(--secondary-text-color);
+    }
+
+    .secondary.dual-state .unit {
+      opacity: 1;
     }
 
     .name {
