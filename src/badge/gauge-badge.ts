@@ -1,4 +1,4 @@
-import { LitElement, TemplateResult, html, css, nothing, PropertyValues } from "lit";
+import { LitElement, TemplateResult, html, css, nothing, PropertyValues, svg } from "lit";
 import { HomeAssistant } from "../ha/types";
 import { ModernCircularGaugeBadgeConfig } from "./gauge-badge-config";
 import { customElement, property, state } from "lit/decorators.js";
@@ -16,6 +16,7 @@ import { mdiAlertCircle } from "@mdi/js";
 import { rgbToHex } from "../utils/color";
 import { RenderTemplateResult, subscribeRenderTemplate } from "../ha/ws-templates";
 import { isTemplate } from "../utils/template";
+import { SegmentsConfig } from "../card/type";
 
 const MAX_ANGLE = 270;
 const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
@@ -250,18 +251,21 @@ export class ModernCircularGaugeBadge extends LitElement {
       }
     }
 
+    const min = Number(this._getValue("min")) ?? DEFAULT_MIN;
+
     const attributes = stateObj?.attributes ?? undefined;
 
     const numberState = Number(templatedState ?? stateObj.state);
 
-    const unit = this._config.unit ?? stateObj?.attributes.unit_of_measurement;
+    const unit = (this._config.unit ?? stateObj?.attributes.unit_of_measurement) || "";
 
-    const current = this._strokeDashArc(numberState > 0 ? 0 : numberState, numberState > 0 ? numberState : 0);
+    const current = this._config.needle ? undefined : this._strokeDashArc(numberState > 0 ? 0 : numberState, numberState > 0 ? numberState : 0);
     const state = templatedState ?? stateObj.state;
     const entityState = formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj?.entity_id])) ?? templatedState;
 
     const name = this._config.name || stateObj?.attributes.friendly_name;
-    const label = this._config.show_name ? name : undefined;
+    const label = this._config.show_name && this._config.show_icon && this._config.show_state ? name : undefined;
+    const content = this._config.show_icon && this._config.show_state ? `${entityState} ${unit}` : this._config.show_name ? name : undefined;
 
     return html`
     <ha-badge
@@ -271,34 +275,63 @@ export class ModernCircularGaugeBadge extends LitElement {
         hasHold: hasAction(this._config.hold_action),
         hasDoubleClick: hasAction(this._config.double_tap_action),
       })}
-      .iconOnly=${!this._config.show_name}
+      .iconOnly=${content === undefined}
       style=${styleMap({ "--gauge-color": this._computeSegments(numberState) })}
+      .label=${label}
     >
-      <div class=${classMap({ "container": true, "icon-only": !this._config.show_name })} slot="icon">
+      <div class=${classMap({ "container": true, "icon-only": content === undefined })} slot="icon">
         <svg class="gauge" viewBox="-50 -50 100 100">
           <g transform="rotate(${ROTATE_ANGLE})">
+          ${this._config.needle ? svg`
+            <mask id="needle-mask">
+              <rect x="-50" y="-50" width="100" height="100" fill="white"/>
+              <circle cx="42" cy="0" r="12" fill="black" transform="rotate(${this._getAngle(numberState)})"/>
+            </mask>
+          ` : nothing}
+
             <path
               class="arc clear"
               d=${path}
+              mask="url(#needle-mask)"
             />
-            <path
-              class="arc current"
-              d=${path}
-              stroke-dasharray="${current[0]}"
-              stroke-dashoffset="${current[1]}"
-            />
+          ${this._config.needle ? svg`
+            ${this._config.segments ? svg`
+            <g class="segments" mask="url(#needle-mask)">
+              ${this._renderSegments(this._config.segments)}
+            </g>  
+            ` : nothing}
+            <circle class="needle" cx="42" cy="0" r="7" transform="rotate(${this._getAngle(numberState)})"/>
+          ` : nothing}
+          ${current ? svg`
+              <path
+                class="arc current"
+                style=${styleMap({ "visibility": numberState <= min && min >= 0 ? "hidden" : "visible" })}
+                d=${path}
+                stroke-dasharray="${current[0]}"
+                stroke-dashoffset="${current[1]}"
+              />
+          ` : nothing}
           </g>
         </svg>
-        ${this._config.show_state ? html`
-        <svg class="state" viewBox="-50 -50 100 100">
-          <text x="0" y="0" class="value" style=${styleMap({ "font-size": this._calcStateSize(entityState) })}>
-            ${entityState}
-            <tspan class="unit" dx="-4" dy="-6">${unit}</tspan>
-          </text>
-        </svg>
+        ${this._config.show_icon
+          ? html`
+          <ha-state-icon
+            .hass=${this.hass}
+            .stateObj=${stateObj}
+            .icon=${this._config.icon}
+          ></ha-state-icon>`
+          : nothing}
+        ${this._config.show_state && !this._config.show_icon
+          ? html`
+          <svg class="state" viewBox="-50 -50 100 100">
+            <text x="0" y="0" class="value" style=${styleMap({ "font-size": this._calcStateSize(entityState) })}>
+              ${entityState}
+              <tspan class="unit" dx="-4" dy="-6">${unit}</tspan>
+            </text>
+          </svg>
           ` : nothing}
       </div>
-      ${label}
+      ${content}
     </ha-badge>
     `;
   }
@@ -318,6 +351,51 @@ export class ModernCircularGaugeBadge extends LitElement {
       }
     }
     return undefined;
+  }
+
+  private _renderSegments(segments: SegmentsConfig[]): TemplateResult[] {
+    if (segments) {
+      let sortedSegments = [...segments].sort((a, b) => a.from - b.from);
+
+      return [...sortedSegments].map((segment, index) => {
+        let roundEnd: TemplateResult | undefined;
+        const startAngle = index === 0 ? 0 : this._getAngle(segment.from);
+        const angle = index === sortedSegments.length - 1 ? MAX_ANGLE : this._getAngle(sortedSegments[index + 1].from);
+        const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
+        const segmentPath = svgArc({
+          x: 0,
+          y: 0,
+          start: startAngle,
+          end: angle,
+          r: RADIUS,
+        });
+
+        if (index === 0 || index === sortedSegments.length - 1) {
+          const endPath = svgArc({
+            x: 0,
+            y: 0,
+            start: index === 0 ? 0 : MAX_ANGLE,
+            end: index === 0 ? 0 : MAX_ANGLE,
+            r: RADIUS,
+          });
+          roundEnd = svg`
+          <path
+            class="segment"
+            stroke=${color}
+            d=${endPath}
+            stroke-linecap="round"
+          />`;
+        }
+
+        return svg`${roundEnd}
+          <path
+            class="segment"
+            stroke=${color}
+            d=${segmentPath}
+          />`;
+      });
+    }
+    return [];
   }
 
   private _calcStateSize(state: string): string {
@@ -378,6 +456,9 @@ export class ModernCircularGaugeBadge extends LitElement {
     }
 
     .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
       position: relative;
       container-type: normal;
       container-name: container;
@@ -391,6 +472,20 @@ export class ModernCircularGaugeBadge extends LitElement {
     .container.icon-only {
       margin-left: 0;
       margin-inline-start: 0;
+    }
+
+    .gauge {
+      position: absolute;
+    }
+
+    .segment {
+      fill: none;
+      stroke-width: var(--gauge-stroke-width);
+      filter: brightness(100%);
+    }
+
+    .segments {
+      opacity: 0.3;
     }
 
     ha-badge {
@@ -426,6 +521,16 @@ export class ModernCircularGaugeBadge extends LitElement {
 
     .arc.current {
       stroke: var(--gauge-color);
+      transition: all 1s ease 0s;
+    }
+
+    .needle {
+      fill: var(--gauge-color);
+      stroke: var(--gauge-color);
+      transition: all 1s ease 0s;
+    }
+
+    circle {
       transition: all 1s ease 0s;
     }
     `

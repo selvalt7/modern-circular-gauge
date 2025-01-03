@@ -29,6 +29,16 @@ const FORM = [
         selector: { text: {} },
       },
       {
+        name: "icon",
+        selector: { icon: {} },
+        context: { icon_entity: "entity" },
+      },
+      {
+        name: "needle",
+        label: "gauge.needle_gauge",
+        selector: { boolean: {} },
+      },
+      {
         name: "min",
         default: DEFAULT_MIN,
         label: "generic.minimum",
@@ -50,6 +60,12 @@ const FORM = [
         name: "show_state",
         label: "Show state",
         default: true,
+        selector: { boolean: {} },
+      },
+      {
+        name: "show_icon",
+        label: "Show icon",
+        default: false,
         selector: { boolean: {} },
       },
     ]

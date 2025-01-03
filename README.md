@@ -60,11 +60,14 @@ Templates are supported on selected options, configurable only via `yaml`.
 | type | `string` | 'custom:modern-circular-gauge-badge' |
 | entity | `string` | Required | Entity. May contain templates.
 | name | `string` | Optional | Custom title
+| icon | `string` | Entity icon | Custom icon
 | min | `number` or `string` | `0` | Minimum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
 | max | `number` or `string` | `100` | Maximum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
 | unit | `string` | Optional | Custom unit
 | show_name | `bool` | `false` | Show badge name
 | show_state | `bool` | `true` | Show entity state
+| show_icon | `bool` | `false` | Show icon
+| needle | `bool` | `false` | 
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
 
 #### Color segment object
