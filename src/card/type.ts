@@ -13,6 +13,7 @@ export type SecondaryEntity = {
     show_gauge?: "none" | "inner" | "outter";
     min?: number | string;
     max?: number | string;
+    state_size?: "small" | "big";
     needle?: boolean;
     segments?: SegmentsConfig[];
 };

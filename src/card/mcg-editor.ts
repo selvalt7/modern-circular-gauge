@@ -73,22 +73,33 @@ export class ModernCircularGaugeEditor extends LitElement {
         label: "Secondary info",
         iconPath: mdiInformationOutline,
         schema: [
-            {
-              name: "",
-              type: "grid",
-              schema: [
-                {
-                  name: "entity",
-                  selector: { entity: { 
-                    domain: NUMBER_ENTITY_DOMAINS,
-                  }},
-                },
-                {
-                  name: "unit",
-                  selector: { text: {} },
-                },
-              ]
-            },
+          {
+            name: "",
+            type: "grid",
+            schema: [
+              {
+                name: "entity",
+                selector: { entity: { 
+                  domain: NUMBER_ENTITY_DOMAINS,
+                }},
+              },
+              {
+                name: "unit",
+                selector: { text: {} },
+              },
+            ]
+          },
+          {
+            name: "state_size",
+            label: "State size",
+            selector: { select: {
+              options: [
+                { value: "small", label: "Small"},
+                { value: "big", label: "Big"},
+              ],
+              mode: "dropdown",
+            }},
+          },
           {
             name: "show_gauge",
             label: "Gauge visibility",
