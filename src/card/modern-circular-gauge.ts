@@ -305,6 +305,15 @@ export class ModernCircularGauge extends LitElement {
               <tspan class="unit" dx="-4" dy="-6">${unit}</tspan>
             `}
           </text>
+          ${typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big"
+            ? svg`
+          <text
+            class="state-label"
+            dy="1"
+          >
+            ${this._config.label}
+          </text>`
+            : nothing}
           ${this._renderSecondary()}
         </svg>
       </div> 
@@ -476,10 +485,9 @@ export class ModernCircularGauge extends LitElement {
     return svg`
     <text
       @action=${this._handleAction}
-      x="0" y="0"
       class="secondary ${classMap({"dual-state": secondary.state_size == "big"})}"
       style=${styleMap({ "font-size": secondary.state_size == "big" ? this._calcStateSize(entityState) : undefined })}
-      dy=${secondary.state_size == "big" ? 14 : 19}
+      dy=${secondary.state_size == "big" ? 14 : 20}
     >
       ${entityState}
       <tspan
@@ -490,6 +498,15 @@ export class ModernCircularGauge extends LitElement {
         ${unit}
       </tspan>
     </text>
+    ${secondary.state_size == "big"
+      ? svg`
+    <text
+      class="state-label"
+      dy="30"
+    >
+      ${secondary.label}
+    </text>`
+      : nothing}
     `;
   }
 
@@ -788,7 +805,12 @@ export class ModernCircularGauge extends LitElement {
     }
 
     .secondary {
-      font-size: 8px;
+      font-size: 10px;
+      fill: var(--secondary-text-color);
+    }
+
+    .state-label {
+      font-size: 0.49em;
       fill: var(--secondary-text-color);
     }
 
