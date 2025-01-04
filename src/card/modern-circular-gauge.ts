@@ -478,7 +478,7 @@ export class ModernCircularGauge extends LitElement {
       @action=${this._handleAction}
       x="0" y="0"
       class="secondary ${classMap({"dual-state": secondary.state_size == "big"})}"
-      style=${styleMap({ "font-size": secondary.state_size == "big" ? `calc(${this._calcStateSize(entityState)} - 2px)` : "revert-layer" })}
+      style=${styleMap({ "font-size": secondary.state_size == "big" ? this._calcStateSize(entityState) : undefined })}
       dy=${secondary.state_size == "big" ? 14 : 19}
     >
       ${entityState}

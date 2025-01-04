@@ -85,6 +85,7 @@ Templates are supported on selected options, configurable only via `yaml`.
 | show_gauge | `none`, `inner`, `outter` | `none` | Display secondary info as dot on main gauge or on inner gauge
 | min | `number` | Optional | Minimum inner gauge value. May contain templates
 | max | `number` | Optional | Maximum inner gauge value. May contain templates
+| state_size | `small` or `big` | `small` | Secondary state size 
 | needle | `boolean` | `false` |
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
 
