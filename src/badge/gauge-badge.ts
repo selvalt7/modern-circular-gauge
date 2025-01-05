@@ -9,12 +9,13 @@ import { HassEntity, UnsubscribeFunc } from "home-assistant-js-websocket";
 import { styleMap } from "lit/directives/style-map.js";
 import { svgArc, clamp } from "../utils/gauge";
 import { classMap } from "lit/directives/class-map.js";
-import { ActionHandlerEvent, hasAction } from "custom-card-helpers";
+import { ActionHandlerEvent } from "../ha/data/lovelace";
+import { hasAction } from "../ha/panels/lovelace/common/has-action";
 import { handleAction } from "../ha/handle-action";
 import { actionHandler } from "../utils/action-handler-directive";
 import { mdiAlertCircle } from "@mdi/js";
 import { rgbToHex } from "../utils/color";
-import { RenderTemplateResult, subscribeRenderTemplate } from "../ha/ws-templates";
+import { RenderTemplateResult, subscribeRenderTemplate } from "../ha/data/ws-templates";
 import { isTemplate } from "../utils/template";
 import { SegmentsConfig } from "../card/type";
 

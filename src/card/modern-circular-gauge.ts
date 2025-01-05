@@ -1,10 +1,11 @@
 import { html, LitElement, TemplateResult, css, svg, nothing, PropertyValues } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import { ActionHandlerEvent, hasAction } from "custom-card-helpers";
+import { ActionHandlerEvent } from "../ha/data/lovelace";
+import { hasAction } from "../ha/panels/lovelace/common/has-action";
 import { clamp, svgArc } from "../utils/gauge";
 import { registerCustomCard } from "../utils/custom-cards";
 import type { ModernCircularGaugeConfig, SecondaryEntity, SegmentsConfig } from "./type";
-import { LovelaceLayoutOptions, LovelaceGridOptions } from "../ha/lovelace";
+import { LovelaceLayoutOptions, LovelaceGridOptions } from "../ha/data/lovelace";
 import { handleAction } from "../ha/handle-action";
 import { HomeAssistant } from "../ha/types";
 import { HassEntity, UnsubscribeFunc } from "home-assistant-js-websocket";
@@ -15,7 +16,7 @@ import { ifDefined } from "lit/directives/if-defined.js";
 import { actionHandler } from "../utils/action-handler-directive";
 import { rgbToHex } from "../utils/color";
 import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS } from "../const";
-import { RenderTemplateResult, subscribeRenderTemplate } from "../ha/ws-templates";
+import { RenderTemplateResult, subscribeRenderTemplate } from "../ha/data/ws-templates";
 import { isTemplate } from "../utils/template";
 
 const MAX_ANGLE = 270;

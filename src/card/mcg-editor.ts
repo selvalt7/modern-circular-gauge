@@ -1,4 +1,4 @@
-import { fireEvent } from "custom-card-helpers";
+import { fireEvent } from "../ha/common/dom/fire_event";
 import { HomeAssistant } from "../ha/types";
 import { html, LitElement, nothing, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";

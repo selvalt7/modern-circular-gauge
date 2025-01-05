@@ -1,4 +1,4 @@
-import { fireEvent } from "custom-card-helpers";
+import { fireEvent } from "./common/dom/fire_event";
 import { HomeAssistant } from "./types";
 import type { HassServiceTarget } from "home-assistant-js-websocket";
 

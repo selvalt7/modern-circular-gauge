@@ -4,7 +4,7 @@ import { HomeAssistant } from "../ha/types";
 import { HaFormMCGListSchema } from "./type";
 import { HaFormBaseSchema, HaFormDataContainer } from "../ha/components/ha-form-types";
 import { mdiClose, mdiPlus } from "@mdi/js";
-import { fireEvent } from "custom-card-helpers";
+import { fireEvent } from "../ha/common/dom/fire_event";
 
 @customElement("ha-form-mcg-list")
 export class MCG_List extends LitElement {
