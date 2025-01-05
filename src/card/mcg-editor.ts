@@ -168,9 +168,20 @@ export class ModernCircularGaugeEditor extends LitElement {
         },
       },
       {
-        name: "needle",
-        label: "gauge.needle_gauge",
-        selector: { boolean: {} },
+        name: "",
+        type: "grid",
+        schema: [
+          {
+            name: "needle",
+            label: "gauge.needle_gauge",
+            selector: { boolean: {} },
+          },
+          {
+            name: "smooth_segments",
+            label: "Smooth color segments",
+            selector: { boolean: {} },
+          },
+        ],
       },
       {
         name: "segments",
