@@ -513,7 +513,7 @@ export class ModernCircularGaugeBadge extends LitElement {
     }
 
     .segments {
-      opacity: 0.3;
+      opacity: 0.35;
     }
 
     ha-badge {
