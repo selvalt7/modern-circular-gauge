@@ -262,6 +262,13 @@ export class ModernCircularGauge extends LitElement {
                   d=${path}
                 />
               </mask>
+              <mask id="gradient-inner-path">
+                <path
+                  class="arc"
+                  stroke="white"
+                  d=${innerPath}
+                />
+              </mask>
             </defs>
             <path
               class="arc clear"
@@ -380,7 +387,7 @@ export class ModernCircularGauge extends LitElement {
       ` : nothing}
       ${needle ? svg`
         ${secondaryObj.segments ? svg`
-        <g class="segments">
+        <g class="segments" mask=${ifDefined(this._config?.smooth_segments ? "url(#gradient-inner-path)" : undefined)}>
           ${this._renderSegments(secondaryObj.segments, min, max, INNER_RADIUS)}
         </g>`
         : nothing
