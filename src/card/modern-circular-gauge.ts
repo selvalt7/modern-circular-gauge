@@ -502,7 +502,7 @@ export class ModernCircularGauge extends LitElement {
       ? svg`
     <text
       class="state-label"
-      dy="30"
+      dy="29"
     >
       ${secondary.label}
     </text>`
