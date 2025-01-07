@@ -311,15 +311,27 @@ export class ModernCircularGauge extends LitElement {
           </g>
         </svg>
         <svg class="state" viewBox="-50 -50 100 100">
-          <text x="0" y="0" class="value" style=${styleMap({ "font-size": this._calcStateSize(entityState) })}>
+          <text
+            x="0" y="0" 
+            class="value ${classMap({"dual-state": typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big"})}" 
+            style=${styleMap({ "font-size": this._calcStateSize(entityState) })}
+            dy=${typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big" ? -14 : 0}
+          >
             ${this._getSegmentLabel(numberState, this._config.segments) ? this._getSegmentLabel(numberState, this._config.segments) : svg`
               ${entityState}
               <tspan class="unit" dx="-4" dy="-6">${unit}</tspan>
             `}
           </text>
-          <text class="secondary" dy="19">
-            ${this._renderSecondary()}
-          </text>
+          ${typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big"
+            ? svg`
+          <text
+            class="state-label"
+            dy="1"
+          >
+            ${this._config.label}
+          </text>`
+            : nothing}
+          ${this._renderSecondary()}
         </svg>
       </div> 
     </ha-card>
@@ -327,8 +339,12 @@ export class ModernCircularGauge extends LitElement {
   }
 
   private _calcStateSize(state: string): string {
-    const initialSize = typeof this._config?.secondary != "string" && this._config?.secondary?.show_gauge == "inner" ? 
-      22 : 24;
+    let initialSize = 24;
+    if (typeof this._config?.secondary != "string") {
+      initialSize -= this._config?.secondary?.show_gauge == "inner" ? 2 : 0;
+      initialSize -= this._config?.secondary?.state_size == "big" ? 3 : 0;
+    }
+
     if (state.length >= 7) {
       return `${initialSize - (state.length - 4)}px`
     }
@@ -459,7 +475,14 @@ export class ModernCircularGauge extends LitElement {
     }
 
     if (typeof secondary === "string") {
-      return svg`${this._templateResults?.secondary?.result ?? this._config?.secondary}`;
+      return svg`
+      <text
+        x="0" y="0"
+        class="secondary"
+        dy=19
+      >
+        ${this._templateResults?.secondary?.result ?? this._config?.secondary}
+      </text>`;
     }
 
     const stateObj = this.hass.states[secondary.entity || ""];
@@ -477,10 +500,30 @@ export class ModernCircularGauge extends LitElement {
     const entityState = formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj?.entity_id])) ?? templatedState;
 
     return svg`
-    ${entityState}
-    <tspan>
-    ${unit}
-    </tspan>
+    <text
+      @action=${this._handleAction}
+      class="secondary ${classMap({"dual-state": secondary.state_size == "big"})}"
+      style=${styleMap({ "font-size": secondary.state_size == "big" ? this._calcStateSize(entityState) : undefined })}
+      dy=${secondary.state_size == "big" ? 14 : 20}
+    >
+      ${entityState}
+      <tspan
+        class=${classMap({"unit": secondary.state_size == "big"})}
+        dx=${secondary.state_size == "big" ? -4 : 0}
+        dy=${secondary.state_size == "big" ? -6 : 0}
+      >
+        ${unit}
+      </tspan>
+    </text>
+    ${secondary.state_size == "big"
+      ? svg`
+    <text
+      class="state-label"
+      dy="29"
+    >
+      ${secondary.label}
+    </text>`
+      : nothing}
     `;
   }
 
@@ -707,9 +750,14 @@ export class ModernCircularGauge extends LitElement {
   }
 
   private _handleAction(ev: ActionHandlerEvent) {
+    ev.stopPropagation();
+    const element = ev.currentTarget as Element;
+    const targetEntity = element.classList.contains("secondary")
+      ? typeof this._config?.secondary != "string" ? this._config?.secondary?.entity : ""
+      : this._config?.entity;
     const config = {
       ...this._config,
-      entity: isTemplate(this._config?.entity ?? "") ? "" : this._config?.entity
+      entity: isTemplate(targetEntity ?? "") ? "" : targetEntity
     };
 
     handleAction(this, this.hass!, config, ev.detail.action!);
@@ -796,14 +844,27 @@ export class ModernCircularGauge extends LitElement {
     }
 
     .secondary {
-      font-size: 8px;
+      font-size: 10px;
       fill: var(--secondary-text-color);
     }
 
-    .value {
+    .state-label {
+      font-size: 0.49em;
+      fill: var(--secondary-text-color);
+    }
+
+    .value, .secondary.dual-state {
       font-size: 21px;
       fill: var(--primary-text-color);
       dominant-baseline: middle;
+    }
+
+    .secondary.dual-state {
+      fill: var(--secondary-text-color);
+    }
+
+    .secondary.dual-state .unit {
+      opacity: 1;
     }
 
     .name {
