@@ -14,6 +14,7 @@ import { styleMap } from "lit/directives/style-map.js";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { actionHandler } from "../utils/action-handler-directive";
 import { rgbToHex } from "../utils/color";
+import { interpolateRgb } from "d3-interpolate";
 import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS } from "../const";
 import { RenderTemplateResult, subscribeRenderTemplate } from "../ha/ws-templates";
 import { isTemplate } from "../utils/template";
@@ -253,6 +254,22 @@ export class ModernCircularGauge extends LitElement {
           class=${classMap({ "dual-gauge": typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner" })}
         >
           <g transform="rotate(${ROTATE_ANGLE})">
+            <defs>
+              <mask id="gradient-path">
+                <path
+                  class="arc"
+                  stroke="white"
+                  d=${path}
+                />
+              </mask>
+              <mask id="gradient-inner-path">
+                <path
+                  class="arc"
+                  stroke="white"
+                  d=${innerPath}
+                />
+              </mask>
+            </defs>
             <path
               class="arc clear"
               d=${path}
@@ -273,7 +290,7 @@ export class ModernCircularGauge extends LitElement {
               : nothing}
             ${needle ? svg`
               ${this._config.segments ? svg`
-              <g class="segments">
+              <g class="segments" mask=${ifDefined(this._config.smooth_segments ? "url(#gradient-path)" : undefined)}>
                 ${this._renderSegments(this._config.segments, min, max, RADIUS)}
               </g>`
               : nothing
@@ -370,7 +387,7 @@ export class ModernCircularGauge extends LitElement {
       ` : nothing}
       ${needle ? svg`
         ${secondaryObj.segments ? svg`
-        <g class="segments">
+        <g class="segments" mask=${ifDefined(this._config?.smooth_segments ? "url(#gradient-inner-path)" : undefined)}>
           ${this._renderSegments(secondaryObj.segments, min, max, INNER_RADIUS)}
         </g>`
         : nothing
@@ -471,43 +488,58 @@ export class ModernCircularGauge extends LitElement {
     if (segments) {
       let sortedSegments = [...segments].sort((a, b) => a.from - b.from);
 
-      return [...sortedSegments].map((segment, index) => {
-        let roundEnd: TemplateResult | undefined;
-        const startAngle = index === 0 ? 0 : this._getAngle(segment.from, min, max);
-        const angle = index === sortedSegments.length - 1 ? MAX_ANGLE : this._getAngle(sortedSegments[index + 1].from, min, max);
-        const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
-        const segmentPath = svgArc({
-          x: 0,
-          y: 0,
-          start: startAngle,
-          end: angle,
-          r: radius,
+      if (this._config?.smooth_segments) {
+        let gradient: string = "";
+        sortedSegments.map((segment, index) => {
+          const angle = this._getAngle(segment.from, min, max) + 45;
+          const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
+          gradient += `${color} ${angle}deg${index != sortedSegments.length - 1 ? "," : ""}`;
         });
-
-        if (index === 0 || index === sortedSegments.length - 1) {
-          const endPath = svgArc({
+        return [svg`
+          <foreignObject x="-50" y="-50" width="100%" height="100%" transform="rotate(45)">
+            <div style="width: 100px; height: 100px; background-image: conic-gradient(${gradient})">
+            </div>
+          </foreignObject>
+        `];
+      } else {
+        return [...sortedSegments].map((segment, index) => {
+          let roundEnd: TemplateResult | undefined;
+          const startAngle = index === 0 ? 0 : this._getAngle(segment.from, min, max);
+          const angle = index === sortedSegments.length - 1 ? MAX_ANGLE : this._getAngle(sortedSegments[index + 1].from, min, max);
+          const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
+          const segmentPath = svgArc({
             x: 0,
             y: 0,
-            start: index === 0 ? 0 : MAX_ANGLE,
-            end: index === 0 ? 0 : MAX_ANGLE,
+            start: startAngle,
+            end: angle,
             r: radius,
           });
-          roundEnd = svg`
-          <path
-            class="segment"
-            stroke=${color}
-            d=${endPath}
-            stroke-linecap="round"
-          />`;
-        }
-
-        return svg`${roundEnd}
-          <path
-            class="segment"
-            stroke=${color}
-            d=${segmentPath}
-          />`;
-      });
+  
+          if (index === 0 || index === sortedSegments.length - 1) {
+            const endPath = svgArc({
+              x: 0,
+              y: 0,
+              start: index === 0 ? 0 : MAX_ANGLE,
+              end: index === 0 ? 0 : MAX_ANGLE,
+              r: radius,
+            });
+            roundEnd = svg`
+            <path
+              class="segment"
+              stroke=${color}
+              d=${endPath}
+              stroke-linecap="round"
+            />`;
+          }
+  
+          return svg`${roundEnd}
+            <path
+              class="segment"
+              stroke=${color}
+              d=${segmentPath}
+            />`;
+        });
+      }
     }
     return [];
   }
@@ -515,13 +547,20 @@ export class ModernCircularGauge extends LitElement {
   private _computeSegments(numberState: number, segments: SegmentsConfig[] | undefined): string | undefined {
     if (segments) {
       let sortedSegments = [...segments].sort((a, b) => a.from - b.from);
-
+      
       for (let i = 0; i < sortedSegments.length; i++) {
         let segment = sortedSegments[i];
         if (segment && (numberState >= segment.from || i === 0) &&
           (i + 1 == sortedSegments?.length || numberState < sortedSegments![i + 1].from)) {
-            const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
-            return color;
+            if (this._config?.smooth_segments) {
+              const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
+              const nextSegment = sortedSegments[i + 1] ? sortedSegments[i + 1] : segment;
+              const nextColor = typeof nextSegment.color === "object" ? rgbToHex(nextSegment.color) : nextSegment.color;
+              return interpolateRgb(color, nextColor)(this._valueToPercentage(numberState, segment.from, nextSegment.from));
+            } else {
+              const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
+              return color;
+            }
         }
       }
     }
@@ -815,8 +854,7 @@ export class ModernCircularGauge extends LitElement {
     }
 
     .segments {
-      opacity: 0.3;
-      filter: contrast(0.8);
+      opacity: 0.35;
     }
 
     .needle {

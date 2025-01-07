@@ -14,6 +14,7 @@ import { handleAction } from "../ha/handle-action";
 import { actionHandler } from "../utils/action-handler-directive";
 import { mdiAlertCircle } from "@mdi/js";
 import { rgbToHex } from "../utils/color";
+import { interpolateRgb } from "d3-interpolate";
 import { RenderTemplateResult, subscribeRenderTemplate } from "../ha/ws-templates";
 import { isTemplate } from "../utils/template";
 import { SegmentsConfig } from "../card/type";
@@ -182,9 +183,9 @@ export class ModernCircularGaugeBadge extends LitElement {
     );
   }
 
-  private _strokeDashArc(from: number, to: number): [string, string] {
-    const start = this._valueToPercentage(from);
-    const end = this._valueToPercentage(to);
+  private _strokeDashArc(from: number, to: number, min: number, max: number): [string, string] {
+    const start = this._valueToPercentage(from, min, max);
+    const end = this._valueToPercentage(to, min, max);
 
     const track = (RADIUS * 2 * Math.PI * MAX_ANGLE) / 360;
     const arc = Math.max((end - start) * track, 0);
@@ -195,14 +196,12 @@ export class ModernCircularGaugeBadge extends LitElement {
     return [strokeDasharray, strokeDashOffset];
   }
 
-  private _valueToPercentage(value: number) {
-    const min = Number(this._getValue("min")) ?? DEFAULT_MIN;
-    const max = Number(this._getValue("max")) ?? DEFAULT_MAX;
+  private _valueToPercentage(value: number, min: number, max: number) {
     return (clamp(value, min, max) - min) / (max - min);
   }
 
-  private _getAngle(value: number) {
-    return this._valueToPercentage(value) * MAX_ANGLE;
+  private _getAngle(value: number, min: number, max: number) {
+    return this._valueToPercentage(value, min, max) * MAX_ANGLE;
   }
 
   protected render(): TemplateResult {
@@ -252,6 +251,7 @@ export class ModernCircularGaugeBadge extends LitElement {
     }
 
     const min = Number(this._getValue("min")) ?? DEFAULT_MIN;
+    const max = Number(this._getValue("max")) ?? DEFAULT_MAX;
 
     const attributes = stateObj?.attributes ?? undefined;
 
@@ -259,7 +259,7 @@ export class ModernCircularGaugeBadge extends LitElement {
 
     const unit = (this._config.unit ?? stateObj?.attributes.unit_of_measurement) || "";
 
-    const current = this._config.needle ? undefined : this._strokeDashArc(numberState > 0 ? 0 : numberState, numberState > 0 ? numberState : 0);
+    const current = this._config.needle ? undefined : this._strokeDashArc(numberState > 0 ? 0 : numberState, numberState > 0 ? numberState : 0, min, max);
     const state = templatedState ?? stateObj.state;
     const entityState = formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj?.entity_id])) ?? templatedState;
 
@@ -282,12 +282,18 @@ export class ModernCircularGaugeBadge extends LitElement {
       <div class=${classMap({ "container": true, "icon-only": content === undefined })} slot="icon">
         <svg class="gauge" viewBox="-50 -50 100 100">
           <g transform="rotate(${ROTATE_ANGLE})">
-          ${this._config.needle ? svg`
-            <mask id="needle-mask">
-              <rect x="-50" y="-50" width="100" height="100" fill="white"/>
-              <circle cx="42" cy="0" r="12" fill="black" transform="rotate(${this._getAngle(numberState)})"/>
-            </mask>
-          ` : nothing}
+            <defs>
+            ${this._config.needle ? svg`
+              <mask id="needle-mask">
+                <path
+                  class="arc"
+                  stroke="white"
+                  d=${path}
+                />
+                <circle cx="42" cy="0" r="12" fill="black" transform="rotate(${this._getAngle(numberState, min, max)})"/>
+              </mask>
+              ` : nothing}
+            </defs>
 
             <path
               class="arc clear"
@@ -297,10 +303,10 @@ export class ModernCircularGaugeBadge extends LitElement {
           ${this._config.needle ? svg`
             ${this._config.segments ? svg`
             <g class="segments" mask="url(#needle-mask)">
-              ${this._renderSegments(this._config.segments)}
+              ${this._renderSegments(this._config.segments, min, max)}
             </g>  
             ` : nothing}
-            <circle class="needle" cx="42" cy="0" r="7" transform="rotate(${this._getAngle(numberState)})"/>
+            <circle class="needle" cx="42" cy="0" r="7" transform="rotate(${this._getAngle(numberState, min, max)})"/>
           ` : nothing}
           ${current ? svg`
               <path
@@ -345,55 +351,77 @@ export class ModernCircularGaugeBadge extends LitElement {
         let segment = segments[i];
         if (segment && (numberState >= segment.from || i === 0) &&
           (i + 1 == segments?.length || numberState < segments![i + 1].from)) {
-            const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
-            return color;
+            if (this._config?.smooth_segments) {
+              const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
+              const nextSegment = segments[i + 1] ? segments[i + 1] : segment;
+              const nextColor = typeof nextSegment.color === "object" ? rgbToHex(nextSegment.color) : nextSegment.color;
+              return interpolateRgb(color, nextColor)(this._valueToPercentage(numberState, segment.from, nextSegment.from));
+            } else {
+              const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
+              return color;
+            }
         }
       }
     }
     return undefined;
   }
 
-  private _renderSegments(segments: SegmentsConfig[]): TemplateResult[] {
+  private _renderSegments(segments: SegmentsConfig[], min: number, max: number): TemplateResult[] {
     if (segments) {
       let sortedSegments = [...segments].sort((a, b) => a.from - b.from);
 
-      return [...sortedSegments].map((segment, index) => {
-        let roundEnd: TemplateResult | undefined;
-        const startAngle = index === 0 ? 0 : this._getAngle(segment.from);
-        const angle = index === sortedSegments.length - 1 ? MAX_ANGLE : this._getAngle(sortedSegments[index + 1].from);
-        const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
-        const segmentPath = svgArc({
-          x: 0,
-          y: 0,
-          start: startAngle,
-          end: angle,
-          r: RADIUS,
+      if (this._config?.smooth_segments) {
+        let gradient: string = "";
+        sortedSegments.map((segment, index) => {
+          const angle = this._getAngle(segment.from, min, max) + 45;
+          const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
+          gradient += `${color} ${angle}deg${index != sortedSegments.length - 1 ? "," : ""}`;
         });
-
-        if (index === 0 || index === sortedSegments.length - 1) {
-          const endPath = svgArc({
+        return [svg`
+          <foreignObject x="-50" y="-50" width="100%" height="100%" transform="rotate(45)">
+            <div style="width: 100px; height: 100px; background-image: conic-gradient(${gradient})">
+            </div>
+          </foreignObject>
+        `];
+      } else {
+        return [...sortedSegments].map((segment, index) => {
+          let roundEnd: TemplateResult | undefined;
+          const startAngle = index === 0 ? 0 : this._getAngle(segment.from, min, max);
+          const angle = index === sortedSegments.length - 1 ? MAX_ANGLE : this._getAngle(sortedSegments[index + 1].from, min, max);
+          const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
+          const segmentPath = svgArc({
             x: 0,
             y: 0,
-            start: index === 0 ? 0 : MAX_ANGLE,
-            end: index === 0 ? 0 : MAX_ANGLE,
+            start: startAngle,
+            end: angle,
             r: RADIUS,
           });
-          roundEnd = svg`
-          <path
-            class="segment"
-            stroke=${color}
-            d=${endPath}
-            stroke-linecap="round"
-          />`;
-        }
 
-        return svg`${roundEnd}
-          <path
-            class="segment"
-            stroke=${color}
-            d=${segmentPath}
-          />`;
-      });
+          if (index === 0 || index === sortedSegments.length - 1) {
+            const endPath = svgArc({
+              x: 0,
+              y: 0,
+              start: index === 0 ? 0 : MAX_ANGLE,
+              end: index === 0 ? 0 : MAX_ANGLE,
+              r: RADIUS,
+            });
+            roundEnd = svg`
+            <path
+              class="segment"
+              stroke=${color}
+              d=${endPath}
+              stroke-linecap="round"
+            />`;
+          }
+
+          return svg`${roundEnd}
+            <path
+              class="segment"
+              stroke=${color}
+              d=${segmentPath}
+            />`;
+        });
+      }
     }
     return [];
   }
@@ -463,7 +491,7 @@ export class ModernCircularGaugeBadge extends LitElement {
       container-type: normal;
       container-name: container;
       width: calc(var(--ha-badge-size, 36px) - 2px);
-      height: var(--ha-badge-size, 36px);
+      height: calc(var(--ha-badge-size, 36px) - 2px);
       margin-left: -12px;
       margin-inline-start: -12px;
       pointer-events: none;
@@ -485,7 +513,7 @@ export class ModernCircularGaugeBadge extends LitElement {
     }
 
     .segments {
-      opacity: 0.3;
+      opacity: 0.35;
     }
 
     ha-badge {

@@ -50,6 +50,7 @@ Templates are supported on selected options, configurable only via `yaml`.
 | unit | `string` | Optional | Custom unit
 | header_position | `string` | `top` | Header position (`top`, `bottom`)
 | needle | `boolean` | `false` | 
+| smooth_segments | `boolean` | `false` | Smooth color segments
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
 | secondary | `object` or `string` | Optional | Secondary info to display under the state, see [secondary entity object](#secondary-entity-object). May contain [templates](https://www.home-assistant.io/docs/configuration/templating/) see [example](#gauge-with-templated-additional-info-and-segments)
 
@@ -68,6 +69,7 @@ Templates are supported on selected options, configurable only via `yaml`.
 | show_state | `bool` | `true` | Show entity state
 | show_icon | `bool` | `false` | Show icon
 | needle | `bool` | `false` | 
+| smooth_segments | `boolean` | `false` | Smooth color segments
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
 
 #### Color segment object

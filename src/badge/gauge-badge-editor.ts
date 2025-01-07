@@ -68,6 +68,11 @@ const FORM = [
         default: false,
         selector: { boolean: {} },
       },
+      {
+        name: "smooth_segments",
+        label: "Smooth color segments",
+        selector: { boolean: {} },
+      },
     ]
   },
   {
