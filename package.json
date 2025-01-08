@@ -57,6 +57,7 @@
   "dependencies": {
     "@lit-labs/observers": "^2.0.4",
     "@mdi/js": "^7.4.47",
+    "d3-interpolate": "^3.0.1",
     "home-assistant-js-websocket": "^9.4.0",
     "lit": "^3.2.0",
     "memoize-one": "^6.0.0"
