@@ -3,7 +3,7 @@ import { HomeAssistant } from "../ha/types";
 import { customElement, property, state } from "lit/decorators.js";
 import { ModernCircularGaugeBadgeConfig } from "./gauge-badge-config";
 import { NUMBER_ENTITY_DOMAINS, DEFAULT_MAX, DEFAULT_MIN } from "../const";
-import { fireEvent } from "custom-card-helpers";
+import { fireEvent } from "../ha/common/dom/fire_event";
 import { mdiSegment } from "@mdi/js";
 import { hexToRgb } from "../utils/color";
 import "../components/ha-form-mcg-list";

@@ -1,4 +1,4 @@
-import { LovelaceCardConfig } from "custom-card-helpers";
+import { LovelaceCardConfig } from "../ha/data/lovelace";
 
 export interface SegmentsConfig {
     from: number;

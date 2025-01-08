@@ -1,4 +1,4 @@
-import { LovelaceBadgeConfig } from "../ha/lovelace";
+import { LovelaceBadgeConfig } from "../ha/data/lovelace";
 import { SegmentsConfig } from "../card/type";
 
 export interface ModernCircularGaugeBadgeConfig extends LovelaceBadgeConfig {
