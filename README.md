@@ -48,8 +48,10 @@ Templates are supported on selected options, configurable only via `yaml`.
 | min | `number` or `string` | `0` | Minimum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
 | max | `number` or `string` | `100` | Maximum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/) see [example](#gauge-with-templated-additional-info-and-segments)
 | unit | `string` | Optional | Custom unit
+| label | `string` | Optional | Label under the state, only used when `state_size` is set to `big`, see [secondary](#secondary-entity-object)
 | header_position | `top` or `bottom` | `bottom` | Header position
 | needle | `boolean` | `false` | 
+| smooth_segments | `boolean` | `false` | Smooth color segments
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
 | secondary | `object` or `string` | Optional | Secondary info to display under the state, see [secondary entity object](#secondary-entity-object). May contain [templates](https://www.home-assistant.io/docs/configuration/templating/) see [example](#gauge-with-templated-additional-info-and-segments)
 
@@ -60,11 +62,15 @@ Templates are supported on selected options, configurable only via `yaml`.
 | type | `string` | 'custom:modern-circular-gauge-badge' |
 | entity | `string` | Required | Entity. May contain templates.
 | name | `string` | Optional | Custom title
+| icon | `string` | Entity icon | Custom icon
 | min | `number` or `string` | `0` | Minimum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
 | max | `number` or `string` | `100` | Maximum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
 | unit | `string` | Optional | Custom unit
 | show_name | `bool` | `false` | Show badge name
 | show_state | `bool` | `true` | Show entity state
+| show_icon | `bool` | `false` | Show icon
+| needle | `bool` | `false` | 
+| smooth_segments | `boolean` | `false` | Smooth color segments
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
 
 #### Color segment object
@@ -72,7 +78,7 @@ Templates are supported on selected options, configurable only via `yaml`.
 |------|:----:|:-------:|:------------|
 | from | `number` | Required | Starting value of color segment
 | color | `string` | Required | Color value of color segment
-| label | `string` | Optional | Color segment label
+| label | `string` | Optional | Color segment label to display instead of state
 
 #### Secondary entity object
 | Name | Type | Default | Description |
@@ -82,6 +88,8 @@ Templates are supported on selected options, configurable only via `yaml`.
 | show_gauge | `none`, `inner`, `outter` | `none` | Display secondary info as dot on main gauge or on inner gauge
 | min | `number` | Optional | Minimum inner gauge value. May contain templates
 | max | `number` | Optional | Maximum inner gauge value. May contain templates
+| label | `string` | Optional | Label under the state, only used when `state_size` is set to `big`
+| state_size | `small` or `big` | `small` | Secondary state size 
 | needle | `boolean` | `false` |
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
 

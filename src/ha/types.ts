@@ -9,7 +9,20 @@ import type {
   HassEntity
 } from "home-assistant-js-websocket";
 import { FrontendLocaleData } from "./translation";
-import { LocalizeFunc, Themes } from "custom-card-helpers";
+import { LocalizeFunc } from "./common/translations/localize";
+import { Themes } from "./data/ws-themes";
+
+declare global {
+  interface HASSDomEvents {
+    "value-changed": {
+      value: unknown;
+    };
+    "config-changed": {
+      config: any;
+    };
+    change: undefined;
+  }
+}
 
 export interface EntityRegistryDisplayEntry {
   entity_id: string;

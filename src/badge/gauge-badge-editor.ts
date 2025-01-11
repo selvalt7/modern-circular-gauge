@@ -3,7 +3,7 @@ import { HomeAssistant } from "../ha/types";
 import { customElement, property, state } from "lit/decorators.js";
 import { ModernCircularGaugeBadgeConfig } from "./gauge-badge-config";
 import { NUMBER_ENTITY_DOMAINS, DEFAULT_MAX, DEFAULT_MIN } from "../const";
-import { fireEvent } from "custom-card-helpers";
+import { fireEvent } from "../ha/common/dom/fire_event";
 import { mdiSegment } from "@mdi/js";
 import { hexToRgb } from "../utils/color";
 import "../components/ha-form-mcg-list";
@@ -29,6 +29,16 @@ const FORM = [
         selector: { text: {} },
       },
       {
+        name: "icon",
+        selector: { icon: {} },
+        context: { icon_entity: "entity" },
+      },
+      {
+        name: "needle",
+        label: "gauge.needle_gauge",
+        selector: { boolean: {} },
+      },
+      {
         name: "min",
         default: DEFAULT_MIN,
         label: "generic.minimum",
@@ -50,6 +60,17 @@ const FORM = [
         name: "show_state",
         label: "Show state",
         default: true,
+        selector: { boolean: {} },
+      },
+      {
+        name: "show_icon",
+        label: "Show icon",
+        default: false,
+        selector: { boolean: {} },
+      },
+      {
+        name: "smooth_segments",
+        label: "Smooth color segments",
         selector: { boolean: {} },
       },
     ]

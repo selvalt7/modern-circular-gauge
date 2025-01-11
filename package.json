@@ -51,12 +51,13 @@
     "babel": "^6.23.0",
     "rollup": "^4.23.0",
     "semantic-release": "^24.1.2",
+    "tslib": "^2.8.1",
     "typescript": "^5.6.2"
   },
   "dependencies": {
     "@lit-labs/observers": "^2.0.4",
     "@mdi/js": "^7.4.47",
-    "custom-card-helpers": "^1.9.0",
+    "d3-interpolate": "^3.0.1",
     "home-assistant-js-websocket": "^9.4.0",
     "lit": "^3.2.0",
     "memoize-one": "^6.0.0"

@@ -1,4 +1,4 @@
-import { fireEvent } from "custom-card-helpers";
+import { fireEvent } from "../ha/common/dom/fire_event";
 import { HomeAssistant } from "../ha/types";
 import { html, LitElement, nothing, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
@@ -73,22 +73,33 @@ export class ModernCircularGaugeEditor extends LitElement {
         label: "Secondary info",
         iconPath: mdiInformationOutline,
         schema: [
-            {
-              name: "",
-              type: "grid",
-              schema: [
-                {
-                  name: "entity",
-                  selector: { entity: { 
-                    domain: NUMBER_ENTITY_DOMAINS,
-                  }},
-                },
-                {
-                  name: "unit",
-                  selector: { text: {} },
-                },
-              ]
-            },
+          {
+            name: "",
+            type: "grid",
+            schema: [
+              {
+                name: "entity",
+                selector: { entity: { 
+                  domain: NUMBER_ENTITY_DOMAINS,
+                }},
+              },
+              {
+                name: "unit",
+                selector: { text: {} },
+              },
+            ]
+          },
+          {
+            name: "state_size",
+            label: "State size",
+            selector: { select: {
+              options: [
+                { value: "small", label: "Small"},
+                { value: "big", label: "Big"},
+              ],
+              mode: "dropdown",
+            }},
+          },
           {
             name: "show_gauge",
             label: "Gauge visibility",
@@ -168,9 +179,20 @@ export class ModernCircularGaugeEditor extends LitElement {
         },
       },
       {
-        name: "needle",
-        label: "gauge.needle_gauge",
-        selector: { boolean: {} },
+        name: "",
+        type: "grid",
+        schema: [
+          {
+            name: "needle",
+            label: "gauge.needle_gauge",
+            selector: { boolean: {} },
+          },
+          {
+            name: "smooth_segments",
+            label: "Smooth color segments",
+            selector: { boolean: {} },
+          },
+        ],
       },
       {
         name: "segments",
