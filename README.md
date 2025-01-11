@@ -1,8 +1,19 @@
 # Modern Circular Gauge
 
-Modern gauge inspired by `ha-control-circular-slider`, now with smaller form factor as a badge.
+Modern look at the default Home Assistant gauge card
 
-![gauges](https://github.com/user-attachments/assets/bfc46c1c-6c27-48e7-8bc3-3169adf2d804)
+![cards](https://github.com/user-attachments/assets/25a5446f-fee3-461e-b028-2304f5e7796f)
+
+### Features
+- Card and badge gauge
+- Secondary info under the state with two size options
+- Sections support
+- Needle
+- Template support for `min`, `max`, `entity` and `secondary` (YAML only)
+- Color segments with gradient
+- Dual gauge
+- Dual value representing as a dot on the same gauge
+- Visual editor
 
 ## Install
 
@@ -149,6 +160,45 @@ segments:
       - 252
       - 161
       - 3
+```
+
+### Gauge with bigger secondary and labels
+
+![labels](https://github.com/user-attachments/assets/9f696eef-6918-4bfc-8559-91c6d8de8b52)
+
+```yaml
+type: custom:modern-circular-gauge
+entity: sensor.power_consumption
+label: Power
+max: 1000
+tap_action:
+  action: none
+secondary:
+  entity: sensor.voltage
+  state_size: big
+  label: Voltage
+header_position: bottom
+name: Power plug
+```
+
+### Dual gauge
+
+![dual_gauge](https://github.com/user-attachments/assets/cb5b3f5a-7aa6-455d-b571-c1844257a78c)
+
+```yaml
+type: custom:modern-circular-gauge
+name: Dual gauge
+min: 10
+needle: false
+secondary:
+  entity: sensor.target_room_temp
+  unit: °C
+  show_gauge: inner
+  min: 10
+  max: 30
+max: 30
+entity: sensor.room_temp
+unit: °C
 ```
 
 ## Development
