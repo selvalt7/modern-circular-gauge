@@ -229,7 +229,7 @@ export class ModernCircularGauge extends LitElement {
     return html`
     <ha-card
       class="${classMap({
-        "flex-column-reverse": this._config.header_position == "bottom",
+        "flex-column-reverse": this._config.header_position == "top",
         "action": this._hasCardAction()
        })}"
       @action=${this._handleAction}
@@ -798,7 +798,7 @@ export class ModernCircularGauge extends LitElement {
       height: 100%;
       display: flex;
       padding: 10px;
-      flex-direction: column;
+      flex-direction: column-reverse;
       align-items: center;
     }
 
@@ -807,10 +807,11 @@ export class ModernCircularGauge extends LitElement {
     }
 
     .flex-column-reverse {
-      flex-direction: column-reverse;
+      flex-direction: column;
     }
     
     .header {
+      position: absolute;
       width: 100%;
       display: flex;
       flex-direction: column;
@@ -820,7 +821,7 @@ export class ModernCircularGauge extends LitElement {
     }
 
     .flex-column-reverse .header {
-      position: absolute;
+      position: relative;
     }
     
     .state {

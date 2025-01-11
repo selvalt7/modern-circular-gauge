@@ -49,7 +49,7 @@ Templates are supported on selected options, configurable only via `yaml`.
 | max | `number` or `string` | `100` | Maximum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/) see [example](#gauge-with-templated-additional-info-and-segments)
 | unit | `string` | Optional | Custom unit
 | label | `string` | Optional | Label under the state, only used when `state_size` is set to `big`, see [secondary](#secondary-entity-object)
-| header_position | `string` | `top` | Header position (`top`, `bottom`)
+| header_position | `top` or `bottom` | `bottom` | Header position
 | needle | `boolean` | `false` | 
 | smooth_segments | `boolean` | `false` | Smooth color segments
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
