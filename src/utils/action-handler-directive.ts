@@ -1,4 +1,4 @@
-import { ActionHandlerOptions } from "custom-card-helpers";
+import { ActionHandlerOptions } from "../ha/data/lovelace";
 import { noChange } from "lit";
 import { AttributePart, Directive, directive, DirectiveParameters } from "lit/directive.js";
 

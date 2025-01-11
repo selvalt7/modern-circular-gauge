@@ -1,8 +1,19 @@
 # Modern Circular Gauge
 
-Modern gauge inspired by `ha-control-circular-slider`, now with smaller form factor as a badge.
+Modern look at the default Home Assistant gauge card
 
-![gauges](https://github.com/user-attachments/assets/bfc46c1c-6c27-48e7-8bc3-3169adf2d804)
+![cards](https://github.com/user-attachments/assets/25a5446f-fee3-461e-b028-2304f5e7796f)
+
+### Features
+- Card and badge gauge
+- Secondary info under the state with two size options
+- Sections support
+- Needle
+- Template support for `min`, `max`, `entity` and `secondary` (YAML only)
+- Color segments with gradient
+- Dual gauge
+- Dual value representing as a dot on the same gauge
+- Visual editor
 
 ## Install
 
@@ -43,13 +54,15 @@ Templates are supported on selected options, configurable only via `yaml`.
 | Name | Type | Default | Description |
 |------|:----:|:-------:|:------------|
 | type | `string` | 'custom:modern-circular-gauge' |
-| entity | `string` | Required | Entity
+| entity | `string` | Required | Entity. May contain templates
 | name | `string` | Optional | Custom title
-| min | `number` or `string` | `0` | Minimum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/) see [example](#gauge-with-templated-additional-info-and-segments)
-| max | `number` or `string` | `100` | Maximum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
+| min | `number` or `string` | `0` | Minimum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
+| max | `number` or `string` | `100` | Maximum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/) see [example](#gauge-with-templated-additional-info-and-segments)
 | unit | `string` | Optional | Custom unit
-| header_position | `string` | `top` | Header position (`top`, `bottom`)
+| label | `string` | Optional | Label under the state, only used when `state_size` is set to `big`, see [secondary](#secondary-entity-object)
+| header_position | `top` or `bottom` | `bottom` | Header position
 | needle | `boolean` | `false` | 
+| smooth_segments | `boolean` | `false` | Smooth color segments
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
 | secondary | `object` or `string` | Optional | Secondary info to display under the state, see [secondary entity object](#secondary-entity-object). May contain [templates](https://www.home-assistant.io/docs/configuration/templating/) see [example](#gauge-with-templated-additional-info-and-segments)
 
@@ -58,13 +71,17 @@ Templates are supported on selected options, configurable only via `yaml`.
 | Name | Type | Default | Description |
 |------|:----:|:-------:|:------------|
 | type | `string` | 'custom:modern-circular-gauge-badge' |
-| entity | `string` | Required | Entity
+| entity | `string` | Required | Entity. May contain templates.
 | name | `string` | Optional | Custom title
+| icon | `string` | Entity icon | Custom icon
 | min | `number` or `string` | `0` | Minimum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
 | max | `number` or `string` | `100` | Maximum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
 | unit | `string` | Optional | Custom unit
 | show_name | `bool` | `false` | Show badge name
 | show_state | `bool` | `true` | Show entity state
+| show_icon | `bool` | `false` | Show icon
+| needle | `bool` | `false` | 
+| smooth_segments | `boolean` | `false` | Smooth color segments
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
 
 #### Color segment object
@@ -72,13 +89,20 @@ Templates are supported on selected options, configurable only via `yaml`.
 |------|:----:|:-------:|:------------|
 | from | `number` | Required | Starting value of color segment
 | color | `string` | Required | Color value of color segment
-| label | `string` | Optional | Color segment label
+| label | `string` | Optional | Color segment label to display instead of state
 
 #### Secondary entity object
 | Name | Type | Default | Description |
 |------|:----:|:-------:|:------------|
-| entity | `string` | Optional | Secondary entity
+| entity | `string` | Optional | Secondary entity. May contain templates
 | unit | `string` | Optional | Custom unit
+| show_gauge | `none`, `inner`, `outter` | `none` | Display secondary info as dot on main gauge or on inner gauge
+| min | `number` | Optional | Minimum inner gauge value. May contain templates
+| max | `number` | Optional | Maximum inner gauge value. May contain templates
+| label | `string` | Optional | Label under the state, only used when `state_size` is set to `big`
+| state_size | `small` or `big` | `small` | Secondary state size 
+| needle | `boolean` | `false` |
+| segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
 
 ## Examples
 
@@ -136,6 +160,45 @@ segments:
       - 252
       - 161
       - 3
+```
+
+### Gauge with bigger secondary and labels
+
+![labels](https://github.com/user-attachments/assets/9f696eef-6918-4bfc-8559-91c6d8de8b52)
+
+```yaml
+type: custom:modern-circular-gauge
+entity: sensor.power_consumption
+label: Power
+max: 1000
+tap_action:
+  action: none
+secondary:
+  entity: sensor.voltage
+  state_size: big
+  label: Voltage
+header_position: bottom
+name: Power plug
+```
+
+### Dual gauge
+
+![dual_gauge](https://github.com/user-attachments/assets/cb5b3f5a-7aa6-455d-b571-c1844257a78c)
+
+```yaml
+type: custom:modern-circular-gauge
+name: Dual gauge
+min: 10
+needle: false
+secondary:
+  entity: sensor.target_room_temp
+  unit: °C
+  show_gauge: inner
+  min: 10
+  max: 30
+max: 30
+entity: sensor.room_temp
+unit: °C
 ```
 
 ## Development
