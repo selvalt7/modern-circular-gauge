@@ -112,11 +112,11 @@ export class ModernCircularGauge extends LitElement {
     this._tryConnect();
   }
 
-  private _strokeDashArc(from: number, to: number, min: number, max: number): [string, string] {
+  private _strokeDashArc(from: number, to: number, min: number, max: number, radius: number): [string, string] {
     const start = this._valueToPercentage(from, min, max);
     const end = this._valueToPercentage(to, min, max);
 
-    const track = (RADIUS * 2 * Math.PI * MAX_ANGLE) / 360;
+    const track = (radius * 2 * Math.PI * MAX_ANGLE) / 360;
     const arc = Math.max((end - start) * track, 0);
     const arcOffset = start * track - 0.5;
 
@@ -220,8 +220,8 @@ export class ModernCircularGauge extends LitElement {
     const min = Number(this._templateResults?.min?.result ?? this._config.min) || DEFAULT_MIN;
     const max = Number(this._templateResults?.max?.result ?? this._config.max) || DEFAULT_MAX;
 
-    const current = this._config.needle ? undefined : this._strokeDashArc(numberState > 0 ? 0 : numberState, numberState > 0 ? numberState : 0, min, max);
-    const needle = this._config.needle ? this._strokeDashArc(numberState, numberState, min, max) : undefined;
+    const current = this._config.needle ? undefined : this._strokeDashArc(numberState > 0 ? 0 : numberState, numberState > 0 ? numberState : 0, min, max, RADIUS);
+    const needle = this._config.needle ? this._strokeDashArc(numberState, numberState, min, max, RADIUS) : undefined;
 
     const state = templatedState ?? stateObj.state;
     const entityState = formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj?.entity_id])) ?? templatedState;
@@ -381,8 +381,8 @@ export class ModernCircularGauge extends LitElement {
     const min = Number(this._templateResults?.secondaryMin?.result ?? secondaryObj.min) || DEFAULT_MIN; 
     const max = Number(this._templateResults?.secondaryMax?.result ?? secondaryObj.max) || DEFAULT_MAX;
 
-    const current = secondaryObj.needle ? undefined : this._strokeDashArc(numberState > 0 ? 0 : numberState, numberState > 0 ? numberState : 0, min, max);
-    const needle = secondaryObj.needle ? this._strokeDashArc(numberState, numberState, min, max) : undefined;
+    const current = secondaryObj.needle ? undefined : this._strokeDashArc(numberState > 0 ? 0 : numberState, numberState > 0 ? numberState : 0, min, max, INNER_RADIUS);
+    const needle = secondaryObj.needle ? this._strokeDashArc(numberState, numberState, min, max, INNER_RADIUS) : undefined;
 
     return svg`
     <g 
@@ -456,7 +456,7 @@ export class ModernCircularGauge extends LitElement {
     const min = Number(this._templateResults?.min?.result ?? this._config?.min) || DEFAULT_MIN; 
     const max = Number(this._templateResults?.max?.result ?? this._config?.max) || DEFAULT_MAX;
 
-    const current = this._strokeDashArc(numberState, numberState, min, max);
+    const current = this._strokeDashArc(numberState, numberState, min, max, RADIUS);
 
     return svg`
     <path
