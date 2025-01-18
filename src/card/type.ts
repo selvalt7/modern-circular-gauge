@@ -22,6 +22,7 @@ export type SecondaryEntity = {
 export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     entity: string;
     name?: string;
+    icon?: string;
     min?: number | string;
     max?: number | string;
     unit?: string;

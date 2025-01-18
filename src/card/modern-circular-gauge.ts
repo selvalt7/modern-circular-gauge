@@ -248,10 +248,11 @@ export class ModernCircularGauge extends LitElement {
           ${this._config.name ?? stateObj.attributes.friendly_name ?? ''}
         </p>
       </div>
-      <div class="container">
+      <div class="container"
+        style=${styleMap({ "--gauge-color": this._computeSegments(numberState, this._config.segments) })}
+      >
         <svg viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid"
           overflow="visible"
-          style=${styleMap({ "--gauge-color": this._computeSegments(numberState, this._config.segments) })}
           class=${classMap({ "dual-gauge": typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner" })}
         >
           <g transform="rotate(${ROTATE_ANGLE})">
@@ -311,6 +312,15 @@ export class ModernCircularGauge extends LitElement {
               ` : nothing}
           </g>
         </svg>
+        <div class="icon-container">
+          <div class="icon-wrapper">
+            <ha-state-icon
+              .hass=${this.hass}
+              .stateObj=${stateObj}
+              .icon=${this._config.icon}
+            ></ha-state-icon>
+          </div>
+        </div>
         <svg class="state" viewBox="-50 -50 100 100">
           <text
             x="0" y="0" 
@@ -867,6 +877,48 @@ export class ModernCircularGauge extends LitElement {
 
     .secondary.dual-state .unit {
       opacity: 1;
+    }
+
+    .icon-container {
+      display: flex;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .icon-wrapper {
+      position: relative;
+      display: flex;
+      width: 100%;
+      height: auto;
+      max-height: 100%;
+      padding: 0;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .icon-wrapper:before {
+      display: block;
+      content: "";
+      padding-top: 100%;
+    }
+
+    ha-state-icon {
+      position: absolute;
+      bottom: 7%;
+      left: 50%;
+      transform: translate(-50%, 0);
+      --mdc-icon-size: 16px;
+      color: var(--gauge-color);
+    }
+
+    ha-icon {
+      display: flex;
+      justify-content: center;
     }
 
     .name {
