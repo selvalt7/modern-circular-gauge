@@ -917,7 +917,6 @@ export class ModernCircularGauge extends LitElement {
       height: 12%;
       width: 12%;
       --ha-icon-display: flex;
-}
     }
 
     ha-icon {
