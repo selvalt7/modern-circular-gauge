@@ -909,11 +909,15 @@ export class ModernCircularGauge extends LitElement {
 
     ha-state-icon {
       position: absolute;
-      bottom: 7%;
+      bottom: 14%;
       left: 50%;
       transform: translate(-50%, 0);
-      --mdc-icon-size: 16px;
+      --mdc-icon-size: auto;
       color: var(--gauge-color);
+      height: 12%;
+      width: 12%;
+      --ha-icon-display: flex;
+}
     }
 
     ha-icon {
