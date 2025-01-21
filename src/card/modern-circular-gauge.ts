@@ -410,11 +410,6 @@ export class ModernCircularGauge extends LitElement {
         : nothing
         }
         <path
-          d=${innerPath}
-          stroke-dasharray="${needle[0]}"
-          stroke-dashoffset="${needle[1]}"
-        />
-        <path
           class="needle-border"
           d=${innerPath}
           stroke-dasharray="${needle[0]}"
@@ -931,7 +926,7 @@ export class ModernCircularGauge extends LitElement {
     .needle-border {
       fill: none;
       stroke-linecap: round;
-      stroke-width: calc(var(--gauge-stroke-width) + 2px);
+      stroke-width: calc(var(--gauge-stroke-width) + 3px);
       stroke: var(--card-background-color);
       transition: all 1s ease 0s, stroke 0.3s ease-out;
     }
@@ -942,6 +937,10 @@ export class ModernCircularGauge extends LitElement {
 
     .dual-gauge {
       --gauge-stroke-width: 4px;
+    }
+
+    .dual-gauge .needle-border {
+      stroke-width: calc(var(--gauge-stroke-width) + 2px);
     }
 
     .dot {
