@@ -192,6 +192,24 @@ export class ModernCircularGaugeEditor extends LitElement {
             label: "Smooth color segments",
             selector: { boolean: {} },
           },
+          {
+            name: "show_header",
+            label: "Show header",
+            default: true,
+            selector: { boolean: {} },
+          },
+          {
+            name: "show_state",
+            label: "Show state",
+            default: true,
+            selector: { boolean: {} },
+          },
+          {
+            name: "show_secondary_state",
+            label: "Show secondary state",
+            default: true,
+            selector: { boolean: {} },
+          }
         ],
       },
       {

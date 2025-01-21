@@ -90,7 +90,7 @@ export class ModernCircularGauge extends LitElement {
         }
     }
 
-    this._config = { min: DEFAULT_MIN, max: DEFAULT_MAX, ...config, secondary: secondary, secondary_entity: undefined };
+    this._config = { min: DEFAULT_MIN, max: DEFAULT_MAX, show_header: true, show_secondary_state: true, show_state: true, ...config, secondary: secondary, secondary_entity: undefined };
   }
 
   public connectedCallback() {
@@ -243,11 +243,13 @@ export class ModernCircularGauge extends LitElement {
         : undefined
       )}
     >
+      ${this._config.show_header ? html`
       <div class="header">
         <p class="name">
           ${this._config.name ?? stateObj.attributes.friendly_name ?? ''}
         </p>
       </div>
+      ` : nothing}
       <div class="container">
         <svg viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid"
           overflow="visible"
@@ -312,6 +314,7 @@ export class ModernCircularGauge extends LitElement {
           </g>
         </svg>
         <svg class="state" viewBox="-50 -50 100 100">
+          ${this._config.show_state ? svg`
           <text
             x="0" y="0" 
             class="value ${classMap({"dual-state": typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big"})}" 
@@ -332,7 +335,8 @@ export class ModernCircularGauge extends LitElement {
             ${this._config.label}
           </text>`
             : nothing}
-          ${this._renderSecondary()}
+          ` : nothing}
+          ${this._config.show_secondary_state ? this._renderSecondary() : nothing}
         </svg>
       </div> 
     </ha-card>
