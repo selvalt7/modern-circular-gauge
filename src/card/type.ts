@@ -29,6 +29,7 @@ export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     label?: string;
     header_position?: "top" | "bottom";
     needle?: boolean;
+    adaptive_icon_color?: boolean;
     smooth_segments?: boolean;
     segments?: SegmentsConfig[];
     secondary?: SecondaryEntity | string;

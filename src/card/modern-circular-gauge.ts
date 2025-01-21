@@ -315,6 +315,7 @@ export class ModernCircularGauge extends LitElement {
         <div class="icon-container">
           <div class="icon-wrapper">
             <ha-state-icon
+              class=${classMap({ "adaptive": !!this._config.adaptive_icon_color })}
               .hass=${this.hass}
               .stateObj=${stateObj}
               .icon=${this._config.icon}
@@ -913,10 +914,14 @@ export class ModernCircularGauge extends LitElement {
       left: 50%;
       transform: translate(-50%, 0);
       --mdc-icon-size: auto;
-      color: var(--gauge-color);
+      color: var(--primary-color);
       height: 12%;
       width: 12%;
       --ha-icon-display: flex;
+    }
+
+    .adaptive {
+      color: var(--gauge-color);
     }
 
     ha-icon {
