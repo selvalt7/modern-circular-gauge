@@ -313,8 +313,8 @@ export class ModernCircularGauge extends LitElement {
               ` : nothing}
           </g>
         </svg>
-        ${this._config.show_state ? html`
         <svg class="state" viewBox="-50 -50 100 100">
+          ${this._config.show_state ? svg`
           <text
             x="0" y="0" 
             class="value ${classMap({"dual-state": typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big"})}" 
@@ -335,9 +335,9 @@ export class ModernCircularGauge extends LitElement {
             ${this._config.label}
           </text>`
             : nothing}
+          ` : nothing}
           ${this._config.show_secondary_state ? this._renderSecondary() : nothing}
         </svg>
-        ` : nothing}
       </div> 
     </ha-card>
     `;
