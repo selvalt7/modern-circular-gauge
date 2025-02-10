@@ -323,7 +323,7 @@ export class ModernCircularGauge extends LitElement {
           >
             ${this._getSegmentLabel(numberState, this._config.segments) ? this._getSegmentLabel(numberState, this._config.segments) : svg`
               ${entityState}
-              <tspan class="unit" dx="-4" dy="-6">${unit}</tspan>
+              ${this._config.show_unit ?? true ? svg`<tspan class="unit" dx="-4" dy="-6">${unit}</tspan>` : nothing}
             `}
           </text>
           ${typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big"
@@ -336,7 +336,7 @@ export class ModernCircularGauge extends LitElement {
           </text>`
             : nothing}
           ` : nothing}
-          ${this._config.show_secondary_state ? this._renderSecondary() : nothing}
+          ${this._renderSecondary()}
         </svg>
       </div> 
     </ha-card>
@@ -490,6 +490,10 @@ export class ModernCircularGauge extends LitElement {
       </text>`;
     }
 
+    if (!(secondary.show_state ?? true)) {
+      return svg``;
+    }
+
     const stateObj = this.hass.states[secondary.entity || ""];
     const templatedState = this._templateResults?.secondaryEntity?.result;
 
@@ -512,6 +516,7 @@ export class ModernCircularGauge extends LitElement {
       dy=${secondary.state_size == "big" ? 14 : 20}
     >
       ${entityState}
+      ${secondary.show_unit ?? true ? svg`
       <tspan
         class=${classMap({"unit": secondary.state_size == "big"})}
         dx=${secondary.state_size == "big" ? -4 : 0}
@@ -519,6 +524,7 @@ export class ModernCircularGauge extends LitElement {
       >
         ${unit}
       </tspan>
+      ` : nothing}
     </text>
     ${secondary.state_size == "big"
       ? svg`
