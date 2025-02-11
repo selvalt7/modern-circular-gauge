@@ -137,6 +137,24 @@ export class ModernCircularGaugeEditor extends LitElement {
             ],
           },
           {
+            name: "",
+            type: "grid",
+            schema: [
+              {
+                name: "show_state",
+                label: "Show state",
+                default: true,
+                selector: { boolean: {} },
+              },
+              {
+                name: "show_unit",
+                label: "Show unit",
+                default: true,
+                selector: { boolean: {} },
+              },
+            ],
+          },
+          {
             name: "segments",
             type: "mcg-list",
             title: "Color segments",
@@ -190,6 +208,24 @@ export class ModernCircularGaugeEditor extends LitElement {
           {
             name: "smooth_segments",
             label: "Smooth color segments",
+            selector: { boolean: {} },
+          },
+          {
+            name: "show_header",
+            label: "Show header",
+            default: true,
+            selector: { boolean: {} },
+          },
+          {
+            name: "show_state",
+            label: "Show state",
+            default: true,
+            selector: { boolean: {} },
+          },
+          {
+            name: "show_unit",
+            label: "Show unit",
+            default: true,
             selector: { boolean: {} },
           },
         ],

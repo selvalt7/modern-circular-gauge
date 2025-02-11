@@ -61,6 +61,9 @@ Templates are supported on selected options, configurable only via `yaml`.
 | unit | `string` | Optional | Custom unit
 | label | `string` | Optional | Label under the state, only used when `state_size` is set to `big`, see [secondary](#secondary-entity-object)
 | header_position | `top` or `bottom` | `bottom` | Header position
+| show_state | `boolean` | `true` | Show entity state
+| show_unit | `boolean` | `true` | Show state unit
+| show_header | `boolean` | `true` | Show card header 
 | needle | `boolean` | `false` | 
 | smooth_segments | `boolean` | `false` | Smooth color segments
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
@@ -101,6 +104,8 @@ Templates are supported on selected options, configurable only via `yaml`.
 | max | `number` | Optional | Maximum inner gauge value. May contain templates
 | label | `string` | Optional | Label under the state, only used when `state_size` is set to `big`
 | state_size | `small` or `big` | `small` | Secondary state size 
+| show_state | `boolean` | `true` | Show secondary state
+| show_unit | `boolean` | `true` | Show secondary unit
 | needle | `boolean` | `false` |
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
 
