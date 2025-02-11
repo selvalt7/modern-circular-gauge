@@ -35,16 +35,23 @@ export class ModernCircularGaugeEditor extends LitElement {
     (showInnerGaugeOptions: boolean) =>
     [
       {
-        name: "entity",
-        required: true,
-        selector: { entity: {
-          domain: NUMBER_ENTITY_DOMAINS,
-        }},
-      },
-      {
         name: "",
         type: "grid",
         schema: [
+          {
+            name: "entity",
+            required: true,
+            selector: { entity: {
+              domain: NUMBER_ENTITY_DOMAINS,
+            }},
+          },
+          {
+            name: "icon",
+            selector: { icon: {} },
+            context: {
+              icon_entity: "entity",
+            },
+          },
           {
             name: "name",
             selector: { text: {} },
@@ -225,6 +232,12 @@ export class ModernCircularGaugeEditor extends LitElement {
           {
             name: "show_unit",
             label: "Show unit",
+            default: true,
+            selector: { boolean: {} },
+          },
+          {
+            name: "show_icon",
+            label: "Show icon",
             default: true,
             selector: { boolean: {} },
           },

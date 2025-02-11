@@ -314,6 +314,7 @@ export class ModernCircularGauge extends LitElement {
               ` : nothing}
           </g>
         </svg>
+        ${this._config.show_icon ?? true ? html`
         <div class="icon-container">
           <div class="icon-wrapper">
             <ha-state-icon
@@ -324,6 +325,7 @@ export class ModernCircularGauge extends LitElement {
             ></ha-state-icon>
           </div>
         </div>
+        ` : nothing}
         <svg class="state" viewBox="-50 -50 100 100">
           ${this._config.show_state ? svg`
           <text

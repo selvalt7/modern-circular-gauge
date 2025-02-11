@@ -33,6 +33,7 @@ export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     show_state?: boolean;
     show_header?: boolean;
     show_unit?: boolean;
+    show_icon?: boolean;
     needle?: boolean;
     adaptive_icon_color?: boolean;
     smooth_segments?: boolean;
