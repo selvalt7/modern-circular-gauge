@@ -348,7 +348,7 @@ export class ModernCircularGauge extends LitElement {
               class=${classMap({ "adaptive": !!this._config.adaptive_icon_color, "big": !this._hasSecondary })}
               .hass=${this.hass}
               .stateObj=${stateObj}
-              .icon=${this._config.icon}
+              .icon=${this._templateResults?.icon?.result ?? this._config.icon}
             ></ha-state-icon>
           </div>
         </div>
@@ -656,6 +656,7 @@ export class ModernCircularGauge extends LitElement {
   private async _tryConnect(): Promise<void> {
     const templates = {
       entity: this._config?.entity,
+      icon: this._config?.icon,
       min: this._config?.min,
       max: this._config?.max,
       secondary: this._config?.secondary
@@ -732,6 +733,7 @@ export class ModernCircularGauge extends LitElement {
   private async _tryDisconnect(): Promise<void> {
     const templates = {
       entity: this._config?.entity,
+      icon: this._config?.icon,
       min: this._config?.min,
       max: this._config?.max,
       secondary: this._config?.secondary
