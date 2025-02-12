@@ -52,6 +52,8 @@ export class ModernCircularGauge extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: ModernCircularGaugeConfig;
 
+  @state() private _hasSecondary?: boolean = false;
+
   @state() private _templateResults?: Partial<Record<string, RenderTemplateResult | undefined>> = {};
 
   @state() private _unsubRenderTemplates?: Map<string, Promise<UnsubscribeFunc>> = new Map();
@@ -314,18 +316,6 @@ export class ModernCircularGauge extends LitElement {
               ` : nothing}
           </g>
         </svg>
-        ${this._config.show_icon ?? true ? html`
-        <div class="icon-container">
-          <div class="icon-wrapper">
-            <ha-state-icon
-              class=${classMap({ "adaptive": !!this._config.adaptive_icon_color })}
-              .hass=${this.hass}
-              .stateObj=${stateObj}
-              .icon=${this._config.icon}
-            ></ha-state-icon>
-          </div>
-        </div>
-        ` : nothing}
         <svg class="state" viewBox="-50 -50 100 100">
           ${this._config.show_state ? svg`
           <text
@@ -351,6 +341,18 @@ export class ModernCircularGauge extends LitElement {
           ` : nothing}
           ${this._renderSecondary()}
         </svg>
+        ${this._config.show_icon ?? true ? html`
+        <div class="icon-container">
+          <div class="icon-wrapper">
+            <ha-state-icon
+              class=${classMap({ "adaptive": !!this._config.adaptive_icon_color, "big": !this._hasSecondary })}
+              .hass=${this.hass}
+              .stateObj=${stateObj}
+              .icon=${this._config.icon}
+            ></ha-state-icon>
+          </div>
+        </div>
+        ` : nothing}
       </div> 
     </ha-card>
     `;
@@ -493,6 +495,7 @@ export class ModernCircularGauge extends LitElement {
     }
 
     if (typeof secondary === "string") {
+      this._hasSecondary = true;
       return svg`
       <text
         x="0" y="0"
@@ -513,6 +516,8 @@ export class ModernCircularGauge extends LitElement {
     if (!stateObj && templatedState === undefined) {
       return svg``;
     }
+
+    this._hasSecondary = true;
 
     const attributes = stateObj?.attributes ?? undefined;
 
@@ -854,6 +859,7 @@ export class ModernCircularGauge extends LitElement {
       left: 0;
       right: 0;
       text-anchor: middle;
+      z-index: 2;
     }
 
     .container {
@@ -901,6 +907,7 @@ export class ModernCircularGauge extends LitElement {
       bottom: 0;
       justify-content: center;
       align-items: center;
+      z-index: 1;
     }
 
     .icon-wrapper {
@@ -930,6 +937,11 @@ export class ModernCircularGauge extends LitElement {
       height: 12%;
       width: 12%;
       --ha-icon-display: flex;
+    }
+
+    ha-state-icon.big {
+      height: 18%;
+      width: 18%;
     }
 
     .adaptive {
