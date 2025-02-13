@@ -90,7 +90,7 @@ export class ModernCircularGauge extends LitElement {
         }
     }
 
-    this._config = { min: DEFAULT_MIN, max: DEFAULT_MAX, ...config, secondary: secondary, secondary_entity: undefined };
+    this._config = { min: DEFAULT_MIN, max: DEFAULT_MAX, show_header: true, show_state: true, ...config, secondary: secondary, secondary_entity: undefined };
   }
 
   public connectedCallback() {
@@ -243,11 +243,13 @@ export class ModernCircularGauge extends LitElement {
         : undefined
       )}
     >
+      ${this._config.show_header ? html`
       <div class="header">
         <p class="name">
           ${this._config.name ?? stateObj.attributes.friendly_name ?? ''}
         </p>
       </div>
+      ` : nothing}
       <div class="container">
         <svg viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid"
           overflow="visible"
@@ -313,6 +315,7 @@ export class ModernCircularGauge extends LitElement {
           </g>
         </svg>
         <svg class="state" overflow="visible" viewBox="-50 -50 100 100">
+          ${this._config.show_state ? svg`
           <text
             x="0" y="0" 
             class="value ${classMap({"dual-state": typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big"})}" 
@@ -321,7 +324,7 @@ export class ModernCircularGauge extends LitElement {
           >
             ${this._getSegmentLabel(numberState, this._config.segments) ? this._getSegmentLabel(numberState, this._config.segments) : svg`
               ${entityState}
-              <tspan class="unit" dx="-4" dy="-6">${unit}</tspan>
+              ${this._config.show_unit ?? true ? svg`<tspan class="unit" dx="-4" dy="-6">${unit}</tspan>` : nothing}
             `}
           </text>
           ${typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big"
@@ -333,6 +336,7 @@ export class ModernCircularGauge extends LitElement {
             ${this._config.label}
           </text>`
             : nothing}
+          ` : nothing}
           ${this._renderSecondary()}
         </svg>
       </div> 
@@ -487,6 +491,10 @@ export class ModernCircularGauge extends LitElement {
       </text>`;
     }
 
+    if (!(secondary.show_state ?? true)) {
+      return svg``;
+    }
+
     const stateObj = this.hass.states[secondary.entity || ""];
     const templatedState = this._templateResults?.secondaryEntity?.result;
 
@@ -509,6 +517,7 @@ export class ModernCircularGauge extends LitElement {
       dy=${secondary.state_size == "big" ? 14 : 20}
     >
       ${entityState}
+      ${secondary.show_unit ?? true ? svg`
       <tspan
         class=${classMap({"unit": secondary.state_size == "big"})}
         dx=${secondary.state_size == "big" ? -4 : 0}
@@ -516,6 +525,7 @@ export class ModernCircularGauge extends LitElement {
       >
         ${unit}
       </tspan>
+      ` : nothing}
     </text>
     ${secondary.state_size == "big"
       ? svg`
