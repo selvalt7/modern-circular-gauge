@@ -253,7 +253,8 @@ export class ModernCircularGauge extends LitElement {
       <div class="container">
         <svg viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid"
           overflow="visible"
-          style=${styleMap({ "--gauge-color": this._computeSegments(numberState, this._config.segments) })}
+          style=${styleMap({ "--gauge-color": this._computeSegments(numberState, this._config.segments),
+            "--gauge-stroke-width": this._config.gauge_width ? `${this._config.gauge_width}px` : undefined })}
           class=${classMap({ "dual-gauge": typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner" })}
         >
           <g transform="rotate(${ROTATE_ANGLE})">
@@ -313,7 +314,7 @@ export class ModernCircularGauge extends LitElement {
               ` : nothing}
           </g>
         </svg>
-        <svg class="state" viewBox="-50 -50 100 100">
+        <svg class="state" overflow="visible" viewBox="-50 -50 100 100">
           ${this._config.show_state ? svg`
           <text
             x="0" y="0" 
@@ -344,14 +345,14 @@ export class ModernCircularGauge extends LitElement {
   }
 
   private _calcStateSize(state: string): string {
-    let initialSize = 24;
+    let initialSize = this._config?.state_font_size ?? 24;
     if (typeof this._config?.secondary != "string") {
       initialSize -= this._config?.secondary?.show_gauge == "inner" ? 2 : 0;
       initialSize -= this._config?.secondary?.state_size == "big" ? 3 : 0;
     }
 
-    if (state.length >= 7) {
-      return `${initialSize - (state.length - 4)}px`
+    if (state.length >= (this._config?.state_scaling_limit ?? 7)) {
+      return `${initialSize - (state.length - 4) * (this._config?.state_scaling_multiplier ?? 1)}px`
     }
     return `${initialSize}px`;
   }
@@ -957,7 +958,7 @@ export class ModernCircularGauge extends LitElement {
     .dot {
       fill: none;
       stroke-linecap: round;
-      stroke-width: 3px;
+      stroke-width: calc(var(--gauge-stroke-width) / 2);
       stroke: var(--primary-text-color);
       transition: all 1s ease 0s;
       opacity: 0.5;
