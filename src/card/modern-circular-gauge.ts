@@ -958,7 +958,7 @@ export class ModernCircularGauge extends LitElement {
     .dot {
       fill: none;
       stroke-linecap: round;
-      stroke-width: 3px;
+      stroke-width: calc(var(--gauge-stroke-width) / 2);
       stroke: var(--primary-text-color);
       transition: all 1s ease 0s;
       opacity: 0.5;
