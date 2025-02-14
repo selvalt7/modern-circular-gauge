@@ -228,11 +228,14 @@ export class ModernCircularGauge extends LitElement {
     const state = templatedState ?? stateObj.state;
     const entityState = formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj?.entity_id])) ?? templatedState;
 
+    const iconCenter = !(this._config.show_state ?? false) && (this._config.show_icon ?? true);
+
     return html`
     <ha-card
       class="${classMap({
         "flex-column-reverse": this._config.header_position == "top",
-        "action": this._hasCardAction()
+        "action": this._hasCardAction(),
+        "icon-center": iconCenter
        })}"
       @action=${this._handleAction}
       .actionHandler=${actionHandler({
@@ -316,7 +319,7 @@ export class ModernCircularGauge extends LitElement {
               ` : nothing}
           </g>
         </svg>
-        <svg class="state" viewBox="-50 -50 100 100">
+        <svg class="state" viewBox="-50 ${iconCenter ? -55 : -50} 100 100">
           ${this._config.show_state ? svg`
           <text
             x="0" y="0" 
@@ -923,6 +926,11 @@ export class ModernCircularGauge extends LitElement {
       overflow: hidden;
     }
 
+    .icon-center .icon-wrapper {
+      justify-content: center;
+      align-items: center;
+    }
+
     .icon-wrapper:before {
       display: block;
       content: "";
@@ -939,6 +947,13 @@ export class ModernCircularGauge extends LitElement {
       height: 12%;
       width: 12%;
       --ha-icon-display: flex;
+    }
+
+    .icon-center ha-state-icon, .icon-center ha-state-icon.big {
+      position: static;
+      transform: unset;
+      height: 30%;
+      width: 30%;
     }
 
     ha-state-icon.big {
