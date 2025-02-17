@@ -244,7 +244,7 @@ export class ModernCircularGauge extends LitElement {
       )}
     >
       ${this._config.show_header ? html`
-      <div class="header">
+      <div class="header" style=${styleMap({ "--gauge-header-font-size": this._config.header_font_size ? `${this._config.header_font_size}px` : undefined })}>
         <p class="name">
           ${this._config.name ?? stateObj.attributes.friendly_name ?? ''}
         </p>
@@ -802,6 +802,7 @@ export class ModernCircularGauge extends LitElement {
     :host {
       --gauge-color: var(--primary-color);
       --gauge-stroke-width: 6px;
+      --gauge-header-font-size: 14px;
     }
 
     ha-card {
@@ -882,7 +883,7 @@ export class ModernCircularGauge extends LitElement {
 
     .name {
       width: 100%;
-      font-size: 14px;
+      font-size: var(--gauge-header-font-size);
       margin: 0;
       white-space: nowrap;
       overflow: hidden;
