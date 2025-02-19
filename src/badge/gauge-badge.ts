@@ -523,7 +523,7 @@ export class ModernCircularGaugeBadge extends LitElement {
       display: flex;
       flex-direction: column;
       align-items: center;
-      --badge-color: var(--gauge-color)
+      --badge-color: var(--gauge-color);
     }
 
     ha-badge.error {

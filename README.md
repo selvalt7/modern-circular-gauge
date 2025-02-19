@@ -56,12 +56,18 @@ Templates are supported on selected options, configurable only via `yaml`.
 | type | `string` | 'custom:modern-circular-gauge' |
 | entity | `string` | Required | Entity. May contain templates
 | name | `string` | Optional | Custom title
+| icon | `string` | Optional | Custom icon. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
 | min | `number` or `string` | `0` | Minimum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
 | max | `number` or `string` | `100` | Maximum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/) see [example](#gauge-with-templated-additional-info-and-segments)
 | unit | `string` | Optional | Custom unit
 | label | `string` | Optional | Label under the state, only used when `state_size` is set to `big`, see [secondary](#secondary-entity-object)
 | header_position | `top` or `bottom` | `bottom` | Header position
+| show_state | `boolean` | `true` | Show entity state
+| show_unit | `boolean` | `true` | Show state unit
+| show_header | `boolean` | `true` | Show card header
+| show_icon | `boolean` | `true` | Show card icon
 | needle | `boolean` | `false` | 
+| adaptive_icon_color | `boolean` | `false` | Makes icon color adaptive to current color segment
 | smooth_segments | `boolean` | `false` | Smooth color segments
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
 | secondary | `object` or `string` | Optional | Secondary info to display under the state, see [secondary entity object](#secondary-entity-object). May contain [templates](https://www.home-assistant.io/docs/configuration/templating/) see [example](#gauge-with-templated-additional-info-and-segments)
@@ -101,6 +107,8 @@ Templates are supported on selected options, configurable only via `yaml`.
 | max | `number` | Optional | Maximum inner gauge value. May contain templates
 | label | `string` | Optional | Label under the state, only used when `state_size` is set to `big`
 | state_size | `small` or `big` | `small` | Secondary state size 
+| show_state | `boolean` | `true` | Show secondary state
+| show_unit | `boolean` | `true` | Show secondary unit
 | needle | `boolean` | `false` |
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
 
