@@ -69,6 +69,11 @@ Templates are supported on selected options, configurable only via `yaml`.
 | needle | `boolean` | `false` | 
 | adaptive_icon_color | `boolean` | `false` | Makes icon color adaptive to current color segment
 | smooth_segments | `boolean` | `false` | Smooth color segments
+| state_font_size | `number` | `24` | Initial state size in px
+| header_font_size | `number` | `14` | Gauge header font size in px
+| gauge_width | `number` | `6` | Gauge width
+| state_scaling_limit | `number` | `7` | Max state length without scaling
+| state_scaling_multiplier | `number` | `1` | State scaling multiplier
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
 | secondary | `object` or `string` | Optional | Secondary info to display under the state, see [secondary entity object](#secondary-entity-object). May contain [templates](https://www.home-assistant.io/docs/configuration/templating/) see [example](#gauge-with-templated-additional-info-and-segments)
 
