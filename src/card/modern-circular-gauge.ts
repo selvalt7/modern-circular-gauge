@@ -52,6 +52,8 @@ export class ModernCircularGauge extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: ModernCircularGaugeConfig;
 
+  @state() private _hasSecondary?: boolean = false;
+
   @state() private _templateResults?: Partial<Record<string, RenderTemplateResult | undefined>> = {};
 
   @state() private _unsubRenderTemplates?: Map<string, Promise<UnsubscribeFunc>> = new Map();
@@ -226,11 +228,14 @@ export class ModernCircularGauge extends LitElement {
     const state = templatedState ?? stateObj.state;
     const entityState = formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj?.entity_id])) ?? templatedState;
 
+    const iconCenter = !(this._config.show_state ?? false) && (this._config.show_icon ?? true);
+
     return html`
     <ha-card
       class="${classMap({
         "flex-column-reverse": this._config.header_position == "top",
-        "action": this._hasCardAction()
+        "action": this._hasCardAction(),
+        "icon-center": iconCenter
        })}"
       @action=${this._handleAction}
       .actionHandler=${actionHandler({
@@ -250,11 +255,12 @@ export class ModernCircularGauge extends LitElement {
         </p>
       </div>
       ` : nothing}
-      <div class="container">
+      <div class="container"
+        style=${styleMap({ "--gauge-color": this._computeSegments(numberState, this._config.segments) })}
+      >
         <svg viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid"
           overflow="visible"
-          style=${styleMap({ "--gauge-color": this._computeSegments(numberState, this._config.segments),
-            "--gauge-stroke-width": this._config.gauge_width ? `${this._config.gauge_width}px` : undefined })}
+          style=${styleMap({ "--gauge-stroke-width": this._config.gauge_width ? `${this._config.gauge_width}px` : undefined })}
           class=${classMap({ "dual-gauge": typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner" })}
         >
           <g transform="rotate(${ROTATE_ANGLE})">
@@ -314,7 +320,7 @@ export class ModernCircularGauge extends LitElement {
               ` : nothing}
           </g>
         </svg>
-        <svg class="state" overflow="visible" viewBox="-50 -50 100 100">
+        <svg class="state" overflow="visible" viewBox="-50 ${iconCenter ? -55 : -50} 100 100">
           ${this._config.show_state ? svg`
           <text
             x="0" y="0" 
@@ -339,6 +345,18 @@ export class ModernCircularGauge extends LitElement {
           ` : nothing}
           ${this._renderSecondary()}
         </svg>
+        ${this._config.show_icon ?? true ? html`
+        <div class="icon-container">
+          <div class="icon-wrapper">
+            <ha-state-icon
+              class=${classMap({ "adaptive": !!this._config.adaptive_icon_color, "big": !this._hasSecondary })}
+              .hass=${this.hass}
+              .stateObj=${stateObj}
+              .icon=${this._templateResults?.icon?.result ?? this._config.icon}
+            ></ha-state-icon>
+          </div>
+        </div>
+        ` : nothing}
       </div> 
     </ha-card>
     `;
@@ -481,6 +499,7 @@ export class ModernCircularGauge extends LitElement {
     }
 
     if (typeof secondary === "string") {
+      this._hasSecondary = true;
       return svg`
       <text
         x="0" y="0"
@@ -501,6 +520,8 @@ export class ModernCircularGauge extends LitElement {
     if (!stateObj && templatedState === undefined) {
       return svg``;
     }
+
+    this._hasSecondary = true;
 
     const attributes = stateObj?.attributes ?? undefined;
 
@@ -639,6 +660,7 @@ export class ModernCircularGauge extends LitElement {
   private async _tryConnect(): Promise<void> {
     const templates = {
       entity: this._config?.entity,
+      icon: this._config?.icon,
       min: this._config?.min,
       max: this._config?.max,
       secondary: this._config?.secondary
@@ -715,6 +737,7 @@ export class ModernCircularGauge extends LitElement {
   private async _tryDisconnect(): Promise<void> {
     const templates = {
       entity: this._config?.entity,
+      icon: this._config?.icon,
       min: this._config?.min,
       max: this._config?.max,
       secondary: this._config?.secondary
@@ -843,6 +866,7 @@ export class ModernCircularGauge extends LitElement {
       left: 0;
       right: 0;
       text-anchor: middle;
+      z-index: 2;
     }
 
     .container {
@@ -879,6 +903,73 @@ export class ModernCircularGauge extends LitElement {
 
     .secondary.dual-state .unit {
       opacity: 1;
+    }
+
+    .icon-container {
+      display: flex;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      justify-content: center;
+      align-items: center;
+      z-index: 1;
+    }
+
+    .icon-wrapper {
+      position: relative;
+      display: flex;
+      width: 100%;
+      height: auto;
+      max-height: 100%;
+      padding: 0;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .icon-center .icon-wrapper {
+      justify-content: center;
+      align-items: center;
+    }
+
+    .icon-wrapper:before {
+      display: block;
+      content: "";
+      padding-top: 100%;
+    }
+
+    ha-state-icon {
+      position: absolute;
+      bottom: 14%;
+      left: 50%;
+      transform: translate(-50%, 0);
+      --mdc-icon-size: auto;
+      color: var(--primary-color);
+      height: 12%;
+      width: 12%;
+      --ha-icon-display: flex;
+    }
+
+    .icon-center ha-state-icon, .icon-center ha-state-icon.big {
+      position: static;
+      transform: unset;
+      height: 30%;
+      width: 30%;
+    }
+
+    ha-state-icon.big {
+      height: 18%;
+      width: 18%;
+    }
+
+    .adaptive {
+      color: var(--gauge-color);
+    }
+
+    ha-icon {
+      display: flex;
+      justify-content: center;
     }
 
     .name {

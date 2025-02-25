@@ -56,6 +56,7 @@ Templates are supported on selected options, configurable only via `yaml`.
 | type | `string` | 'custom:modern-circular-gauge' |
 | entity | `string` | Required | Entity. May contain templates
 | name | `string` | Optional | Custom title
+| icon | `string` | Optional | Custom icon. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
 | min | `number` or `string` | `0` | Minimum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
 | max | `number` or `string` | `100` | Maximum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/) see [example](#gauge-with-templated-additional-info-and-segments)
 | unit | `string` | Optional | Custom unit
@@ -63,8 +64,10 @@ Templates are supported on selected options, configurable only via `yaml`.
 | header_position | `top` or `bottom` | `bottom` | Header position
 | show_state | `boolean` | `true` | Show entity state
 | show_unit | `boolean` | `true` | Show state unit
-| show_header | `boolean` | `true` | Show card header 
+| show_header | `boolean` | `true` | Show card header
+| show_icon | `boolean` | `true` | Show card icon
 | needle | `boolean` | `false` | 
+| adaptive_icon_color | `boolean` | `false` | Makes icon color adaptive to current color segment
 | smooth_segments | `boolean` | `false` | Smooth color segments
 | state_font_size | `number` | `24` | Initial state size in px
 | header_font_size | `number` | `14` | Gauge header font size in px
