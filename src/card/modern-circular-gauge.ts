@@ -307,18 +307,16 @@ export class ModernCircularGauge extends LitElement {
                 stroke-dashoffset="${current[1]}"
               />
             ` : nothing}
+            ${needle && this._config.segments ? svg`
+            <g class="segments" mask=${ifDefined(this._config.smooth_segments ? "url(#gradient-path)" : "url(#needle-mask)")}>
+              ${this._renderSegments(this._config.segments, min, max, RADIUS)}
+            </g>` : nothing}
             ${typeof this._config.secondary != "string" ? 
               this._config.secondary?.show_gauge == "outter" ? this._renderOutterSecondary()
               : this._config.secondary?.show_gauge == "inner" ? this._renderInnerGauge()
               : nothing
               : nothing}
             ${needle ? svg`
-              ${this._config.segments ? svg`
-              <g class="segments" mask=${ifDefined(this._config.smooth_segments ? "url(#gradient-path)" : "url(#needle-mask)")}>
-                ${this._renderSegments(this._config.segments, min, max, RADIUS)}
-              </g>`
-              : nothing
-              }
               <path
                 class="needle"
                 d=${path}
@@ -509,9 +507,14 @@ export class ModernCircularGauge extends LitElement {
 
     return svg`
     <path
+      class="dot-border"
+      d=${path}
+      stroke-dasharray="${current[0]}"
+      stroke-dashoffset="${current[1]}"
+    />
+    <path
       class="dot"
       d=${path}
-      style=${styleMap({ "opacity": numberState <= mainNumberState ? 0.8 : 0.5 })}
       stroke-dasharray="${current[0]}"
       stroke-dashoffset="${current[1]}"
     />
@@ -1080,6 +1083,14 @@ export class ModernCircularGauge extends LitElement {
       stroke-linecap: round;
       stroke-width: 3px;
       stroke: var(--primary-text-color);
+      transition: all 1s ease 0s;
+      opacity: 0.8;
+    }
+    .dot-border {
+      fill: none;
+      stroke-linecap: round;
+      stroke-width: calc(var(--gauge-stroke-width) - 1px);
+      stroke: var(--primary-background-color);
       transition: all 1s ease 0s;
       opacity: 0.5;
     }
