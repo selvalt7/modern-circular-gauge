@@ -532,7 +532,11 @@ export class ModernCircularGauge extends LitElement {
 
     return svg`
     <text
-      @action=${this._handleAction}
+      @action=${this._handleSecondaryAction}
+      .actionHandler=${actionHandler({
+        hasHold: hasAction(secondary.hold_action),
+        hasDoubleClick: hasAction(secondary.double_tap_action),
+      })}
       class="secondary ${classMap({"dual-state": secondary.state_size == "big"})}"
       style=${styleMap({ "font-size": secondary.state_size == "big" ? this._calcStateSize(entityState) : undefined })}
       dy=${secondary.state_size == "big" ? 14 : 20}
@@ -786,16 +790,26 @@ export class ModernCircularGauge extends LitElement {
 
   private _handleAction(ev: ActionHandlerEvent) {
     ev.stopPropagation();
-    const element = ev.currentTarget as Element;
-    const targetEntity = element.classList.contains("secondary")
-      ? typeof this._config?.secondary != "string" ? this._config?.secondary?.entity : ""
-      : this._config?.entity;
+    const targetEntity = this._config?.entity;
     const config = {
       ...this._config,
       entity: isTemplate(targetEntity ?? "") ? "" : targetEntity
     };
 
     handleAction(this, this.hass!, config, ev.detail.action!);
+  }
+
+  private _handleSecondaryAction(ev: ActionHandlerEvent) {
+    ev.stopPropagation();
+    if (typeof this._config?.secondary != "string") {
+      const entity = typeof this._config?.secondary != "string" ? this._config?.secondary?.entity : "";
+      const config = {
+        ...this._config?.secondary,
+        entity: isTemplate(entity ?? "") ? "" : entity
+      }
+      
+      handleAction(this, this.hass!, config, ev.detail.action!);
+    }
   }
 
   public getGridOptions(): LovelaceGridOptions {

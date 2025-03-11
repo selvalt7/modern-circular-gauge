@@ -189,6 +189,10 @@ export class ModernCircularGaugeEditor extends LitElement {
               },
             ],
           },
+          {
+            name: "tap_action",
+            selector: { ui_action: {} },
+          }
         ],
       },
       {
