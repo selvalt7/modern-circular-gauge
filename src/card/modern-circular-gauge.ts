@@ -1084,7 +1084,7 @@ export class ModernCircularGauge extends LitElement {
       stroke-width: 3px;
       stroke: var(--primary-text-color);
       transition: all 1s ease 0s;
-      opacity: 0.8;
+      opacity: 0.9;
     }
     .dot-border {
       fill: none;
@@ -1092,7 +1092,7 @@ export class ModernCircularGauge extends LitElement {
       stroke-width: calc(var(--gauge-stroke-width) - 1px);
       stroke: var(--primary-background-color);
       transition: all 1s ease 0s;
-      opacity: 0.5;
+      opacity: 0.6;
     }
     `;
   }
