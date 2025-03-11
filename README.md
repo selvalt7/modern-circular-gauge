@@ -2,14 +2,14 @@
 
 Modern look at the default Home Assistant gauge card
 
-![cards](https://github.com/user-attachments/assets/25a5446f-fee3-461e-b028-2304f5e7796f)
+![cards](https://github.com/user-attachments/assets/53a0000e-8f74-4dc1-8642-2703d9136c76)
 
 ### Features
 - Card and badge gauge
 - Secondary info under the state with two size options
 - Sections support
 - Needle
-- Template support for `min`, `max`, `entity` and `secondary` (YAML only)
+- Template support for `min`, `max`, `entity`, `icon` and `secondary` (YAML only)
 - Color segments with gradient
 - Dual gauge
 - Dual value representing as a dot on the same gauge
@@ -69,6 +69,11 @@ Templates are supported on selected options, configurable only via `yaml`.
 | needle | `boolean` | `false` | 
 | adaptive_icon_color | `boolean` | `false` | Makes icon color adaptive to current color segment
 | smooth_segments | `boolean` | `false` | Smooth color segments
+| state_font_size | `number` | `24` | Initial state size in px
+| header_font_size | `number` | `14` | Gauge header font size in px
+| gauge_width | `number` | `6` | Gauge width
+| state_scaling_limit | `number` | `7` | Max state length without scaling
+| state_scaling_multiplier | `number` | `1` | State scaling multiplier
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
 | secondary | `object` or `string` | Optional | Secondary info to display under the state, see [secondary entity object](#secondary-entity-object). May contain [templates](https://www.home-assistant.io/docs/configuration/templating/) see [example](#gauge-with-templated-additional-info-and-segments)
 
@@ -207,6 +212,42 @@ secondary:
 max: 30
 entity: sensor.room_temp
 unit: °C
+```
+
+### Templated icon
+
+![templated icon](https://github.com/user-attachments/assets/afc49437-5bbe-4d6a-aa80-e7d402e61800)
+
+```yaml
+type: custom:modern-circular-gauge
+entity: sensor.room_temp
+unit: °C
+name: Temperature
+icon: >-
+  {% if is_state("binary_sensor.room_temp_rising", "on")
+  %}mdi:thermometer-chevron-up{% elif is_state("binary_sensor.room_temp_falling",
+  "on") %}mdi:thermometer-chevron-down{% endif %}
+max: 30
+min: 10
+needle: true
+smooth_segments: true
+adaptive_icon_color: true
+segments:
+  - from: 13
+    color:
+      - 11
+      - 182
+      - 239
+  - from: 19
+    color:
+      - 43
+      - 255
+      - 0
+  - from: 24
+    color:
+      - 252
+      - 161
+      - 3
 ```
 
 ## Development
