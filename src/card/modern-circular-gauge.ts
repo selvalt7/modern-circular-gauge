@@ -251,7 +251,7 @@ export class ModernCircularGauge extends LitElement {
       ${this._config.show_header ? html`
       <div class="header" style=${styleMap({ "--gauge-header-font-size": this._config.header_font_size ? `${this._config.header_font_size}px` : undefined })}>
         <p class="name">
-          ${this._config.name ?? stateObj.attributes.friendly_name ?? ''}
+          ${this._templateResults?.name?.result ?? this._config.name ?? stateObj.attributes.friendly_name ?? ''}
         </p>
       </div>
       ` : nothing}
@@ -664,6 +664,7 @@ export class ModernCircularGauge extends LitElement {
   private async _tryConnect(): Promise<void> {
     const templates = {
       entity: this._config?.entity,
+      name: this._config?.name,
       icon: this._config?.icon,
       min: this._config?.min,
       max: this._config?.max,
@@ -741,6 +742,7 @@ export class ModernCircularGauge extends LitElement {
   private async _tryDisconnect(): Promise<void> {
     const templates = {
       entity: this._config?.entity,
+      name: this._config?.name,
       icon: this._config?.icon,
       min: this._config?.min,
       max: this._config?.max,
