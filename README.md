@@ -9,7 +9,7 @@ Modern look at the default Home Assistant gauge card
 - Secondary info under the state with two size options
 - Sections support
 - Needle
-- Template support for `min`, `max`, `entity`, `icon` and `secondary` (YAML only)
+- Template support for `min`, `max`, `entity`, `name`, `icon` and `secondary` (YAML only)
 - Color segments with gradient
 - Dual gauge
 - Dual value representing as a dot on the same gauge
@@ -55,7 +55,7 @@ Templates are supported on selected options, configurable only via `yaml`.
 |------|:----:|:-------:|:------------|
 | type | `string` | 'custom:modern-circular-gauge' |
 | entity | `string` | Required | Entity. May contain templates
-| name | `string` | Optional | Custom title
+| name | `string` | Optional | Custom title. May contain templates
 | icon | `string` | Optional | Custom icon. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
 | min | `number` or `string` | `0` | Minimum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
 | max | `number` or `string` | `100` | Maximum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/) see [example](#gauge-with-templated-additional-info-and-segments)
@@ -83,8 +83,8 @@ Templates are supported on selected options, configurable only via `yaml`.
 |------|:----:|:-------:|:------------|
 | type | `string` | 'custom:modern-circular-gauge-badge' |
 | entity | `string` | Required | Entity. May contain templates.
-| name | `string` | Optional | Custom title
-| icon | `string` | Entity icon | Custom icon
+| name | `string` | Optional | Custom title. May contain templates
+| icon | `string` | Entity icon | Custom icon. May contain templates
 | min | `number` or `string` | `0` | Minimum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
 | max | `number` or `string` | `100` | Maximum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
 | unit | `string` | Optional | Custom unit
