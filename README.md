@@ -71,6 +71,7 @@ Templates are supported on selected options, configurable only via `yaml`.
 | smooth_segments | `boolean` | `false` | Smooth color segments
 | state_font_size | `number` | `24` | Initial state size in px
 | header_font_size | `number` | `14` | Gauge header font size in px
+| header_offset | `number` | `0` | Gauge header vertical offset in px
 | gauge_width | `number` | `6` | Gauge width
 | state_scaling_limit | `number` | `7` | Max state length without scaling
 | state_scaling_multiplier | `number` | `1` | State scaling multiplier

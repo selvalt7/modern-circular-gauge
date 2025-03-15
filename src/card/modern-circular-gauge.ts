@@ -249,7 +249,8 @@ export class ModernCircularGauge extends LitElement {
       )}
     >
       ${this._config.show_header ? html`
-      <div class="header" style=${styleMap({ "--gauge-header-font-size": this._config.header_font_size ? `${this._config.header_font_size}px` : undefined })}>
+      <div class="header" style=${styleMap({ "--gauge-header-font-size": this._config.header_font_size ? `${this._config.header_font_size}px` : undefined,
+        "transform": this._config.header_offset ? `translate(0, ${this._config.header_offset}px)` : undefined })}>
         <p class="name">
           ${this._config.name ?? stateObj.attributes.friendly_name ?? ''}
         </p>
