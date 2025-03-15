@@ -114,6 +114,7 @@ Templates are supported on selected options, configurable only via `yaml`.
 | state_size | `small` or `big` | `small` | Secondary state size 
 | show_state | `boolean` | `true` | Show secondary state
 | show_unit | `boolean` | `true` | Show secondary unit
+| gauge_width | `number` | `4` | Inner gauge width
 | needle | `boolean` | `false` |
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
 
