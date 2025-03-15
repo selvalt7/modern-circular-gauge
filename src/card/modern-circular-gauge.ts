@@ -260,7 +260,9 @@ export class ModernCircularGauge extends LitElement {
       >
         <svg viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid"
           overflow="visible"
-          style=${styleMap({ "--gauge-stroke-width": this._config.gauge_width ? `${this._config.gauge_width}px` : undefined })}
+          style=${styleMap({ "--gauge-stroke-width": this._config.gauge_width ? `${this._config.gauge_width}px` : undefined,
+            "--inner-gauge-stroke-width": typeof this._config.secondary == "object" ? this._config.secondary?.gauge_width ? `${this._config.secondary?.gauge_width}px` : undefined : undefined })}
+           })}
           class=${classMap({ "dual-gauge": typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner" })}
         >
           <g transform="rotate(${ROTATE_ANGLE})">
@@ -275,6 +277,7 @@ export class ModernCircularGauge extends LitElement {
               <mask id="gradient-inner-path">
                 <path
                   class="arc"
+                  style="stroke-width: var(--inner-gauge-stroke-width)"
                   stroke="white"
                   d=${innerPath}
                 />
@@ -853,6 +856,7 @@ export class ModernCircularGauge extends LitElement {
     :host {
       --gauge-color: var(--primary-color);
       --gauge-stroke-width: 6px;
+      --inner-gauge-stroke-width: 4px;
       --gauge-header-font-size: 14px;
     }
 
@@ -1073,6 +1077,7 @@ export class ModernCircularGauge extends LitElement {
 
     .inner {
       --gauge-color: var(--accent-color);
+      --gauge-stroke-width: var(--inner-gauge-stroke-width);
     }
 
     .dual-gauge {

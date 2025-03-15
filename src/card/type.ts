@@ -18,6 +18,7 @@ export type SecondaryEntity = {
     show_state?: boolean;
     show_unit?: boolean;
     needle?: boolean;
+    gauge_width?: number;
     adaptive_state_color?: boolean;
     segments?: SegmentsConfig[];
     [key: string]: any;
