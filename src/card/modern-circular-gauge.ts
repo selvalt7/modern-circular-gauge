@@ -324,7 +324,7 @@ export class ModernCircularGauge extends LitElement {
           ${this._config.show_state ? svg`
           <text
             x="0" y="0" 
-            class="value ${classMap({"dual-state": typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big"})}" 
+            class="value ${classMap({"dual-state": typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big", "adaptive": !!this._config.adaptive_state_color})}" 
             style=${styleMap({ "font-size": this._calcStateSize(entityState) })}
             dy=${typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big" ? -14 : 0}
           >
@@ -530,6 +530,16 @@ export class ModernCircularGauge extends LitElement {
     const state = templatedState ?? stateObj.state;
     const entityState = formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj?.entity_id])) ?? templatedState;
 
+    let secondaryColor;
+
+    if (secondary.adaptive_state_color) {
+      if (secondary.show_gauge == "outter") {
+        secondaryColor = this._computeSegments(Number(state), this._config?.segments);
+      } else if (secondary.show_gauge == "inner") {
+        secondaryColor = this._computeSegments(Number(state), secondary.segments);
+      }
+    }
+
     return svg`
     <text
       @action=${this._handleSecondaryAction}
@@ -537,8 +547,10 @@ export class ModernCircularGauge extends LitElement {
         hasHold: hasAction(secondary.hold_action),
         hasDoubleClick: hasAction(secondary.double_tap_action),
       })}
-      class="secondary ${classMap({"dual-state": secondary.state_size == "big"})}"
-      style=${styleMap({ "font-size": secondary.state_size == "big" ? this._calcStateSize(entityState) : undefined })}
+      class="secondary ${classMap({ "dual-state": secondary.state_size == "big", "adaptive": !!secondary.adaptive_state_color })}"
+      style=${styleMap({ "font-size": secondary.state_size == "big" ? this._calcStateSize(entityState) : undefined,
+        "fill": secondaryColor ?? undefined
+       })}
       dy=${secondary.state_size == "big" ? 14 : 20}
     >
       ${entityState}
@@ -981,6 +993,10 @@ export class ModernCircularGauge extends LitElement {
 
     .adaptive {
       color: var(--gauge-color);
+    }
+
+    .value.adaptive, .secondary.adaptive {
+      fill: var(--gauge-color);
     }
 
     ha-icon {

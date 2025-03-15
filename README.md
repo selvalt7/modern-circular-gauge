@@ -68,6 +68,7 @@ Templates are supported on selected options, configurable only via `yaml`.
 | show_icon | `boolean` | `true` | Show card icon
 | needle | `boolean` | `false` | 
 | adaptive_icon_color | `boolean` | `false` | Makes icon color adaptive to current color segment
+| adaptive_state_color | `boolean` | `false` | Makes state color adaptive to current color segment
 | smooth_segments | `boolean` | `false` | Smooth color segments
 | state_font_size | `number` | `24` | Initial state size in px
 | header_font_size | `number` | `14` | Gauge header font size in px
@@ -114,7 +115,8 @@ Templates are supported on selected options, configurable only via `yaml`.
 | state_size | `small` or `big` | `small` | Secondary state size 
 | show_state | `boolean` | `true` | Show secondary state
 | show_unit | `boolean` | `true` | Show secondary unit
-| needle | `boolean` | `false` |
+| needle | `boolean` | `false` | Makes state color adaptive to current color segment based on `show_gauge` config
+| adaptive_state_color | `boolean` | `false` | 
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
 
 ## Examples
