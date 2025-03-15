@@ -159,6 +159,12 @@ export class ModernCircularGaugeEditor extends LitElement {
                 default: true,
                 selector: { boolean: {} },
               },
+              {
+                name: "adaptive_state_color",
+                label: "Adaptive state color",
+                default: false,
+                selector: { boolean: {} },
+              },
             ],
           },
           {
@@ -248,6 +254,12 @@ export class ModernCircularGaugeEditor extends LitElement {
           {
             name: "adaptive_icon_color",
             label: "Adaptive icon color",
+            default: false,
+            selector: { boolean: {} },
+          },
+          {
+            name: "adaptive_state_color",
+            label: "Adaptive state color",
             default: false,
             selector: { boolean: {} },
           },

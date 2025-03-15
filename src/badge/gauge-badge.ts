@@ -99,17 +99,27 @@ export class ModernCircularGaugeBadge extends LitElement {
   }
 
   private async _tryConnect(): Promise<void> {
-    TEMPLATE_KEYS.forEach((key) => {
-      this._tryConnectKey(key);
+    const templates = {
+      entity: this._config?.entity,
+      name: this._config?.name,
+      icon: this._config?.icon,
+      min: this._config?.min,
+      max: this._config?.max,
+    };
+
+    Object.entries(templates).forEach(([key, value]) => {
+      if (typeof value == "string") {
+        this._tryConnectKey(key, value);
+      }
     });
   }
 
-  private async _tryConnectKey(key: string): Promise<void> {
+  private async _tryConnectKey(key: string, templateValue: string): Promise<void> {
     if (
       this._unsubRenderTemplates?.get(key) !== undefined ||
       !this.hass ||
       !this._config ||
-      !isTemplate(this._config?.[key])
+      !isTemplate(templateValue)
     ) {
       return;
     }
@@ -127,7 +137,7 @@ export class ModernCircularGaugeBadge extends LitElement {
           };
         },
         {
-          template: this._config[key] as string || "",
+          template: templateValue as string || "",
           variables: {
             config: this._config,
             user: this.hass.user!.name,
@@ -139,7 +149,7 @@ export class ModernCircularGaugeBadge extends LitElement {
       await sub;
     } catch (e: any) {
       const result = {
-        result: this._config[key] as string || "",
+        result: templateValue as string || "",
         listeners: { all: false, domains: [], entities: [], time: false },
       };
       this._templateResults = {
@@ -151,8 +161,18 @@ export class ModernCircularGaugeBadge extends LitElement {
   }
 
   private async _tryDisconnect(): Promise<void> {
-    TEMPLATE_KEYS.forEach((key) => {
-      this._tryDisconnectKey(key);
+    const templates = {
+      entity: this._config?.entity,
+      name: this._config?.name,
+      icon: this._config?.icon,
+      min: this._config?.min,
+      max: this._config?.max,
+    };
+    
+    Object.entries(templates).forEach(([key, value]) => {
+      if (typeof value == "string") {
+        this._tryDisconnectKey(key);
+      }
     });
   }
 
@@ -251,8 +271,8 @@ export class ModernCircularGaugeBadge extends LitElement {
       }
     }
 
-    const min = Number(this._getValue("min")) ?? DEFAULT_MIN;
-    const max = Number(this._getValue("max")) ?? DEFAULT_MAX;
+    const min = Number(this._templateResults?.min?.result ?? this._config.min) ?? DEFAULT_MIN;
+    const max = Number(this._templateResults?.max?.result ?? this._config.max) ?? DEFAULT_MAX;
 
     const attributes = stateObj?.attributes ?? undefined;
 
@@ -264,7 +284,7 @@ export class ModernCircularGaugeBadge extends LitElement {
     const state = templatedState ?? stateObj.state;
     const entityState = formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj?.entity_id])) ?? templatedState;
 
-    const name = this._config.name || stateObj?.attributes.friendly_name;
+    const name = this._templateResults?.name?.result ?? this._config.name ?? stateObj?.attributes.friendly_name ?? "";
     const label = this._config.show_name && this._config.show_icon && this._config.show_state ? name : undefined;
     const content = this._config.show_icon && this._config.show_state ? `${entityState} ${unit}` : this._config.show_name ? name : undefined;
 
@@ -325,7 +345,7 @@ export class ModernCircularGaugeBadge extends LitElement {
           <ha-state-icon
             .hass=${this.hass}
             .stateObj=${stateObj}
-            .icon=${this._config.icon}
+            .icon=${this._templateResults?.icon?.result ?? this._config.icon}
           ></ha-state-icon>`
           : nothing}
         ${this._config.show_state && !this._config.show_icon
@@ -442,12 +462,6 @@ export class ModernCircularGaugeBadge extends LitElement {
     };
 
     handleAction(this, this.hass!, config, ev.detail.action!);
-  }
-
-  private _getValue(key: string) {
-    return isTemplate(this._config?.[key])
-      ? this._templateResults?.[key]?.result?.toString()
-      : this._config?.[key];
   }
 
   static get styles() {

@@ -19,6 +19,7 @@ export type SecondaryEntity = {
     show_unit?: boolean;
     needle?: boolean;
     gauge_width?: number;
+    adaptive_state_color?: boolean;
     segments?: SegmentsConfig[];
     [key: string]: any;
 };
@@ -38,6 +39,7 @@ export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     show_icon?: boolean;
     needle?: boolean;
     adaptive_icon_color?: boolean;
+    adaptive_state_color?: boolean;
     smooth_segments?: boolean;
     state_font_size?: number;
     header_font_size?: number;
