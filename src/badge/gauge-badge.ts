@@ -311,7 +311,7 @@ export class ModernCircularGaugeBadge extends LitElement {
                   stroke="white"
                   d=${path}
                 />
-                <circle cx="42" cy="0" r="12" fill="black" transform="rotate(${this._getAngle(numberState, min, max)})"/>
+                <circle cx="42" cy="0" r="14" fill="black" transform="rotate(${this._getAngle(numberState, min, max)})"/>
               </mask>
               ` : nothing}
             </defs>
@@ -528,7 +528,7 @@ export class ModernCircularGaugeBadge extends LitElement {
     }
 
     .segments {
-      opacity: 0.35;
+      opacity: 0.45;
     }
 
     ha-badge {

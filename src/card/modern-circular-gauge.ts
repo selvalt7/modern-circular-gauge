@@ -271,18 +271,33 @@ export class ModernCircularGauge extends LitElement {
                   stroke="white"
                   d=${path}
                 />
-              </mask>
-              <mask id="gradient-inner-path">
+                ${needle ? svg`
                 <path
-                  class="arc"
-                  stroke="white"
-                  d=${innerPath}
+                  class="needle-border"
+                  d=${path}
+                  stroke-dasharray="${needle[0]}"
+                  stroke-dashoffset="${needle[1]}"
+                  stroke="black"
                 />
+                ` : nothing}
+              </mask>
+              <mask id="needle-mask">
+                <rect x="-60" y="-60" width="120" height="120" fill="white"/>
+                ${needle ? svg`
+                <path
+                  class="needle-border"
+                  d=${path}
+                  stroke-dasharray="${needle[0]}"
+                  stroke-dashoffset="${needle[1]}"
+                  stroke="black"
+                />
+                ` : nothing}
               </mask>
             </defs>
             <path
               class="arc clear"
               d=${path}
+              mask=${ifDefined(needle ? "url(#needle-mask)" : undefined)}
             />
             ${current ? svg`
               <path
@@ -293,24 +308,16 @@ export class ModernCircularGauge extends LitElement {
                 stroke-dashoffset="${current[1]}"
               />
             ` : nothing}
+            ${needle && this._config.segments ? svg`
+            <g class="segments" mask=${ifDefined(this._config.smooth_segments ? "url(#gradient-path)" : "url(#needle-mask)")}>
+              ${this._renderSegments(this._config.segments, min, max, RADIUS)}
+            </g>` : nothing}
             ${typeof this._config.secondary != "string" ? 
               this._config.secondary?.show_gauge == "outter" ? this._renderOutterSecondary()
               : this._config.secondary?.show_gauge == "inner" ? this._renderInnerGauge()
               : nothing
               : nothing}
             ${needle ? svg`
-              ${this._config.segments ? svg`
-              <g class="segments" mask=${ifDefined(this._config.smooth_segments ? "url(#gradient-path)" : undefined)}>
-                ${this._renderSegments(this._config.segments, min, max, RADIUS)}
-              </g>`
-              : nothing
-              }
-              <path
-                class="needle-border"
-                d=${path}
-                stroke-dasharray="${needle[0]}"
-                stroke-dashoffset="${needle[1]}"
-              />
               <path
                 class="needle"
                 d=${path}
@@ -412,9 +419,38 @@ export class ModernCircularGauge extends LitElement {
       class="inner"
       style=${styleMap({ "--gauge-color": this._computeSegments(numberState, secondaryObj.segments) })}
       >
+      <mask id="gradient-inner-path">
+        <path
+          class="arc"
+          stroke="white"
+          d=${innerPath}
+        />
+        ${needle ? svg`
+        <path
+          class="needle-border"
+          d=${innerPath}
+          stroke-dasharray="${needle[0]}"
+          stroke-dashoffset="${needle[1]}"
+          stroke="black"
+        />
+        ` : nothing}
+      </mask>
+      <mask id="inner-needle-mask">
+        <rect x="-60" y="-60" width="120" height="120" fill="white"/>
+        ${needle ? svg`
+        <path
+          class="needle-border"
+          d=${innerPath}
+          stroke-dasharray="${needle[0]}"
+          stroke-dashoffset="${needle[1]}"
+          stroke="black"
+        />
+        ` : nothing}
+      </mask>
       <path
         class="arc clear"
         d=${innerPath}
+        mask=${ifDefined(needle ? "url(#gradient-inner-path)" : undefined)}
       />
       ${current ? svg`
         <path
@@ -427,22 +463,11 @@ export class ModernCircularGauge extends LitElement {
       ` : nothing}
       ${needle ? svg`
         ${secondaryObj.segments ? svg`
-        <g class="segments" mask=${ifDefined(this._config?.smooth_segments ? "url(#gradient-inner-path)" : undefined)}>
+        <g class="segments" mask=${ifDefined(this._config?.smooth_segments ? "url(#gradient-inner-path)" : "url(#inner-needle-mask)")}>
           ${this._renderSegments(secondaryObj.segments, min, max, INNER_RADIUS)}
         </g>`
         : nothing
         }
-        <path
-          d=${innerPath}
-          stroke-dasharray="${needle[0]}"
-          stroke-dashoffset="${needle[1]}"
-        />
-        <path
-          class="needle-border"
-          d=${innerPath}
-          stroke-dasharray="${needle[0]}"
-          stroke-dashoffset="${needle[1]}"
-        />
         <path
           class="needle"
           d=${innerPath}
@@ -483,9 +508,14 @@ export class ModernCircularGauge extends LitElement {
 
     return svg`
     <path
+      class="dot-border"
+      d=${path}
+      stroke-dasharray="${current[0]}"
+      stroke-dashoffset="${current[1]}"
+    />
+    <path
       class="dot"
       d=${path}
-      style=${styleMap({ "opacity": numberState <= mainNumberState ? 0.8 : 0.5 })}
       stroke-dasharray="${current[0]}"
       stroke-dashoffset="${current[1]}"
     />
@@ -1052,7 +1082,7 @@ export class ModernCircularGauge extends LitElement {
     }
 
     .segments {
-      opacity: 0.35;
+      opacity: 0.45;
     }
 
     .needle {
@@ -1066,8 +1096,7 @@ export class ModernCircularGauge extends LitElement {
     .needle-border {
       fill: none;
       stroke-linecap: round;
-      stroke-width: calc(var(--gauge-stroke-width) + 2px);
-      stroke: var(--card-background-color);
+      stroke-width: calc(var(--gauge-stroke-width) + 4px);
       transition: all 1s ease 0s, stroke 0.3s ease-out;
     }
 
@@ -1079,13 +1108,25 @@ export class ModernCircularGauge extends LitElement {
       --gauge-stroke-width: 4px;
     }
 
+    .dual-gauge .needle-border {
+      stroke-width: calc(var(--gauge-stroke-width) + 3px);
+    }
+
     .dot {
       fill: none;
       stroke-linecap: round;
       stroke-width: calc(var(--gauge-stroke-width) / 2);
       stroke: var(--primary-text-color);
       transition: all 1s ease 0s;
-      opacity: 0.5;
+      opacity: 0.9;
+    }
+    .dot-border {
+      fill: none;
+      stroke-linecap: round;
+      stroke-width: calc(var(--gauge-stroke-width) - 1px);
+      stroke: var(--primary-background-color);
+      transition: all 1s ease 0s;
+      opacity: 0.6;
     }
     `;
   }
