@@ -2,7 +2,7 @@ import { html, LitElement, TemplateResult, css, svg, nothing, PropertyValues } f
 import { customElement, property, state } from "lit/decorators.js";
 import { ActionHandlerEvent } from "../ha/data/lovelace";
 import { hasAction } from "../ha/panels/lovelace/common/has-action";
-import { clamp, svgArc } from "../utils/gauge";
+import { svgArc, strokeDashArc, renderSegments, computeSegments } from "../utils/gauge";
 import { registerCustomCard } from "../utils/custom-cards";
 import type { ModernCircularGaugeConfig, SecondaryEntity, SegmentsConfig } from "./type";
 import { LovelaceLayoutOptions, LovelaceGridOptions } from "../ha/data/lovelace";
@@ -14,13 +14,10 @@ import { classMap } from "lit/directives/class-map.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { actionHandler } from "../utils/action-handler-directive";
-import { rgbToHex } from "../utils/color";
-import { interpolateRgb } from "d3-interpolate";
-import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS } from "../const";
+import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS, MAX_ANGLE } from "../const";
 import { RenderTemplateResult, subscribeRenderTemplate } from "../ha/data/ws-templates";
 import { isTemplate } from "../utils/template";
 
-const MAX_ANGLE = 270;
 const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
 const RADIUS = 47;
 const INNER_RADIUS = 42;
@@ -114,27 +111,6 @@ export class ModernCircularGauge extends LitElement {
     this._tryConnect();
   }
 
-  private _strokeDashArc(from: number, to: number, min: number, max: number, radius: number): [string, string] {
-    const start = this._valueToPercentage(from, min, max);
-    const end = this._valueToPercentage(to, min, max);
-
-    const track = (radius * 2 * Math.PI * MAX_ANGLE) / 360;
-    const arc = Math.max((end - start) * track, 0);
-    const arcOffset = start * track - 0.5;
-
-    const strokeDasharray = `${arc} ${track - arc}`;
-    const strokeDashOffset = `-${arcOffset}`;
-    return [strokeDasharray, strokeDashOffset];
-  }
-
-  private _valueToPercentage(value: number, min: number, max: number) {
-    return (clamp(value, min, max) - min) / (max - min);
-  }
-
-  private _getAngle(value: number, min: number, max: number) {
-    return this._valueToPercentage(isNaN(value) ? min : value, min, max) * MAX_ANGLE;
-  }
-
   private _hasCardAction() {
     return (!this._config?.tap_action ||
       hasAction(this._config?.tap_action) ||
@@ -222,8 +198,8 @@ export class ModernCircularGauge extends LitElement {
     const min = Number(this._templateResults?.min?.result ?? this._config.min) || DEFAULT_MIN;
     const max = Number(this._templateResults?.max?.result ?? this._config.max) || DEFAULT_MAX;
 
-    const current = this._config.needle ? undefined : this._strokeDashArc(numberState > 0 ? 0 : numberState, numberState > 0 ? numberState : 0, min, max, RADIUS);
-    const needle = this._config.needle ? this._strokeDashArc(numberState, numberState, min, max, RADIUS) : undefined;
+    const current = this._config.needle ? undefined : strokeDashArc(numberState > 0 ? 0 : numberState, numberState > 0 ? numberState : 0, min, max, RADIUS);
+    const needle = this._config.needle ? strokeDashArc(numberState, numberState, min, max, RADIUS) : undefined;
 
     const state = templatedState ?? stateObj.state;
     const entityState = formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj?.entity_id])) ?? templatedState;
@@ -257,7 +233,7 @@ export class ModernCircularGauge extends LitElement {
       </div>
       ` : nothing}
       <div class="container"
-        style=${styleMap({ "--gauge-color": this._computeSegments(numberState, segments) })}
+        style=${styleMap({ "--gauge-color": computeSegments(numberState, segments, this._config.smooth_segments) })}
       >
         <svg viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid"
           overflow="visible"
@@ -305,7 +281,7 @@ export class ModernCircularGauge extends LitElement {
             ${needle ? svg`
               ${this._config.segments ? svg`
               <g class="segments" mask=${ifDefined(this._config.smooth_segments ? "url(#gradient-path)" : undefined)}>
-                ${this._renderSegments(segments, min, max, RADIUS)}
+                ${renderSegments(segments, min, max, RADIUS, this._config.smooth_segments)}
               </g>`
               : nothing
               }
@@ -408,13 +384,13 @@ export class ModernCircularGauge extends LitElement {
     const min = Number(this._templateResults?.secondaryMin?.result ?? secondaryObj.min) || DEFAULT_MIN; 
     const max = Number(this._templateResults?.secondaryMax?.result ?? secondaryObj.max) || DEFAULT_MAX;
 
-    const current = secondaryObj.needle ? undefined : this._strokeDashArc(numberState > 0 ? 0 : numberState, numberState > 0 ? numberState : 0, min, max, INNER_RADIUS);
-    const needle = secondaryObj.needle ? this._strokeDashArc(numberState, numberState, min, max, INNER_RADIUS) : undefined;
+    const current = secondaryObj.needle ? undefined : strokeDashArc(numberState > 0 ? 0 : numberState, numberState > 0 ? numberState : 0, min, max, INNER_RADIUS);
+    const needle = secondaryObj.needle ? strokeDashArc(numberState, numberState, min, max, INNER_RADIUS) : undefined;
 
     return svg`
     <g 
       class="inner"
-      style=${styleMap({ "--gauge-color": this._computeSegments(numberState, (this._templateResults?.secondarySegments as unknown) as SegmentsConfig[] ?? secondaryObj.segments) })}
+      style=${styleMap({ "--gauge-color": computeSegments(numberState, (this._templateResults?.secondarySegments as unknown) as SegmentsConfig[] ?? secondaryObj.segments, this._config?.smooth_segments) })}
       >
       <path
         class="arc clear"
@@ -432,7 +408,7 @@ export class ModernCircularGauge extends LitElement {
       ${needle ? svg`
         ${secondaryObj.segments ? svg`
         <g class="segments" mask=${ifDefined(this._config?.smooth_segments ? "url(#gradient-inner-path)" : undefined)}>
-          ${this._renderSegments((this._templateResults?.secondarySegments as unknown) as SegmentsConfig[] ?? secondaryObj.segments, min, max, INNER_RADIUS)}
+          ${renderSegments((this._templateResults?.secondarySegments as unknown) as SegmentsConfig[] ?? secondaryObj.segments, min, max, INNER_RADIUS, this._config?.smooth_segments)}
         </g>`
         : nothing
         }
@@ -483,7 +459,7 @@ export class ModernCircularGauge extends LitElement {
     const min = Number(this._templateResults?.min?.result ?? this._config?.min) || DEFAULT_MIN; 
     const max = Number(this._templateResults?.max?.result ?? this._config?.max) || DEFAULT_MAX;
 
-    const current = this._strokeDashArc(numberState, numberState, min, max, RADIUS);
+    const current = strokeDashArc(numberState, numberState, min, max, RADIUS);
 
     return svg`
     <path
@@ -538,9 +514,9 @@ export class ModernCircularGauge extends LitElement {
 
     if (secondary.adaptive_state_color) {
       if (secondary.show_gauge == "outter") {
-        secondaryColor = this._computeSegments(Number(state), this._config?.segments);
+        secondaryColor = computeSegments(Number(state), this._config?.segments, this._config?.smooth_segments);
       } else if (secondary.show_gauge == "inner") {
-        secondaryColor = this._computeSegments(Number(state), secondary.segments);
+        secondaryColor = computeSegments(Number(state), secondary.segments, this._config?.smooth_segments);
       }
     }
 
@@ -578,89 +554,6 @@ export class ModernCircularGauge extends LitElement {
     </text>`
       : nothing}
     `;
-  }
-
-  private _renderSegments(segments: SegmentsConfig[], min: number, max: number, radius: number): TemplateResult[] {
-    if (segments) {
-      let sortedSegments = [...segments].sort((a, b) => Number(a.from) - Number(b.from));
-
-      if (this._config?.smooth_segments) {
-        let gradient: string = "";
-        sortedSegments.map((segment, index) => {
-          const angle = this._getAngle(Number(segment.from), min, max) + 45;
-          const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
-          gradient += `${color} ${angle}deg${index != sortedSegments.length - 1 ? "," : ""}`;
-        });
-        return [svg`
-          <foreignObject x="-50" y="-50" width="100%" height="100%" transform="rotate(45)">
-            <div style="width: 100px; height: 100px; background-image: conic-gradient(${gradient})">
-            </div>
-          </foreignObject>
-        `];
-      } else {
-        return [...sortedSegments].map((segment, index) => {
-          let roundEnd: TemplateResult | undefined;
-          const startAngle = index === 0 ? 0 : this._getAngle(Number(segment.from), min, max);
-          const angle = index === sortedSegments.length - 1 ? MAX_ANGLE : this._getAngle(Number(sortedSegments[index + 1].from), min, max);
-          const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
-          const segmentPath = svgArc({
-            x: 0,
-            y: 0,
-            start: startAngle,
-            end: angle,
-            r: radius,
-          });
-  
-          if (index === 0 || index === sortedSegments.length - 1) {
-            const endPath = svgArc({
-              x: 0,
-              y: 0,
-              start: index === 0 ? 0 : MAX_ANGLE,
-              end: index === 0 ? 0 : MAX_ANGLE,
-              r: radius,
-            });
-            roundEnd = svg`
-            <path
-              class="segment"
-              stroke=${color}
-              d=${endPath}
-              stroke-linecap="round"
-            />`;
-          }
-  
-          return svg`${roundEnd}
-            <path
-              class="segment"
-              stroke=${color}
-              d=${segmentPath}
-            />`;
-        });
-      }
-    }
-    return [];
-  }
-
-  private _computeSegments(numberState: number, segments: SegmentsConfig[] | undefined): string | undefined {
-    if (segments) {
-      let sortedSegments = [...segments].sort((a, b) => Number(a.from) - Number(b.from));
-      
-      for (let i = 0; i < sortedSegments.length; i++) {
-        let segment = sortedSegments[i];
-        if (segment && (numberState >= Number(segment.from) || i === 0) &&
-          (i + 1 == sortedSegments?.length || numberState < Number(sortedSegments![i + 1].from))) {
-            if (this._config?.smooth_segments) {
-              const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
-              const nextSegment = sortedSegments[i + 1] ? sortedSegments[i + 1] : segment;
-              const nextColor = typeof nextSegment.color === "object" ? rgbToHex(nextSegment.color) : nextSegment.color;
-              return interpolateRgb(color, nextColor)(this._valueToPercentage(numberState, Number(segment.from), Number(nextSegment.from)));
-            } else {
-              const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
-              return color;
-            }
-        }
-      }
-    }
-    return undefined;
   }
 
   private _getSegmentLabel(numberState: number, segments: SegmentsConfig[] | undefined): string {
