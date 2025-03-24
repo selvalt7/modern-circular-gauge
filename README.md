@@ -99,9 +99,9 @@ Templates are supported on selected options, configurable only via `yaml`.
 #### Color segment object
 | Name | Type | Default | Description |
 |------|:----:|:-------:|:------------|
-| from | `number` | Required | Starting value of color segment
-| color | `string` | Required | Color value of color segment
-| label | `string` | Optional | Color segment label to display instead of state
+| from | `number` | Required | Starting value of color segment. May contain templates
+| color | `string` | Required | Color value of color segment. May contain templates
+| label | `string` | Optional | Color segment label to display instead of state. May contain templates
 
 #### Secondary entity object
 | Name | Type | Default | Description |
