@@ -51,6 +51,7 @@ export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     smooth_segments?: boolean;
     state_font_size?: number;
     header_font_size?: number;
+    header_offset?: number;
     gauge_width?: number;
     gauge_background_style?: GaugeElementConfig;
     gauge_foreground_style?: GaugeElementConfig;
