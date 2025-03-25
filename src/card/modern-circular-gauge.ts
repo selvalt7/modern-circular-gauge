@@ -4,7 +4,7 @@ import { ActionHandlerEvent } from "../ha/data/lovelace";
 import { hasAction } from "../ha/panels/lovelace/common/has-action";
 import { clamp, svgArc } from "../utils/gauge";
 import { registerCustomCard } from "../utils/custom-cards";
-import type { ModernCircularGaugeConfig, SecondaryEntity, SegmentsConfig } from "./type";
+import type { GaugeElementConfig, ModernCircularGaugeConfig, SecondaryEntity, SegmentsConfig } from "./type";
 import { LovelaceLayoutOptions, LovelaceGridOptions } from "../ha/data/lovelace";
 import { handleAction } from "../ha/handle-action";
 import { HomeAssistant } from "../ha/types";
@@ -90,6 +90,23 @@ export class ModernCircularGauge extends LitElement {
         if (template.length > 0) {
             secondary = template;
         }
+
+        let secondaryGaugeForegroundStyle = (secondary as SecondaryEntity).gauge_foreground_style;
+        if (!secondaryGaugeForegroundStyle) {
+          if ((secondary as SecondaryEntity).gauge_width !== undefined) {
+            secondaryGaugeForegroundStyle = { width: (secondary as SecondaryEntity).gauge_width };
+            secondary = { ...(secondary as SecondaryEntity), gauge_foreground_style: secondaryGaugeForegroundStyle };
+          }
+        }
+    }
+
+    let gaugeForegroundStyle = config.gauge_foreground_style;
+
+    if (!gaugeForegroundStyle) {
+      if (config.gauge_width !== undefined) {
+        gaugeForegroundStyle = { width: config.gauge_width };
+        config = { ...config, gauge_foreground_style: gaugeForegroundStyle };
+      }
     }
 
     this._config = { min: DEFAULT_MIN, max: DEFAULT_MAX, show_header: true, show_state: true, ...config, secondary: secondary, secondary_entity: undefined };
@@ -256,12 +273,12 @@ export class ModernCircularGauge extends LitElement {
       </div>
       ` : nothing}
       <div class="container"
-        style=${styleMap({ "--gauge-color": this._computeSegments(numberState, this._config.segments) })}
+        style=${styleMap({ "--gauge-color": this._config.gauge_foreground_style?.color ? this._config.gauge_foreground_style?.color : this._computeSegments(numberState, this._config.segments) })}
       >
         <svg viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid"
           overflow="visible"
-          style=${styleMap({ "--gauge-stroke-width": this._config.gauge_width ? `${this._config.gauge_width}px` : undefined,
-            "--inner-gauge-stroke-width": typeof this._config.secondary == "object" ? this._config.secondary?.gauge_width ? `${this._config.secondary?.gauge_width}px` : undefined : undefined })}
+          style=${styleMap({ "--gauge-stroke-width": this._config.gauge_foreground_style?.width ? `${this._config.gauge_foreground_style?.width}px` : undefined,
+            "--inner-gauge-stroke-width": typeof this._config.secondary == "object" ? this._config.secondary?.gauge_foreground_style?.width ? `${this._config.secondary?.gauge_foreground_style?.width}px` : undefined : undefined })}
            })}
           class=${classMap({ "dual-gauge": typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner" })}
         >
@@ -285,6 +302,9 @@ export class ModernCircularGauge extends LitElement {
             </defs>
             <path
               class="arc clear"
+              style=${styleMap({ "stroke-width": this._config.gauge_background_style?.width ? `${this._config.gauge_background_style?.width}px` : undefined,
+                "stroke": this._config.gauge_background_style?.color ? this._config.gauge_background_style?.color : undefined,
+                "opacity": this._config.gauge_background_style?.opacity ? this._config.gauge_background_style?.opacity : undefined})}
               d=${path}
             />
             ${current ? svg`
@@ -413,10 +433,13 @@ export class ModernCircularGauge extends LitElement {
     return svg`
     <g 
       class="inner"
-      style=${styleMap({ "--gauge-color": this._computeSegments(numberState, secondaryObj.segments) })}
+      style=${styleMap({ "--gauge-color": secondaryObj.gauge_foreground_style?.color ? secondaryObj.gauge_foreground_style.color : this._computeSegments(numberState, secondaryObj.segments) })}
       >
       <path
         class="arc clear"
+        style=${styleMap({ "stroke-width": secondaryObj.gauge_background_style?.width ? `${secondaryObj.gauge_background_style?.width}px` : undefined,
+          "stroke": secondaryObj.gauge_background_style?.color ? secondaryObj.gauge_background_style?.color : undefined,
+          "opacity": secondaryObj.gauge_background_style?.opacity ? secondaryObj.gauge_background_style?.opacity : undefined })}
         d=${innerPath}
       />
       ${current ? svg`
