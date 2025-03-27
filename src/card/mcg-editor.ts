@@ -316,13 +316,6 @@ export class ModernCircularGaugeEditor extends LitElement {
 
     const DATA = {
       ...this._config,
-      segments: this._config.segments?.map(value => {
-        let color = value.color;
-        if (typeof value.color === "string") {
-          color = hexToRgb(value.color) as any;
-        }
-        return { ...value, color };
-      })
     };
 
     return html`
