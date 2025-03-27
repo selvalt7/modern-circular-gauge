@@ -221,6 +221,9 @@ export class ModernCircularGauge extends LitElement {
     const iconCenter = !(this._config.show_state ?? false) && (this._config.show_icon ?? true);
     const segments = (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config.segments;
 
+    const gaugeBackgroundColor = this._config.gauge_background_style?.color;
+    const gaugeForegroundColor = this._config.gauge_foreground_style?.color;
+
     return html`
     <ha-card
       class="${classMap({
@@ -248,7 +251,7 @@ export class ModernCircularGauge extends LitElement {
       </div>
       ` : nothing}
       <div class="container"
-        style=${styleMap({ "--gauge-color": this._config.gauge_foreground_style?.color ? this._config.gauge_foreground_style?.color : computeSegments(numberState, segments, this._config.smooth_segments) })}
+        style=${styleMap({ "--gauge-color": gaugeForegroundColor && gaugeForegroundColor != "adaptive" ? gaugeForegroundColor : computeSegments(numberState, segments, this._config.smooth_segments) })}
       >
         <svg viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid"
           overflow="visible"
@@ -269,9 +272,9 @@ export class ModernCircularGauge extends LitElement {
                 ${renderPath("arc", innerPath, undefined, styleMap({ "stroke": "white", "stroke-width": "var(--inner-gauge-stroke-width)" }))}
               </mask>
             </defs>
-            <g style=${styleMap({ "opacity": this._config.gauge_background_style?.opacity ? this._config.gauge_background_style?.opacity : undefined,
+            <g style=${styleMap({ "opacity": this._config.gauge_background_style?.opacity,
               "--gauge-stroke-width": this._config.gauge_background_style?.width ? `${this._config.gauge_background_style?.width}px` : undefined })}>
-              ${renderPath("arc clear", path, undefined, styleMap({ "stroke": this._config.gauge_background_style?.color ? this._config.gauge_background_style?.color : undefined }))}
+              ${renderPath("arc clear", path, undefined, styleMap({ "stroke": gaugeBackgroundColor && gaugeBackgroundColor != "adaptive" ? gaugeBackgroundColor : undefined }))}
               ${this._config.segments && (needle || this._config.gauge_background_style?.color == "adaptive") ? svg`
               <g class="segments" mask=${ifDefined(this._config.smooth_segments ? "url(#gradient-path)" : undefined)}>
                 ${renderColorSegments(segments, min, max, RADIUS, this._config?.smooth_segments)}
@@ -279,7 +282,11 @@ export class ModernCircularGauge extends LitElement {
               : nothing
               }
             </g>
-            ${current ? renderPath("arc current", path, current, styleMap({ "visibility": numberState <= min && min >= 0 ? "hidden" : "visible" })) : nothing}
+            ${current ? gaugeForegroundColor == "adaptive" ? svg`
+              <g class="foreground-segments" mask="url(#gradient-current-path)" style=${styleMap({ "opacity": this._config.gauge_foreground_style?.opacity })}>
+                ${renderColorSegments(segments, min, max, RADIUS, this._config?.smooth_segments)}
+              </g>
+              ` : renderPath("arc current", path, current, styleMap({ "visibility": numberState <= min && min >= 0 ? "hidden" : "visible", "opacity": this._config.gauge_foreground_style?.opacity })) : nothing}
             ${typeof this._config.secondary != "string" ? 
               this._config.secondary?.show_gauge == "outter" ? this._renderOutterSecondary()
               : this._config.secondary?.show_gauge == "inner" ? this._renderInnerGauge()
@@ -377,15 +384,21 @@ export class ModernCircularGauge extends LitElement {
 
     const segments = (this._templateResults?.secondarySegments as unknown) as SegmentsConfig[] ?? secondaryObj.segments;
 
+    const gaugeBackgroundColor = secondaryObj.gauge_background_style?.color;
+    const gaugeForegroundColor = secondaryObj.gauge_foreground_style?.color;
+
     return svg`
     <g 
       class="inner"
-      style=${styleMap({ "--gauge-color": secondaryObj.gauge_foreground_style?.color ? secondaryObj.gauge_foreground_style.color : computeSegments(numberState, (this._templateResults?.secondarySegments as unknown) as SegmentsConfig[] ?? secondaryObj.segments, this._config?.smooth_segments) })}
+      style=${styleMap({ "--gauge-color": gaugeForegroundColor && gaugeForegroundColor != "adaptive" ? gaugeForegroundColor : computeSegments(numberState, (this._templateResults?.secondarySegments as unknown) as SegmentsConfig[] ?? secondaryObj.segments, this._config?.smooth_segments) })}
       >
-      <g style=${styleMap({ "opacity": secondaryObj.gauge_background_style?.opacity ? secondaryObj.gauge_background_style?.opacity : undefined,
+      <mask id="gradient-current-inner-path">
+        ${current ? renderPath("arc current", innerPath, current, styleMap({ "stroke": "white", "visibility": numberState <= min && min >= 0 ? "hidden" : "visible" })) : nothing}
+      </mask>
+      <g style=${styleMap({ "opacity": secondaryObj.gauge_background_style?.opacity,
         "--gauge-stroke-width": secondaryObj.gauge_background_style?.width ? `${secondaryObj.gauge_background_style?.width}px` : undefined })}
       >
-        ${renderPath("arc clear", innerPath, undefined, styleMap({ "stroke": secondaryObj.gauge_background_style?.color ? secondaryObj.gauge_background_style.color : undefined }))}
+        ${renderPath("arc clear", innerPath, undefined, styleMap({ "stroke": gaugeBackgroundColor && gaugeBackgroundColor != "adaptive" ? gaugeBackgroundColor : undefined }))}
         ${this._config?.segments && (needle || secondaryObj.gauge_background_style?.color == "adaptive") ? svg`
         <g class="segments" mask=${ifDefined(this._config.smooth_segments ? "url(#gradient-inner-path)" : undefined)}>
           ${renderColorSegments(segments, min, max, INNER_RADIUS, this._config?.smooth_segments)}
@@ -393,7 +406,11 @@ export class ModernCircularGauge extends LitElement {
         : nothing
         }
       </g>
-      ${current ? renderPath("arc current", innerPath, current, styleMap({ "visibility": numberState <= min && min >= 0 ? "hidden" : "visible" })) : nothing}
+      ${current ? gaugeForegroundColor == "adaptive" ? svg`
+        <g class="foreground-segments" mask="url(#gradient-current-inner-path)" style=${styleMap({ "opacity": secondaryObj.gauge_foreground_style?.opacity })}>
+          ${renderColorSegments(segments, min, max, INNER_RADIUS, this._config?.smooth_segments)}
+        </g>
+        ` : renderPath("arc current", innerPath, current, styleMap({ "visibility": numberState <= min && min >= 0 ? "hidden" : "visible", "opacity": secondaryObj.gauge_foreground_style?.opacity })) : nothing}
       ${needle ? svg`
         ${renderPath("needle-border", innerPath, needle)}
         ${renderPath("needle", innerPath, needle)}
@@ -405,8 +422,6 @@ export class ModernCircularGauge extends LitElement {
   private _renderOutterSecondary(): TemplateResult {
     const secondaryObj = this._config?.secondary as SecondaryEntity;
     const stateObj = this.hass.states[secondaryObj.entity || ""];
-    const mainStateObj = this.hass.states[this._config?.entity || ""];
-    const mainTemplatedState = this._templateResults?.entity?.result;
     const templatedState = this._templateResults?.secondaryEntity?.result;
 
     if (!stateObj && templatedState === undefined) {
@@ -414,7 +429,6 @@ export class ModernCircularGauge extends LitElement {
     }
 
     const numberState = Number(templatedState ?? stateObj.state);
-    const mainNumberState = Number(mainTemplatedState ?? mainStateObj.state);
 
     if (stateObj?.state === "unavailable" && templatedState) {
       return svg``;
@@ -429,7 +443,7 @@ export class ModernCircularGauge extends LitElement {
 
     const current = strokeDashArc(numberState, numberState, min, max, RADIUS);
 
-    return renderPath("dot", path, current, styleMap({ "opacity": 0.8 }));
+    return renderPath("dot", path, current, styleMap({ "opacity": secondaryObj.gauge_foreground_style?.opacity ?? 0.8, "stroke": secondaryObj.gauge_foreground_style?.color, "stroke-width": secondaryObj.gauge_foreground_style?.width }));
   }
 
   private _renderSecondary(): TemplateResult {
