@@ -4,7 +4,7 @@ import type { SegmentsConfig } from "../card/type";
 import { rgbToHex } from "./color";
 import { interpolateRgb } from "d3-interpolate";
 import { DirectiveResult } from "lit/directive";
-import { StyleMapDirective } from "lit/directives/style-map";
+import { styleMap, StyleMapDirective } from "lit/directives/style-map.js";
 import { ClassMapDirective } from "lit/directives/class-map";
 import { ifDefined } from "lit/directives/if-defined.js";
 
@@ -99,25 +99,6 @@ export const valueToPercentage = (value: number, min: number, max: number) => {
   return (clamp(value, min, max) - min) / (max - min);
 }
 
-export function renderSegmentsGradient(segments: SegmentsConfig[], min: number, max: number): TemplateResult {
-  if (segments) {
-    let sortedSegments = [...segments].sort((a, b) => Number(a.from) - Number(b.from));
-    let gradient: string = "";
-    sortedSegments.map((segment, index) => {
-      const angle = getAngle(Number(segment.from), min, max) + 45;
-      const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
-      gradient += `${color} ${angle}deg${index != sortedSegments.length - 1 ? "," : ""}`;
-    });
-    return svg`
-      <foreignObject x="-50" y="-50" width="100%" height="100%" transform="rotate(45)">
-        <div style="width: 100px; height: 100px; background-image: conic-gradient(${gradient})">
-        </div>
-      </foreignObject>
-    `;
-  }
-  return svg``;
-}
-
 export function renderPath(pathClass: DirectiveResult<typeof ClassMapDirective>, d: string, strokeDash: [string, string] | undefined = undefined, style: DirectiveResult<typeof StyleMapDirective> | undefined = undefined): TemplateResult {
   return svg`
     <path
@@ -128,6 +109,34 @@ export function renderPath(pathClass: DirectiveResult<typeof ClassMapDirective>,
       style=${ifDefined(style)}
     />`;
 }
+
+export function renderColorSegments(segments: SegmentsConfig[], min: number, max: number, radius: number, smooth_segments: boolean | undefined): TemplateResult[] {
+  if (smooth_segments) {
+    return renderSegmentsGradient(segments, min, max);
+  } else {
+    return renderSegments(segments, min, max, radius);
+  }
+}
+
+export function renderSegmentsGradient(segments: SegmentsConfig[], min: number, max: number): TemplateResult[] {
+  if (segments) {
+    let sortedSegments = [...segments].sort((a, b) => Number(a.from) - Number(b.from));
+    let gradient: string = "";
+    sortedSegments.map((segment, index) => {
+      const angle = getAngle(Number(segment.from), min, max) + 45;
+      const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
+      gradient += `${color} ${angle}deg${index != sortedSegments.length - 1 ? "," : ""}`;
+    });
+    return [svg`
+      <foreignObject x="-50" y="-50" width="100%" height="100%" transform="rotate(45)">
+        <div style="width: 100px; height: 100px; background-image: conic-gradient(${gradient})">
+        </div>
+      </foreignObject>
+    `];
+  }
+  return [];
+}
+
 
 export function renderSegments(segments: SegmentsConfig[], min: number, max: number, radius: number): TemplateResult[] {
   if (segments) {
@@ -154,21 +163,12 @@ export function renderSegments(segments: SegmentsConfig[], min: number, max: num
           end: index === 0 ? 0 : MAX_ANGLE,
           r: radius,
         });
-        roundEnd = svg`
-        <path
-          class="segment"
-          stroke=${color}
-          d=${endPath}
-          stroke-linecap="round"
-        />`;
+        roundEnd = renderPath("segment", endPath, undefined, styleMap({ "stroke": color, "stroke-linecap": "round" }));
       }
 
       return svg`${roundEnd}
-        <path
-          class="segment"
-          stroke=${color}
-          d=${segmentPath}
-        />`;
+        ${renderPath("segment", segmentPath, undefined, styleMap({ "stroke": color }))}
+      `;
     });
   }
   return [];

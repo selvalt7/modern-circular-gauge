@@ -7,7 +7,7 @@ import { getNumberFormatOptions, formatNumber } from "../utils/format_number";
 import { registerCustomBadge } from "../utils/custom-badges";
 import { HassEntity, UnsubscribeFunc } from "home-assistant-js-websocket";
 import { styleMap } from "lit/directives/style-map.js";
-import { svgArc, strokeDashArc, computeSegments, renderSegments, getAngle, renderPath, renderSegmentsGradient } from "../utils/gauge";
+import { svgArc, strokeDashArc, computeSegments, getAngle, renderPath, renderColorSegments } from "../utils/gauge";
 import { classMap } from "lit/directives/class-map.js";
 import { ActionHandlerEvent } from "../ha/data/lovelace";
 import { hasAction } from "../ha/panels/lovelace/common/has-action";
@@ -286,9 +286,7 @@ export class ModernCircularGaugeBadge extends LitElement {
               ${renderPath("arc clear", path)}
               ${this._config.segments && (this._config.needle) ? svg`
               <g class="segments">
-                ${this._config?.smooth_segments 
-                  ? renderSegmentsGradient(segments, min, max)
-                  : renderSegments(segments, min, max, RADIUS)}
+                ${renderColorSegments(segments, min, max, RADIUS, this._config?.smooth_segments)}
               </g>`
               : nothing}
             </g>

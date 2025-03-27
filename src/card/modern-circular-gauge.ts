@@ -2,7 +2,7 @@ import { html, LitElement, TemplateResult, css, svg, nothing, PropertyValues } f
 import { customElement, property, state } from "lit/decorators.js";
 import { ActionHandlerEvent } from "../ha/data/lovelace";
 import { hasAction } from "../ha/panels/lovelace/common/has-action";
-import { svgArc, strokeDashArc, renderSegments, computeSegments, renderSegmentsGradient, renderPath } from "../utils/gauge";
+import { svgArc, strokeDashArc, renderColorSegments, computeSegments, renderPath } from "../utils/gauge";
 import { registerCustomCard } from "../utils/custom-cards";
 import type { ModernCircularGaugeConfig, SecondaryEntity, SegmentsConfig } from "./type";
 import { LovelaceLayoutOptions, LovelaceGridOptions } from "../ha/data/lovelace";
@@ -274,9 +274,7 @@ export class ModernCircularGauge extends LitElement {
               ${renderPath("arc clear", path, undefined, styleMap({ "stroke": this._config.gauge_background_style?.color ? this._config.gauge_background_style?.color : undefined }))}
               ${this._config.segments && (needle || this._config.gauge_background_style?.color == "adaptive") ? svg`
               <g class="segments" mask=${ifDefined(this._config.smooth_segments ? "url(#gradient-path)" : undefined)}>
-                ${this._config.smooth_segments
-                 ? renderSegmentsGradient(segments, min, max)
-                 : renderSegments(segments, min, max, RADIUS)}
+                ${renderColorSegments(segments, min, max, RADIUS, this._config?.smooth_segments)}
               </g>`
               : nothing
               }
@@ -390,9 +388,7 @@ export class ModernCircularGauge extends LitElement {
         ${renderPath("arc clear", innerPath, undefined, styleMap({ "stroke": secondaryObj.gauge_background_style?.color ? secondaryObj.gauge_background_style.color : undefined }))}
         ${this._config?.segments && (needle || secondaryObj.gauge_background_style?.color == "adaptive") ? svg`
         <g class="segments" mask=${ifDefined(this._config.smooth_segments ? "url(#gradient-inner-path)" : undefined)}>
-          ${this._config.smooth_segments
-            ? renderSegmentsGradient(segments, min, max)
-            : renderSegments(segments, min, max, INNER_RADIUS)}
+          ${renderColorSegments(segments, min, max, INNER_RADIUS, this._config?.smooth_segments)}
         </g>`
         : nothing
         }
@@ -432,7 +428,7 @@ export class ModernCircularGauge extends LitElement {
     const max = Number(this._templateResults?.max?.result ?? this._config?.max) || DEFAULT_MAX;
 
     const current = strokeDashArc(numberState, numberState, min, max, RADIUS);
-    
+
     return renderPath("dot", path, current, styleMap({ "opacity": 0.8 }));
   }
 
