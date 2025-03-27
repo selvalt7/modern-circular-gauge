@@ -28,7 +28,7 @@ export type SecondaryEntity = {
 
 export interface GaugeElementConfig {
     width?: number;
-    color?: string;
+    color?: string | "adaptive";
     opacity?: number;
 };
 

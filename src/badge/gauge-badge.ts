@@ -7,7 +7,7 @@ import { getNumberFormatOptions, formatNumber } from "../utils/format_number";
 import { registerCustomBadge } from "../utils/custom-badges";
 import { HassEntity, UnsubscribeFunc } from "home-assistant-js-websocket";
 import { styleMap } from "lit/directives/style-map.js";
-import { svgArc, strokeDashArc, computeSegments, renderSegments, getAngle } from "../utils/gauge";
+import { svgArc, strokeDashArc, computeSegments, renderSegments, getAngle, renderPath, renderSegmentsGradient } from "../utils/gauge";
 import { classMap } from "lit/directives/class-map.js";
 import { ActionHandlerEvent } from "../ha/data/lovelace";
 import { hasAction } from "../ha/panels/lovelace/common/has-action";
@@ -220,10 +220,7 @@ export class ModernCircularGaugeBadge extends LitElement {
           <div class=${classMap({ "container": true, "icon-only": !this._config.show_name })} slot="icon">
             <svg class="gauge" viewBox="-50 -50 100 100">
               <g transform="rotate(${ROTATE_ANGLE})">
-                <path
-                  class="arc clear"
-                  d=${path}
-                />
+                ${renderPath("arc clear", path)}
               </g>
             </svg>
           </div>
@@ -280,38 +277,25 @@ export class ModernCircularGaugeBadge extends LitElement {
             <defs>
             ${this._config.needle ? svg`
               <mask id="needle-mask">
-                <path
-                  class="arc"
-                  stroke="white"
-                  d=${path}
-                />
+                ${renderPath("arc", path, undefined, styleMap({ "stroke": "white" }))}
                 <circle cx="42" cy="0" r="12" fill="black" transform="rotate(${getAngle(numberState, min, max)})"/>
               </mask>
               ` : nothing}
             </defs>
-
-            <path
-              class="arc clear"
-              d=${path}
-              mask="url(#needle-mask)"
-            />
+            <g mask="url(#needle-mask)">
+              ${renderPath("arc clear", path)}
+              ${this._config.segments && (this._config.needle) ? svg`
+              <g class="segments">
+                ${this._config?.smooth_segments 
+                  ? renderSegmentsGradient(segments, min, max)
+                  : renderSegments(segments, min, max, RADIUS)}
+              </g>`
+              : nothing}
+            </g>
           ${this._config.needle ? svg`
-            ${this._config.segments ? svg`
-            <g class="segments" mask="url(#needle-mask)">
-              ${renderSegments(segments, min, max, RADIUS, this._config.smooth_segments)}
-            </g>  
-            ` : nothing}
             <circle class="needle" cx="42" cy="0" r="7" transform="rotate(${getAngle(numberState, min, max)})"/>
           ` : nothing}
-          ${current ? svg`
-              <path
-                class="arc current"
-                style=${styleMap({ "visibility": numberState <= min && min >= 0 ? "hidden" : "visible" })}
-                d=${path}
-                stroke-dasharray="${current[0]}"
-                stroke-dashoffset="${current[1]}"
-              />
-          ` : nothing}
+          ${current ? renderPath("arc current", path, current, styleMap({ "visibility": numberState <= min && min >= 0 ? "hidden" : "visible" })) : nothing}
           </g>
         </svg>
         ${this._config.show_icon
