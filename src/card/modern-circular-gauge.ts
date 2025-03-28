@@ -272,7 +272,7 @@ export class ModernCircularGauge extends LitElement {
                 ${renderPath("arc", innerPath, undefined, styleMap({ "stroke": "white", "stroke-width": "var(--inner-gauge-stroke-width)" }))}
               </mask>
             </defs>
-            <g style=${styleMap({ "opacity": this._config.gauge_background_style?.opacity,
+            <g class="background" style=${styleMap({ "opacity": this._config.gauge_background_style?.opacity,
               "--gauge-stroke-width": this._config.gauge_background_style?.width ? `${this._config.gauge_background_style?.width}px` : undefined })}>
               ${renderPath("arc clear", path, undefined, styleMap({ "stroke": gaugeBackgroundColor && gaugeBackgroundColor != "adaptive" ? gaugeBackgroundColor : undefined }))}
               ${this._config.segments && (needle || this._config.gauge_background_style?.color == "adaptive") ? svg`
@@ -395,7 +395,7 @@ export class ModernCircularGauge extends LitElement {
       <mask id="gradient-current-inner-path">
         ${current ? renderPath("arc current", innerPath, current, styleMap({ "stroke": "white", "visibility": numberState <= min && min >= 0 ? "hidden" : "visible" })) : nothing}
       </mask>
-      <g style=${styleMap({ "opacity": secondaryObj.gauge_background_style?.opacity,
+      <g class="background" style=${styleMap({ "opacity": secondaryObj.gauge_background_style?.opacity,
         "--gauge-stroke-width": secondaryObj.gauge_background_style?.width ? `${secondaryObj.gauge_background_style?.width}px` : undefined })}
       >
         ${renderPath("arc clear", innerPath, undefined, styleMap({ "stroke": gaugeBackgroundColor && gaugeBackgroundColor != "adaptive" ? gaugeBackgroundColor : undefined }))}
