@@ -2,7 +2,7 @@ import { html, LitElement, TemplateResult, css, svg, nothing, PropertyValues } f
 import { customElement, property, state } from "lit/decorators.js";
 import { ActionHandlerEvent } from "../ha/data/lovelace";
 import { hasAction } from "../ha/panels/lovelace/common/has-action";
-import { svgArc, strokeDashArc, renderSegments, computeSegments } from "../utils/gauge";
+import { svgArc, strokeDashArc, renderColorSegments, computeSegments, renderPath } from "../utils/gauge";
 import { registerCustomCard } from "../utils/custom-cards";
 import type { ModernCircularGaugeConfig, SecondaryEntity, SegmentsConfig } from "./type";
 import { LovelaceLayoutOptions, LovelaceGridOptions } from "../ha/data/lovelace";
@@ -87,6 +87,23 @@ export class ModernCircularGauge extends LitElement {
         if (template.length > 0) {
             secondary = template;
         }
+
+        let secondaryGaugeForegroundStyle = (secondary as SecondaryEntity).gauge_foreground_style;
+        if (!secondaryGaugeForegroundStyle) {
+          if ((secondary as SecondaryEntity).gauge_width !== undefined) {
+            secondaryGaugeForegroundStyle = { width: (secondary as SecondaryEntity).gauge_width };
+            secondary = { ...(secondary as SecondaryEntity), gauge_foreground_style: secondaryGaugeForegroundStyle };
+          }
+        }
+    }
+
+    let gaugeForegroundStyle = config.gauge_foreground_style;
+
+    if (!gaugeForegroundStyle) {
+      if (config.gauge_width !== undefined) {
+        gaugeForegroundStyle = { width: config.gauge_width };
+        config = { ...config, gauge_foreground_style: gaugeForegroundStyle };
+      }
     }
 
     this._config = { min: DEFAULT_MIN, max: DEFAULT_MAX, show_header: true, show_state: true, ...config, secondary: secondary, secondary_entity: undefined };
@@ -156,10 +173,7 @@ export class ModernCircularGauge extends LitElement {
             class=${classMap({ "dual-gauge": typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner" })}
           >
             <g transform="rotate(${ROTATE_ANGLE})">
-              <path
-                class="arc clear"
-                d=${path}
-              />
+              ${renderPath("arc", path)}
             </g>
           </svg>
         </ha-card>
@@ -207,6 +221,9 @@ export class ModernCircularGauge extends LitElement {
     const iconCenter = !(this._config.show_state ?? false) && (this._config.show_icon ?? true);
     const segments = (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config.segments;
 
+    const gaugeBackgroundColor = this._config.gauge_background_style?.color;
+    const gaugeForegroundColor = this._config.gauge_foreground_style?.color;
+
     return html`
     <ha-card
       class="${classMap({
@@ -234,70 +251,50 @@ export class ModernCircularGauge extends LitElement {
       </div>
       ` : nothing}
       <div class="container"
-        style=${styleMap({ "--gauge-color": computeSegments(numberState, segments, this._config.smooth_segments) })}
+        style=${styleMap({ "--gauge-color": gaugeForegroundColor && gaugeForegroundColor != "adaptive" ? gaugeForegroundColor : computeSegments(numberState, segments, this._config.smooth_segments) })}
       >
         <svg viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid"
           overflow="visible"
-          style=${styleMap({ "--gauge-stroke-width": this._config.gauge_width ? `${this._config.gauge_width}px` : undefined,
-            "--inner-gauge-stroke-width": typeof this._config.secondary == "object" ? this._config.secondary?.gauge_width ? `${this._config.secondary?.gauge_width}px` : undefined : undefined })}
+          style=${styleMap({ "--gauge-stroke-width": this._config.gauge_foreground_style?.width ? `${this._config.gauge_foreground_style?.width}px` : undefined,
+            "--inner-gauge-stroke-width": typeof this._config.secondary == "object" ? this._config.secondary?.gauge_foreground_style?.width ? `${this._config.secondary?.gauge_foreground_style?.width}px` : undefined : undefined })}
            })}
           class=${classMap({ "dual-gauge": typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner" })}
         >
           <g transform="rotate(${ROTATE_ANGLE})">
             <defs>
               <mask id="gradient-path">
-                <path
-                  class="arc"
-                  stroke="white"
-                  d=${path}
-                />
+                ${renderPath("arc", path, undefined, styleMap({ "stroke": "white", "stroke-width": this._config.gauge_background_style?.width ? `${this._config.gauge_background_style?.width}px` : undefined }))}
+              </mask>
+              <mask id="gradient-current-path">
+                ${current ? renderPath("arc current", path, current, styleMap({ "stroke": "white", "visibility": numberState <= min && min >= 0 ? "hidden" : "visible" })) : nothing}
               </mask>
               <mask id="gradient-inner-path">
-                <path
-                  class="arc"
-                  style="stroke-width: var(--inner-gauge-stroke-width)"
-                  stroke="white"
-                  d=${innerPath}
-                />
+                ${renderPath("arc", innerPath, undefined, styleMap({ "stroke": "white", "stroke-width": "var(--inner-gauge-stroke-width)" }))}
               </mask>
             </defs>
-            <path
-              class="arc clear"
-              d=${path}
-            />
-            ${current ? svg`
-              <path
-                class="arc current"
-                style=${styleMap({ "visibility": numberState <= min && min >= 0 ? "hidden" : "visible" })}
-                d=${path}
-                stroke-dasharray="${current[0]}"
-                stroke-dashoffset="${current[1]}"
-              />
-            ` : nothing}
+            <g class="background" style=${styleMap({ "opacity": this._config.gauge_background_style?.opacity,
+              "--gauge-stroke-width": this._config.gauge_background_style?.width ? `${this._config.gauge_background_style?.width}px` : undefined })}>
+              ${renderPath("arc clear", path, undefined, styleMap({ "stroke": gaugeBackgroundColor && gaugeBackgroundColor != "adaptive" ? gaugeBackgroundColor : undefined }))}
+              ${this._config.segments && (needle || this._config.gauge_background_style?.color == "adaptive") ? svg`
+              <g class="segments" mask=${ifDefined(this._config.smooth_segments ? "url(#gradient-path)" : undefined)}>
+                ${renderColorSegments(segments, min, max, RADIUS, this._config?.smooth_segments)}
+              </g>`
+              : nothing
+              }
+            </g>
+            ${current ? gaugeForegroundColor == "adaptive" ? svg`
+              <g class="foreground-segments" mask="url(#gradient-current-path)" style=${styleMap({ "opacity": this._config.gauge_foreground_style?.opacity })}>
+                ${renderColorSegments(segments, min, max, RADIUS, this._config?.smooth_segments)}
+              </g>
+              ` : renderPath("arc current", path, current, styleMap({ "visibility": numberState <= min && min >= 0 ? "hidden" : "visible", "opacity": this._config.gauge_foreground_style?.opacity })) : nothing}
             ${typeof this._config.secondary != "string" ? 
               this._config.secondary?.show_gauge == "outter" ? this._renderOutterSecondary()
               : this._config.secondary?.show_gauge == "inner" ? this._renderInnerGauge()
               : nothing
               : nothing}
             ${needle ? svg`
-              ${this._config.segments ? svg`
-              <g class="segments" mask=${ifDefined(this._config.smooth_segments ? "url(#gradient-path)" : undefined)}>
-                ${renderSegments(segments, min, max, RADIUS, this._config.smooth_segments)}
-              </g>`
-              : nothing
-              }
-              <path
-                class="needle-border"
-                d=${path}
-                stroke-dasharray="${needle[0]}"
-                stroke-dashoffset="${needle[1]}"
-              />
-              <path
-                class="needle"
-                d=${path}
-                stroke-dasharray="${needle[0]}"
-                stroke-dashoffset="${needle[1]}"
-              />
+              ${renderPath("needle-border", path, needle)}
+              ${renderPath("needle", path, needle)}
               ` : nothing}
           </g>
         </svg>
@@ -364,10 +361,7 @@ export class ModernCircularGauge extends LitElement {
     if ((!stateObj || !secondaryObj) && templatedState === undefined) {
       return svg`
       <g class="inner">
-        <path
-          class="arc clear"
-          d=${innerPath}
-        />
+        ${renderPath("arc clear", innerPath)}
       </g>
       `;
     }
@@ -388,49 +382,39 @@ export class ModernCircularGauge extends LitElement {
     const current = secondaryObj.needle ? undefined : strokeDashArc(numberState > 0 ? 0 : numberState, numberState > 0 ? numberState : 0, min, max, INNER_RADIUS);
     const needle = secondaryObj.needle ? strokeDashArc(numberState, numberState, min, max, INNER_RADIUS) : undefined;
 
+    const segments = (this._templateResults?.secondarySegments as unknown) as SegmentsConfig[] ?? secondaryObj.segments;
+
+    const gaugeBackgroundColor = secondaryObj.gauge_background_style?.color;
+    const gaugeForegroundColor = secondaryObj.gauge_foreground_style?.color;
+
     return svg`
     <g 
       class="inner"
-      style=${styleMap({ "--gauge-color": computeSegments(numberState, (this._templateResults?.secondarySegments as unknown) as SegmentsConfig[] ?? secondaryObj.segments, this._config?.smooth_segments) })}
+      style=${styleMap({ "--gauge-color": gaugeForegroundColor && gaugeForegroundColor != "adaptive" ? gaugeForegroundColor : computeSegments(numberState, (this._templateResults?.secondarySegments as unknown) as SegmentsConfig[] ?? secondaryObj.segments, this._config?.smooth_segments) })}
       >
-      <path
-        class="arc clear"
-        d=${innerPath}
-      />
-      ${current ? svg`
-        <path
-          class="arc current"
-          style=${styleMap({ "visibility": numberState <= min && min >= 0 ? "hidden" : "visible" })}
-          d=${innerPath}
-          stroke-dasharray="${current[0]}"
-          stroke-dashoffset="${current[1]}"
-        />
-      ` : nothing}
-      ${needle ? svg`
-        ${secondaryObj.segments ? svg`
-        <g class="segments" mask=${ifDefined(this._config?.smooth_segments ? "url(#gradient-inner-path)" : undefined)}>
-          ${renderSegments((this._templateResults?.secondarySegments as unknown) as SegmentsConfig[] ?? secondaryObj.segments, min, max, INNER_RADIUS, this._config?.smooth_segments)}
+      <mask id="gradient-current-inner-path">
+        ${current ? renderPath("arc current", innerPath, current, styleMap({ "stroke": "white", "visibility": numberState <= min && min >= 0 ? "hidden" : "visible" })) : nothing}
+      </mask>
+      <g class="background" style=${styleMap({ "opacity": secondaryObj.gauge_background_style?.opacity,
+        "--gauge-stroke-width": secondaryObj.gauge_background_style?.width ? `${secondaryObj.gauge_background_style?.width}px` : undefined })}
+      >
+        ${renderPath("arc clear", innerPath, undefined, styleMap({ "stroke": gaugeBackgroundColor && gaugeBackgroundColor != "adaptive" ? gaugeBackgroundColor : undefined }))}
+        ${this._config?.segments && (needle || secondaryObj.gauge_background_style?.color == "adaptive") ? svg`
+        <g class="segments" mask=${ifDefined(this._config.smooth_segments ? "url(#gradient-inner-path)" : undefined)}>
+          ${renderColorSegments(segments, min, max, INNER_RADIUS, this._config?.smooth_segments)}
         </g>`
         : nothing
         }
-        <path
-          d=${innerPath}
-          stroke-dasharray="${needle[0]}"
-          stroke-dashoffset="${needle[1]}"
-        />
-        <path
-          class="needle-border"
-          d=${innerPath}
-          stroke-dasharray="${needle[0]}"
-          stroke-dashoffset="${needle[1]}"
-        />
-        <path
-          class="needle"
-          d=${innerPath}
-          stroke-dasharray="${needle[0]}"
-          stroke-dashoffset="${needle[1]}"
-        />
-      ` : nothing}
+      </g>
+      ${current ? gaugeForegroundColor == "adaptive" ? svg`
+        <g class="foreground-segments" mask="url(#gradient-current-inner-path)" style=${styleMap({ "opacity": secondaryObj.gauge_foreground_style?.opacity })}>
+          ${renderColorSegments(segments, min, max, INNER_RADIUS, this._config?.smooth_segments)}
+        </g>
+        ` : renderPath("arc current", innerPath, current, styleMap({ "visibility": numberState <= min && min >= 0 ? "hidden" : "visible", "opacity": secondaryObj.gauge_foreground_style?.opacity })) : nothing}
+      ${needle ? svg`
+        ${renderPath("needle-border", innerPath, needle)}
+        ${renderPath("needle", innerPath, needle)}
+        `  : nothing}
     </g>
     `;
   }
@@ -438,8 +422,6 @@ export class ModernCircularGauge extends LitElement {
   private _renderOutterSecondary(): TemplateResult {
     const secondaryObj = this._config?.secondary as SecondaryEntity;
     const stateObj = this.hass.states[secondaryObj.entity || ""];
-    const mainStateObj = this.hass.states[this._config?.entity || ""];
-    const mainTemplatedState = this._templateResults?.entity?.result;
     const templatedState = this._templateResults?.secondaryEntity?.result;
 
     if (!stateObj && templatedState === undefined) {
@@ -447,7 +429,6 @@ export class ModernCircularGauge extends LitElement {
     }
 
     const numberState = Number(templatedState ?? stateObj.state);
-    const mainNumberState = Number(mainTemplatedState ?? mainStateObj.state);
 
     if (stateObj?.state === "unavailable" && templatedState) {
       return svg``;
@@ -462,15 +443,7 @@ export class ModernCircularGauge extends LitElement {
 
     const current = strokeDashArc(numberState, numberState, min, max, RADIUS);
 
-    return svg`
-    <path
-      class="dot"
-      d=${path}
-      style=${styleMap({ "opacity": numberState <= mainNumberState ? 0.8 : 0.5 })}
-      stroke-dasharray="${current[0]}"
-      stroke-dashoffset="${current[1]}"
-    />
-    `;
+    return renderPath("dot", path, current, styleMap({ "opacity": secondaryObj.gauge_foreground_style?.opacity ?? 0.8, "stroke": secondaryObj.gauge_foreground_style?.color, "stroke-width": secondaryObj.gauge_foreground_style?.width }));
   }
 
   private _renderSecondary(): TemplateResult {

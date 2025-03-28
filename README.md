@@ -73,7 +73,8 @@ Templates are supported on selected options, configurable only via `yaml`.
 | state_font_size | `number` | `24` | Initial state size in px
 | header_font_size | `number` | `14` | Gauge header font size in px
 | header_offset | `number` | `0` | Gauge header vertical offset in px
-| gauge_width | `number` | `6` | Gauge width
+| gauge_background_style | `object` | Optional | Gauge background style, see [gauge element style object](#gauge-element-style-object)
+| gauge_foreground_style | `object` | Optional | Gauge foreground style, see [gauge element style object](#gauge-element-style-object)
 | state_scaling_limit | `number` | `7` | Max state length without scaling
 | state_scaling_multiplier | `number` | `1` | State scaling multiplier
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
@@ -116,10 +117,18 @@ Templates are supported on selected options, configurable only via `yaml`.
 | state_size | `small` or `big` | `small` | Secondary state size 
 | show_state | `boolean` | `true` | Show secondary state
 | show_unit | `boolean` | `true` | Show secondary unit
-| gauge_width | `number` | `4` | Inner gauge width
+| gauge_background_style | `object` | Optional | Gauge background style, see [gauge element style object](#gauge-element-style-object)
+| gauge_foreground_style | `object` | Optional | Gauge foreground style, see [gauge element style object](#gauge-element-style-object)
 | needle | `boolean` | `false` |
 | adaptive_state_color | `boolean` | `false` | Makes state color adaptive to current color segment based on `show_gauge` config
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
+
+#### Gauge element style object
+| Name | Type | Default | Description |
+|------|:----:|:-------:|:------------|
+| width | `number` | `6 or 4` | Gauge element width
+| color | `string` or `adaptive` | Optional | Gauge element color
+| opacity | `number` | Optional | Gauge element opacity
 
 ## Examples
 
