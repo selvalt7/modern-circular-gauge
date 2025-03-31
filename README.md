@@ -262,6 +262,46 @@ segments:
       - 161
       - 3
 ```
+### Gradient background and foreground
+
+![brave_xfJk28FEFZ](https://github.com/user-attachments/assets/225f7236-a11c-4836-8248-142e307ff903)
+
+```yaml
+type: custom:modern-circular-gauge
+entity: sensor.room_temp
+unit: °C
+name: Temperature
+gauge_foreground_style:
+  color: adaptive
+gauge_background_style:
+  width: 2
+  color: adaptive
+max: 30
+min: 10
+smooth_segments: true
+adaptive_icon_color: true
+segments:
+  - from: 13
+    color:
+      - 11
+      - 182
+      - 239
+  - from: 19
+    color:
+      - 43
+      - 255
+      - 0
+  - from: 24
+    color:
+      - 252
+      - 161
+      - 3
+  - color:
+      - 255
+      - 0
+      - 0
+    from: 30
+```
 
 ## Development
 
