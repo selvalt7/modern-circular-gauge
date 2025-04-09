@@ -269,7 +269,8 @@ export class ModernCircularGauge extends LitElement {
                 ${current ? renderPath("arc current", path, current, styleMap({ "stroke": "white", "visibility": numberState <= min && min >= 0 ? "hidden" : "visible" })) : nothing}
               </mask>
               <mask id="gradient-inner-path">
-                ${renderPath("arc", innerPath, undefined, styleMap({ "stroke": "white", "stroke-width": "var(--inner-gauge-stroke-width)" }))}
+                ${renderPath("arc", innerPath, undefined, styleMap({ "stroke": "white", "stroke-width": typeof this._config.secondary == "object" ? this._config.secondary?.gauge_background_style?.width ? `${this._config.secondary?.gauge_background_style?.width}px` 
+                  : 'var(--inner-gauge-stroke-width)' : 'var(--inner-gauge-stroke-width)' }))}
               </mask>
             </defs>
             <g class="background" style=${styleMap({ "opacity": this._config.gauge_background_style?.opacity,
