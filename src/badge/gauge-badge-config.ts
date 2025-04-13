@@ -12,6 +12,7 @@ export interface ModernCircularGaugeBadgeConfig extends LovelaceBadgeConfig {
   show_state?: boolean;
   show_icon?: boolean;
   needle?: boolean;
+  state_text?: string;
   smooth_segments?: boolean;
   segments?: SegmentsConfig[];
 }
