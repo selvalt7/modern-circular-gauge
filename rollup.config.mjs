@@ -21,7 +21,19 @@ export default [
       commonjs(),
       babel({
         exclude: "node_modules/**",
-        babelHerpers: "bundled",
+        babelHelpers: "bundled",
+        compact: true,
+        extensions: [".js", ".ts"],
+        presets: [
+          [
+            "@babel/env",
+            {
+              "modules": false,
+              "targets": { node: "current" },
+            },
+          ],
+        ],
+        comments: false,
       }),
     ],
   }
