@@ -67,6 +67,7 @@ Templates are supported on selected options, configurable only via `yaml`.
 | show_header | `boolean` | `true` | Show card header
 | show_icon | `boolean` | `true` | Show card icon
 | needle | `boolean` | `false` | 
+| state_text | `string` | Entity state | Displayed state override. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
 | adaptive_icon_color | `boolean` | `false` | Makes icon color adaptive to current color segment
 | adaptive_state_color | `boolean` | `false` | Makes state color adaptive to current color segment
 | smooth_segments | `boolean` | `false` | Smooth color segments
@@ -95,6 +96,7 @@ Templates are supported on selected options, configurable only via `yaml`.
 | show_state | `bool` | `true` | Show entity state
 | show_icon | `bool` | `false` | Show icon
 | needle | `bool` | `false` | 
+| state_text | `string` | Entity state | Displayed state override. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
 | smooth_segments | `boolean` | `false` | Smooth color segments
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
 

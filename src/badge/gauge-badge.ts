@@ -96,6 +96,7 @@ export class ModernCircularGaugeBadge extends LitElement {
       min: this._config?.min,
       max: this._config?.max,
       segments: this._config?.segments,
+      stateText: this._config?.state_text,
     };
 
     Object.entries(templates).forEach(([key, value]) => {
@@ -162,6 +163,7 @@ export class ModernCircularGaugeBadge extends LitElement {
       min: this._config?.min,
       max: this._config?.max,
       segments: this._config?.segments,
+      stateText: this._config?.state_text,
     };
     
     Object.entries(templates).forEach(([key, _]) => {
@@ -247,11 +249,14 @@ export class ModernCircularGaugeBadge extends LitElement {
 
     const numberState = Number(templatedState ?? stateObj.state);
 
-    const unit = (this._config.unit ?? stateObj?.attributes.unit_of_measurement) || "";
-
+    
     const current = this._config.needle ? undefined : strokeDashArc(numberState > 0 ? 0 : numberState, numberState > 0 ? numberState : 0, min, max, RADIUS);
     const state = templatedState ?? stateObj.state;
-    const entityState = formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj?.entity_id])) ?? templatedState;
+
+    const stateOverride = this._templateResults?.stateText?.result ?? (isTemplate(String(this._config.state_text)) ? "" : this._config.state_text);
+    const unit = stateOverride ? "" : (this._config.unit ?? stateObj?.attributes.unit_of_measurement) || "";
+
+    const entityState = stateOverride ?? formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj?.entity_id])) ?? templatedState;
 
     const name = this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? stateObj?.attributes.friendly_name ?? "";
     const label = this._config.show_name && this._config.show_icon && this._config.show_state ? name : undefined;

@@ -216,7 +216,8 @@ export class ModernCircularGauge extends LitElement {
     const needle = this._config.needle ? strokeDashArc(numberState, numberState, min, max, RADIUS) : undefined;
 
     const state = templatedState ?? stateObj.state;
-    const entityState = formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj?.entity_id])) ?? templatedState;
+    const stateOverride = this._templateResults?.stateText?.result ?? (isTemplate(String(this._config.state_text)) ? "" : this._config.state_text);
+    const entityState = stateOverride ?? formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj?.entity_id])) ?? templatedState;
 
     const iconCenter = !(this._config.show_state ?? false) && (this._config.show_icon ?? true);
     const segments = (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config.segments;
@@ -309,7 +310,7 @@ export class ModernCircularGauge extends LitElement {
           >
             ${this._getSegmentLabel(numberState, segments) ? this._getSegmentLabel(numberState, segments) : svg`
               ${entityState}
-              ${this._config.show_unit ?? true ? svg`<tspan class="unit" dx="-4" dy="-6">${unit}</tspan>` : nothing}
+              ${(this._config.show_unit ?? true) && !this._config.state_text ? svg`<tspan class="unit" dx="-4" dy="-6">${unit}</tspan>` : nothing}
             `}
           </text>
           ${typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big"
@@ -483,7 +484,8 @@ export class ModernCircularGauge extends LitElement {
     const unit = secondary.unit ?? attributes?.unit_of_measurement;
 
     const state = templatedState ?? stateObj.state;
-    const entityState = formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj?.entity_id])) ?? templatedState;
+    const stateOverride = this._templateResults?.secondaryStateText?.result ?? (isTemplate(String(secondary.state_text)) ? "" : secondary.state_text);
+    const entityState = stateOverride ?? formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj?.entity_id])) ?? templatedState;
 
     let secondaryColor;
 
@@ -509,7 +511,7 @@ export class ModernCircularGauge extends LitElement {
       dy=${secondary.state_size == "big" ? 14 : 20}
     >
       ${entityState}
-      ${secondary.show_unit ?? true ? svg`
+      ${(secondary.show_unit ?? true) && !secondary.state_text ? svg`
       <tspan
         class=${classMap({"unit": secondary.state_size == "big"})}
         dx=${secondary.state_size == "big" ? -4 : 0}
@@ -553,6 +555,7 @@ export class ModernCircularGauge extends LitElement {
       min: this._config?.min,
       max: this._config?.max,
       segments: this._config?.segments,
+      stateText: this._config?.state_text,
       secondary: this._config?.secondary
     };
     
@@ -571,6 +574,7 @@ export class ModernCircularGauge extends LitElement {
         secondaryMin: secondary?.min,
         secondaryMax: secondary?.max,
         secondaryEntity: secondary?.entity,
+        secondaryStateText: secondary?.state_text,
         secondarySegments: secondary?.segments
       };
 
@@ -639,6 +643,7 @@ export class ModernCircularGauge extends LitElement {
       min: this._config?.min,
       max: this._config?.max,
       segments: this._config?.segments,
+      stateText: this._config?.state_text,
       secondary: this._config?.secondary
     };
     
@@ -652,6 +657,7 @@ export class ModernCircularGauge extends LitElement {
         secondaryMin: secondary?.min,
         secondaryMax: secondary?.max,
         secondaryEntity: secondary?.entity,
+        secondaryStateText: secondary?.state_text,
         secondarySegments: secondary?.segments
       };
 
