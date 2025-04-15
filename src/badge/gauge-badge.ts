@@ -253,7 +253,7 @@ export class ModernCircularGaugeBadge extends LitElement {
     const state = templatedState ?? stateObj.state;
     const entityState = formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj?.entity_id])) ?? templatedState;
 
-    const name = this._templateResults?.name?.result ?? this._config.name ?? stateObj?.attributes.friendly_name ?? "";
+    const name = this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? stateObj?.attributes.friendly_name ?? "";
     const label = this._config.show_name && this._config.show_icon && this._config.show_state ? name : undefined;
     const content = this._config.show_icon && this._config.show_state ? `${entityState} ${unit}` : this._config.show_name ? name : undefined;
 
