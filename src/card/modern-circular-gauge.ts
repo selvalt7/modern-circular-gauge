@@ -151,46 +151,6 @@ export class ModernCircularGauge extends LitElement {
       } else {
         return this._renderWarning(this._config.entity, "", undefined, mdiHelp);
       }
-      // if (isTemplate(this._config.entity)) {
-      //   return html`
-      //   <ha-card
-      //   class="${classMap({
-      //     "flex-column-reverse": this._config.header_position == "bottom",
-      //     "action": this._hasCardAction()
-      //   })}"
-      //   @action=${this._handleAction}
-      //   .actionHandler=${actionHandler({
-      //     hasHold: hasAction(this._config.hold_action),
-      //     hasDoubleClick: hasAction(this._config.double_tap_action),
-      //   })}
-      //   tabindex=${ifDefined(
-      //     !this._config.tap_action || hasAction(this._config.tap_action)
-      //     ? "0"
-      //     : undefined
-      //   )}
-      //   >
-      //   <div class="header">
-      //     <p class="name">
-      //     </p>
-      //   </div>
-      //   <div class="container">
-      //     <svg viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid"
-      //       overflow="visible"
-      //       class=${classMap({ "dual-gauge": typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner" })}
-      //     >
-      //       <g transform="rotate(${ROTATE_ANGLE})">
-      //         ${renderPath("arc", path)}
-      //       </g>
-      //     </svg>
-      //   </ha-card>
-      //   `;
-      // } else {
-      //   return html`
-      //   <hui-warning>
-      //     ${this.hass.localize("ui.panel.lovelace.warning.entity_not_found", { entity: this._config.entity || "[empty]" })}
-      //   </hui-warning>
-      //   `;
-      // }
     }
 
     const numberState = Number(templatedState ?? stateObj.state);
@@ -198,20 +158,10 @@ export class ModernCircularGauge extends LitElement {
 
     if (stateObj?.state === "unavailable") {
       return this._renderWarning(this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? stateObj.attributes.friendly_name ?? '', this.hass.localize("state.default.unavailable"), stateObj, icon);
-      // return html`
-      // <hui-warning>
-      //   ${this.hass.localize("ui.panel.lovelace.warning.entity_unavailable", { entity: this._config.entity })}
-      // </hui-warning>
-      // `;
     }
 
     if (isNaN(numberState)) {
       return this._renderWarning(this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? stateObj.attributes.friendly_name ?? '', "NaN", stateObj, icon);
-      // return html`
-      // <hui-warning>
-      //   ${this.hass.localize("ui.panel.lovelace.warning.entity_non_numeric", { entity: this._config.entity })}
-      // </hui-warning>
-      // `;
     }
 
     const attributes = stateObj?.attributes ?? undefined;
@@ -267,7 +217,6 @@ export class ModernCircularGauge extends LitElement {
           overflow="visible"
           style=${styleMap({ "--gauge-stroke-width": this._config.gauge_foreground_style?.width ? `${this._config.gauge_foreground_style?.width}px` : undefined,
             "--inner-gauge-stroke-width": typeof this._config.secondary == "object" ? this._config.secondary?.gauge_foreground_style?.width ? `${this._config.secondary?.gauge_foreground_style?.width}px` : undefined : undefined })}
-           })}
           class=${classMap({ "dual-gauge": typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner" })}
         >
           <g transform="rotate(${ROTATE_ANGLE})">
