@@ -17,6 +17,7 @@ import { actionHandler } from "../utils/action-handler-directive";
 import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS, MAX_ANGLE } from "../const";
 import { RenderTemplateResult, subscribeRenderTemplate } from "../ha/data/ws-templates";
 import { isTemplate } from "../utils/template";
+import { mdiHelp } from "@mdi/js";
 
 const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
 const RADIUS = 47;
@@ -146,63 +147,71 @@ export class ModernCircularGauge extends LitElement {
 
     if (!stateObj && templatedState === undefined) {
       if (isTemplate(this._config.entity)) {
-        return html`
-        <ha-card
-        class="${classMap({
-          "flex-column-reverse": this._config.header_position == "bottom",
-          "action": this._hasCardAction()
-        })}"
-        @action=${this._handleAction}
-        .actionHandler=${actionHandler({
-          hasHold: hasAction(this._config.hold_action),
-          hasDoubleClick: hasAction(this._config.double_tap_action),
-        })}
-        tabindex=${ifDefined(
-          !this._config.tap_action || hasAction(this._config.tap_action)
-          ? "0"
-          : undefined
-        )}
-        >
-        <div class="header">
-          <p class="name">
-          </p>
-        </div>
-        <div class="container">
-          <svg viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid"
-            overflow="visible"
-            class=${classMap({ "dual-gauge": typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner" })}
-          >
-            <g transform="rotate(${ROTATE_ANGLE})">
-              ${renderPath("arc", path)}
-            </g>
-          </svg>
-        </ha-card>
-        `;
+        return this._renderWarning();
       } else {
-        return html`
-        <hui-warning>
-          ${this.hass.localize("ui.panel.lovelace.warning.entity_not_found", { entity: this._config.entity || "[empty]" })}
-        </hui-warning>
-        `;
+        return this._renderWarning(this._config.entity, "", undefined, mdiHelp);
       }
+      // if (isTemplate(this._config.entity)) {
+      //   return html`
+      //   <ha-card
+      //   class="${classMap({
+      //     "flex-column-reverse": this._config.header_position == "bottom",
+      //     "action": this._hasCardAction()
+      //   })}"
+      //   @action=${this._handleAction}
+      //   .actionHandler=${actionHandler({
+      //     hasHold: hasAction(this._config.hold_action),
+      //     hasDoubleClick: hasAction(this._config.double_tap_action),
+      //   })}
+      //   tabindex=${ifDefined(
+      //     !this._config.tap_action || hasAction(this._config.tap_action)
+      //     ? "0"
+      //     : undefined
+      //   )}
+      //   >
+      //   <div class="header">
+      //     <p class="name">
+      //     </p>
+      //   </div>
+      //   <div class="container">
+      //     <svg viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid"
+      //       overflow="visible"
+      //       class=${classMap({ "dual-gauge": typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner" })}
+      //     >
+      //       <g transform="rotate(${ROTATE_ANGLE})">
+      //         ${renderPath("arc", path)}
+      //       </g>
+      //     </svg>
+      //   </ha-card>
+      //   `;
+      // } else {
+      //   return html`
+      //   <hui-warning>
+      //     ${this.hass.localize("ui.panel.lovelace.warning.entity_not_found", { entity: this._config.entity || "[empty]" })}
+      //   </hui-warning>
+      //   `;
+      // }
     }
 
     const numberState = Number(templatedState ?? stateObj.state);
+    const icon = this._templateResults?.icon?.result ?? this._config.icon;
 
     if (stateObj?.state === "unavailable") {
-      return html`
-      <hui-warning>
-        ${this.hass.localize("ui.panel.lovelace.warning.entity_unavailable", { entity: this._config.entity })}
-      </hui-warning>
-      `;
+      return this._renderWarning(this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? stateObj.attributes.friendly_name ?? '', this.hass.localize("state.default.unavailable"), stateObj, icon);
+      // return html`
+      // <hui-warning>
+      //   ${this.hass.localize("ui.panel.lovelace.warning.entity_unavailable", { entity: this._config.entity })}
+      // </hui-warning>
+      // `;
     }
 
     if (isNaN(numberState)) {
-      return html`
-      <hui-warning>
-        ${this.hass.localize("ui.panel.lovelace.warning.entity_non_numeric", { entity: this._config.entity })}
-      </hui-warning>
-      `;
+      return this._renderWarning(this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? stateObj.attributes.friendly_name ?? '', "NaN", stateObj, icon);
+      // return html`
+      // <hui-warning>
+      //   ${this.hass.localize("ui.panel.lovelace.warning.entity_non_numeric", { entity: this._config.entity })}
+      // </hui-warning>
+      // `;
     }
 
     const attributes = stateObj?.attributes ?? undefined;
@@ -340,6 +349,64 @@ export class ModernCircularGauge extends LitElement {
       </div> 
     </ha-card>
     `;
+  }
+
+  private _renderWarning(headerText?: string, stateText?: string, stateObj?: HassEntity, icon?: string): TemplateResult {
+    const iconCenter = stateText?.length == 0;
+    return html`
+      <ha-card
+      class="${classMap({
+        "flex-column-reverse": this._config?.header_position == "bottom",
+        "action": this._hasCardAction()
+      })}"
+      @action=${this._handleAction}
+      .actionHandler=${actionHandler({
+        hasHold: hasAction(this._config?.hold_action),
+        hasDoubleClick: hasAction(this._config?.double_tap_action),
+      })}
+      tabindex=${ifDefined(
+        !this._config?.tap_action || hasAction(this._config?.tap_action)
+        ? "0"
+        : undefined
+      )}
+      >
+      <div class="header" style=${styleMap({ "--gauge-header-font-size": this._config?.header_font_size ? `${this._config.header_font_size}px` : undefined,
+        "transform": this._config?.header_offset ? `translate(0, ${this._config.header_offset}px)` : undefined })}>
+        <p class="name">
+          ${headerText}
+        </p>
+      </div>
+      <div class="container" class=${classMap({ "icon-center": iconCenter })}>
+        <svg viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid"
+          overflow="visible"
+        >
+          <g transform="rotate(${ROTATE_ANGLE})">
+            ${renderPath("arc clear", path)}
+          </g>
+        </svg>
+        <svg class="state" overflow="visible" viewBox="-50 ${iconCenter ? -55 : -50} 100 100">
+          <text
+            x="0" y="0" 
+            class="value" 
+            style=${styleMap({ "font-size": this._calcStateSize(stateText ?? "") })}
+          >
+            ${stateText}
+          </text>
+        </svg>
+        <div class="icon-container">
+          <div class="icon-wrapper">
+            ${stateObj ? html`
+              <ha-state-icon
+                class="big warning-icon"
+                .hass=${this.hass}
+                .stateObj=${stateObj}
+                .icon=${icon}
+              ></ha-state-icon>
+              ` : html`<ha-svg-icon class="warning-icon" .path=${icon}></ha-svg-icon>`}
+          </div>
+        </div>
+      </ha-card>
+      `;
   }
 
   private _calcStateSize(state: string): string {
@@ -852,7 +919,7 @@ export class ModernCircularGauge extends LitElement {
       padding-top: 100%;
     }
 
-    ha-state-icon {
+    ha-state-icon, .warning-icon {
       position: absolute;
       bottom: 14%;
       left: 50%;
@@ -864,16 +931,20 @@ export class ModernCircularGauge extends LitElement {
       --ha-icon-display: flex;
     }
 
-    .icon-center ha-state-icon, .icon-center ha-state-icon.big {
+    .icon-center ha-state-icon, .icon-center ha-state-icon.big, .icon-center .warning-icon {
       position: static;
       transform: unset;
       height: 30%;
       width: 30%;
     }
 
-    ha-state-icon.big {
+    ha-state-icon.big, .warning-icon {
       height: 18%;
       width: 18%;
+    }
+
+    .warning-icon {
+      color: var(--state-unavailable-color);
     }
 
     .adaptive {
