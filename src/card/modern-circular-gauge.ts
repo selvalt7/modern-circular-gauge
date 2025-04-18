@@ -376,7 +376,7 @@ export class ModernCircularGauge extends LitElement {
           ${headerText}
         </p>
       </div>
-      <div class="container" class=${classMap({ "icon-center": iconCenter })}>
+      <div class=${classMap({ "icon-center": iconCenter, "container": true })}>
         <svg viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid"
           overflow="visible"
         >
