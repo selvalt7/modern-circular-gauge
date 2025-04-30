@@ -6,26 +6,34 @@ export interface SegmentsConfig {
     label?: string;
 }
 
-export type SecondaryEntity = {
+export interface BaseEntityConfig {
     entity?: string;
     unit?: string;
     label?: string;
-    template?: string;
-    show_gauge?: "none" | "inner" | "outter";
     min?: number | string;
     max?: number | string;
-    state_size?: "small" | "big";
+    needle?: boolean;
     show_state?: boolean;
     show_unit?: boolean;
-    needle?: boolean;
     state_text?: string;
-    gauge_width?: number;
     gauge_background_style?: GaugeElementConfig;
     gauge_foreground_style?: GaugeElementConfig;
     adaptive_state_color?: boolean;
     segments?: SegmentsConfig[];
+}
+
+export interface SecondaryEntity extends BaseEntityConfig {
+    template?: string;
+    show_gauge?: "none" | "inner" | "outter";
+    state_size?: "small" | "big";
+    gauge_width?: number;
     [key: string]: any;
 };
+
+export interface TertiaryEntity extends BaseEntityConfig {
+    show_gauge?: boolean;
+    [key: string]: any;
+}
 
 export interface GaugeElementConfig {
     width?: number;
@@ -61,5 +69,6 @@ export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     state_scaling_multiplier?: number;
     segments?: SegmentsConfig[];
     secondary?: SecondaryEntity | string;
+    tertiary?: TertiaryEntity | string;
     secondary_entity?: SecondaryEntity; // Unused
 }
