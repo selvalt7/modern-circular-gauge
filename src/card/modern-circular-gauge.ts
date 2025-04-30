@@ -211,7 +211,7 @@ export class ModernCircularGauge extends LitElement {
       </div>
       ` : nothing}
       <div class="container"
-        style=${styleMap({ "--gauge-color": gaugeForegroundColor && gaugeForegroundColor != "adaptive" ? gaugeForegroundColor : computeSegments(numberState, segments, this._config.smooth_segments) })}
+        style=${styleMap({ "--gauge-color": gaugeForegroundColor && gaugeForegroundColor != "adaptive" ? gaugeForegroundColor : computeSegments(numberState, segments, this._config.smooth_segments, this) })}
       >
         <svg viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid"
           overflow="visible"
@@ -408,7 +408,7 @@ export class ModernCircularGauge extends LitElement {
     return svg`
     <g 
       class="inner"
-      style=${styleMap({ "--gauge-color": gaugeForegroundColor && gaugeForegroundColor != "adaptive" ? gaugeForegroundColor : computeSegments(numberState, (this._templateResults?.secondarySegments as unknown) as SegmentsConfig[] ?? secondaryObj.segments, this._config?.smooth_segments) })}
+      style=${styleMap({ "--gauge-color": gaugeForegroundColor && gaugeForegroundColor != "adaptive" ? gaugeForegroundColor : computeSegments(numberState, (this._templateResults?.secondarySegments as unknown) as SegmentsConfig[] ?? secondaryObj.segments, this._config?.smooth_segments, this) })}
       >
       <mask id="gradient-current-inner-path">
         ${current ? renderPath("arc current", innerPath, current, styleMap({ "stroke": "white", "visibility": numberState <= min && min >= 0 ? "hidden" : "visible" })) : nothing}
@@ -507,9 +507,9 @@ export class ModernCircularGauge extends LitElement {
 
     if (secondary.adaptive_state_color) {
       if (secondary.show_gauge == "outter") {
-        secondaryColor = computeSegments(Number(state), this._config?.segments, this._config?.smooth_segments);
+        secondaryColor = computeSegments(Number(state), this._config?.segments, this._config?.smooth_segments, this);
       } else if (secondary.show_gauge == "inner") {
-        secondaryColor = computeSegments(Number(state), secondary.segments, this._config?.smooth_segments);
+        secondaryColor = computeSegments(Number(state), secondary.segments, this._config?.smooth_segments, this);
       }
     }
 
