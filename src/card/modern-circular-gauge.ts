@@ -2,7 +2,7 @@ import { html, LitElement, TemplateResult, css, svg, nothing, PropertyValues } f
 import { customElement, property, state } from "lit/decorators.js";
 import { ActionHandlerEvent } from "../ha/data/lovelace";
 import { hasAction } from "../ha/panels/lovelace/common/has-action";
-import { svgArc, strokeDashArc, renderColorSegments, computeSegments, renderPath } from "../utils/gauge";
+import { svgArc, strokeDashArc, renderColorSegments, computeSegments, renderPath, currentDashArc } from "../utils/gauge";
 import { registerCustomCard } from "../utils/custom-cards";
 import type { ModernCircularGaugeConfig, SecondaryEntity, SegmentsConfig } from "./type";
 import { LovelaceLayoutOptions, LovelaceGridOptions } from "../ha/data/lovelace";
@@ -171,7 +171,7 @@ export class ModernCircularGauge extends LitElement {
     const min = Number(this._templateResults?.min?.result ?? this._config.min) || DEFAULT_MIN;
     const max = Number(this._templateResults?.max?.result ?? this._config.max) || DEFAULT_MAX;
 
-    const current = this._config.needle ? undefined : strokeDashArc(numberState > 0 ? 0 : numberState, numberState > 0 ? numberState : 0, min, max, RADIUS);
+    const current = this._config.needle ? undefined : currentDashArc(numberState, min, max, RADIUS, this._config.start_from_zero);
     const needle = this._config.needle ? strokeDashArc(numberState, numberState, min, max, RADIUS) : undefined;
 
     const state = templatedState ?? stateObj.state;
@@ -397,7 +397,7 @@ export class ModernCircularGauge extends LitElement {
     const min = Number(this._templateResults?.secondaryMin?.result ?? secondaryObj.min) || DEFAULT_MIN; 
     const max = Number(this._templateResults?.secondaryMax?.result ?? secondaryObj.max) || DEFAULT_MAX;
 
-    const current = secondaryObj.needle ? undefined : strokeDashArc(numberState > 0 ? 0 : numberState, numberState > 0 ? numberState : 0, min, max, INNER_RADIUS);
+    const current = secondaryObj.needle ? undefined : currentDashArc(numberState, min, max, INNER_RADIUS, secondaryObj.start_from_zero);
     const needle = secondaryObj.needle ? strokeDashArc(numberState, numberState, min, max, INNER_RADIUS) : undefined;
 
     const segments = (this._templateResults?.secondarySegments as unknown) as SegmentsConfig[] ?? secondaryObj.segments;
