@@ -273,7 +273,7 @@ export class ModernCircularGaugeBadge extends LitElement {
         hasDoubleClick: hasAction(this._config.double_tap_action),
       })}
       .iconOnly=${content === undefined}
-      style=${styleMap({ "--gauge-color": computeSegments(numberState, segments, this._config.smooth_segments) })}
+      style=${styleMap({ "--gauge-color": computeSegments(numberState, segments, this._config.smooth_segments, this) })}
       .label=${label}
     >
       <div class=${classMap({ "container": true, "icon-only": content === undefined })} slot="icon">

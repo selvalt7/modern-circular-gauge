@@ -174,7 +174,7 @@ export function renderSegments(segments: SegmentsConfig[], min: number, max: num
   return [];
 }
 
-export function computeSegments(numberState: number, segments: SegmentsConfig[] | undefined, smooth_segments: boolean | undefined): string | undefined {
+export function computeSegments(numberState: number, segments: SegmentsConfig[] | undefined, smooth_segments: boolean | undefined, element?: Element): string | undefined {
   if (segments) {
     let sortedSegments = [...segments].sort((a, b) => Number(a.from) - Number(b.from));
     
@@ -183,9 +183,19 @@ export function computeSegments(numberState: number, segments: SegmentsConfig[] 
       if (segment && (numberState >= Number(segment.from) || i === 0) &&
         (i + 1 == sortedSegments?.length || numberState < Number(sortedSegments![i + 1].from))) {
           if (smooth_segments) {
-            const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
+            let color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
+
+            if (color.includes("var(--") && element) {
+              color = getComputedStyle(element).getPropertyValue(color.replace(/(var\()|(\))/g, "").trim());
+            }
+
             const nextSegment = sortedSegments[i + 1] ? sortedSegments[i + 1] : segment;
-            const nextColor = typeof nextSegment.color === "object" ? rgbToHex(nextSegment.color) : nextSegment.color;
+            let nextColor = typeof nextSegment.color === "object" ? rgbToHex(nextSegment.color) : nextSegment.color;
+
+            if (nextColor.includes("var(--") && element) {
+              nextColor = getComputedStyle(element).getPropertyValue(nextColor.replace(/(var\()|(\))/g, "").trim());
+            }
+
             return interpolateRgb(color, nextColor)(valueToPercentage(numberState, Number(segment.from), Number(nextSegment.from)));
           } else {
             const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
