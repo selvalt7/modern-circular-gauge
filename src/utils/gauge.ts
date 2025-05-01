@@ -99,6 +99,14 @@ export const valueToPercentage = (value: number, min: number, max: number) => {
   return (clamp(value, min, max) - min) / (max - min);
 }
 
+export const currentDashArc = (value: number, min: number, max: number, radius: number, startFromZero?: boolean): [string, string] => {
+  if (startFromZero) {
+    return strokeDashArc(value > 0 ? 0 : value, value > 0 ? value : 0, min, max, radius);
+  } else {
+    return strokeDashArc(min, value, min, max, radius);
+  }
+}
+
 export function renderPath(pathClass: DirectiveResult<typeof ClassMapDirective>, d: string, strokeDash: [string, string] | undefined = undefined, style: DirectiveResult<typeof StyleMapDirective> | undefined = undefined): TemplateResult {
   return svg`
     <path

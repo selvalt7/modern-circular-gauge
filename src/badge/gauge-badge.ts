@@ -7,7 +7,7 @@ import { getNumberFormatOptions, formatNumber } from "../utils/format_number";
 import { registerCustomBadge } from "../utils/custom-badges";
 import { HassEntity, UnsubscribeFunc } from "home-assistant-js-websocket";
 import { styleMap } from "lit/directives/style-map.js";
-import { svgArc, strokeDashArc, computeSegments, getAngle, renderPath, renderColorSegments } from "../utils/gauge";
+import { svgArc, strokeDashArc, computeSegments, getAngle, renderPath, renderColorSegments, currentDashArc } from "../utils/gauge";
 import { classMap } from "lit/directives/class-map.js";
 import { ActionHandlerEvent } from "../ha/data/lovelace";
 import { hasAction } from "../ha/panels/lovelace/common/has-action";
@@ -250,7 +250,7 @@ export class ModernCircularGaugeBadge extends LitElement {
     const numberState = Number(templatedState ?? stateObj.state);
 
     
-    const current = this._config.needle ? undefined : strokeDashArc(numberState > 0 ? 0 : numberState, numberState > 0 ? numberState : 0, min, max, RADIUS);
+    const current = this._config.needle ? undefined : currentDashArc(numberState, min, max, RADIUS, this._config.start_from_zero);
     const state = templatedState ?? stateObj.state;
 
     const stateOverride = this._templateResults?.stateText?.result ?? (isTemplate(String(this._config.state_text)) ? "" : this._config.state_text);
