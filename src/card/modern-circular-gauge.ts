@@ -517,7 +517,7 @@ export class ModernCircularGauge extends LitElement {
       return svg`
       <text
         x="0" y="0"
-        class="tertiary"
+        class="tertiary-state"
         dy=-19
       >
         ${this._templateResults?.tertiary?.result ?? this._config?.tertiary}
@@ -549,7 +549,7 @@ export class ModernCircularGauge extends LitElement {
         hasHold: hasAction(tertiary.hold_action),
         hasDoubleClick: hasAction(tertiary.double_tap_action),
       })}
-      class="tertiary ${classMap({ "adaptive": !!tertiary.adaptive_state_color })}"
+      class="tertiary-state ${classMap({ "adaptive": !!tertiary.adaptive_state_color })}"
       dy=-16
     >
       ${entityState}
@@ -928,9 +928,14 @@ export class ModernCircularGauge extends LitElement {
       margin-bottom: 0px;
     }
 
-    .secondary, .tertiary {
+    .secondary, .tertiary-state {
       font-size: 10px;
       fill: var(--secondary-text-color);
+      --gauge-color: var(--gauge-secondary-color);
+    }
+
+    .tertiary-state {
+      --gauge-color: var(--gauge-tertiary-color);
     }
 
     .state-label {
@@ -1018,7 +1023,7 @@ export class ModernCircularGauge extends LitElement {
       color: var(--gauge-color);
     }
 
-    .value.adaptive, .secondary.adaptive {
+    .value.adaptive, .secondary.adaptive, .tertiary-state.adaptive {
       fill: var(--gauge-color);
     }
 
