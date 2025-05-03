@@ -542,6 +542,12 @@ export class ModernCircularGauge extends LitElement {
     const stateOverride = this._templateResults?.tertiaryStateText?.result ?? (isTemplate(String(tertiary.state_text)) ? "" : tertiary.state_text);
     const entityState = stateOverride ?? formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj?.entity_id])) ?? templatedState;
 
+    let adaptiveColor;
+
+    if (tertiary.adaptive_state_color) {
+      adaptiveColor = computeSegments(Number(state), tertiary.segments, this._config?.smooth_segments, this);
+    }
+
     return svg`
     <text
       @action=${this._handleTertiaryAction}
@@ -550,6 +556,7 @@ export class ModernCircularGauge extends LitElement {
         hasDoubleClick: hasAction(tertiary.double_tap_action),
       })}
       class="tertiary-state ${classMap({ "adaptive": !!tertiary.adaptive_state_color })}"
+      style=${styleMap({ "fill": adaptiveColor ?? undefined })}
       dy=-16
     >
       ${entityState}
