@@ -397,12 +397,16 @@ export class ModernCircularGauge extends LitElement {
   private _renderGaugeRing(gaugeName: string, state: string, min: number, max: number, d: string, radius: number, needle?: boolean , segments?: SegmentsConfig[], foregroundStyle?: GaugeElementConfig, backgroundStyle?: GaugeElementConfig): TemplateResult {
     const numberState = Number(state);
 
-    if (state === "unavailable" || isNaN(numberState)) {
+    if (state === "unavailable") {
       return svg`
       <g class="${gaugeName}">
         ${renderPath("arc clear", d)}
       </g>
       `;
+    }
+
+    if (isNaN(numberState)) {
+      return svg``;
     }
 
     const current = needle ? undefined : currentDashArc(numberState, min, max, radius, this._config?.start_from_zero);
@@ -680,7 +684,8 @@ export class ModernCircularGauge extends LitElement {
       max: this._config?.max,
       segments: this._config?.segments,
       stateText: this._config?.state_text,
-      secondary: this._config?.secondary
+      secondary: this._config?.secondary,
+      tertiary: this._config?.tertiary
     };
     
     Object.entries(templates).forEach(([key, value]) => {
@@ -706,6 +711,26 @@ export class ModernCircularGauge extends LitElement {
         if (typeof value == "string") {
           this._tryConnectKey(key, value);
         } else if (key == "secondarySegments") {
+          const segmentsStringified = JSON.stringify(value);
+          this._tryConnectKey(key, segmentsStringified);
+        }
+      });
+    }
+
+    if (typeof this._config?.tertiary != "string") {
+      const tertiary = this._config?.tertiary;
+      const tertiaryTemplates = {
+        tertiaryMin: tertiary?.min,
+        tertiaryMax: tertiary?.max,
+        tertiaryEntity: tertiary?.entity,
+        tertiaryStateText: tertiary?.state_text,
+        tertiarySegments: tertiary?.segments
+      };
+
+      Object.entries(tertiaryTemplates).forEach(([key, value]) => {
+        if (typeof value == "string") {
+          this._tryConnectKey(key, value);
+        } else if (key == "tertiarySegments") {
           const segmentsStringified = JSON.stringify(value);
           this._tryConnectKey(key, segmentsStringified);
         }
@@ -768,7 +793,8 @@ export class ModernCircularGauge extends LitElement {
       max: this._config?.max,
       segments: this._config?.segments,
       stateText: this._config?.state_text,
-      secondary: this._config?.secondary
+      secondary: this._config?.secondary,
+      tertiary: this._config?.tertiary
     };
     
     Object.entries(templates).forEach(([key, _]) => {
@@ -786,6 +812,21 @@ export class ModernCircularGauge extends LitElement {
       };
 
       Object.entries(secondaryTemplates).forEach(([key, _]) => {
+        this._tryDisconnectKey(key);
+      });
+    }
+
+    if (typeof this._config?.tertiary != "string") {
+      const tertiary = this._config?.tertiary;
+      const tertiaryTemplates = {
+        tertiaryMin: tertiary?.min,
+        tertiaryMax: tertiary?.max,
+        tertiaryEntity: tertiary?.entity,
+        tertiaryStateText: tertiary?.state_text,
+        tertiarySegments: tertiary?.segments
+      };
+
+      Object.entries(tertiaryTemplates).forEach(([key, _]) => {
         this._tryDisconnectKey(key);
       });
     }
