@@ -181,7 +181,6 @@ export class ModernCircularGauge extends LitElement {
     const max = Number(this._templateResults?.max?.result ?? this._config.max) || DEFAULT_MAX;
 
     const current = this._config.needle ? undefined : strokeDashArc(numberState > 0 ? 0 : numberState, numberState > 0 ? numberState : 0, min, max, RADIUS);
-    const currentTertiary = this._config.needle ? undefined : strokeDashArc(numberState > 0 ? 0 : numberState, numberState > 0 ? numberState : 0, min, max, TERTIARY_RADIUS);
     const needle = this._config.needle ? strokeDashArc(numberState, numberState, min, max, RADIUS) : undefined;
 
     const state = templatedState ?? stateObj.state;
