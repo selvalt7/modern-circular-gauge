@@ -17,7 +17,6 @@ export interface BaseEntityConfig {
     show_unit?: boolean;
     state_text?: string;
     start_from_zero?: boolean;
-    gauge_width?: number;
     gauge_background_style?: GaugeElementConfig;
     gauge_foreground_style?: GaugeElementConfig;
     adaptive_state_color?: boolean;
