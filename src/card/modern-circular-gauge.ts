@@ -405,12 +405,12 @@ export class ModernCircularGauge extends LitElement {
       `;
     }
 
-    const current = needle ? undefined : strokeDashArc(numberState > 0 ? 0 : numberState, numberState > 0 ? numberState : 0, min, max, radius);
+    const current = needle ? undefined : currentDashArc(numberState, min, max, radius, this._config?.start_from_zero);
     const needleArc = needle ? strokeDashArc(numberState, numberState, min, max, radius) : undefined;
 
     return svg`
     <g class="${gaugeName}"
-      style=${styleMap({ "--gauge-color": foregroundStyle?.color && foregroundStyle.color != "adaptive" ? foregroundStyle.color : computeSegments(numberState, segments, this._config?.smooth_segments) })}
+      style=${styleMap({ "--gauge-color": foregroundStyle?.color && foregroundStyle.color != "adaptive" ? foregroundStyle.color : computeSegments(numberState, segments, this._config?.smooth_segments, this) })}
     >
       <mask id="gradient-current-${gaugeName}-path">
         ${current ? renderPath("arc current", d, current, styleMap({ "stroke": "white", "visibility": numberState <= min && min >= 0 ? "hidden" : "visible" })) : nothing}
