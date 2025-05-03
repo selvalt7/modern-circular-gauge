@@ -2,7 +2,7 @@ import { html, LitElement, TemplateResult, css, svg, nothing, PropertyValues } f
 import { customElement, property, state } from "lit/decorators.js";
 import { ActionHandlerEvent } from "../ha/data/lovelace";
 import { hasAction } from "../ha/panels/lovelace/common/has-action";
-import { svgArc, strokeDashArc, renderColorSegments, computeSegments, renderPath } from "../utils/gauge";
+import { svgArc, strokeDashArc, renderColorSegments, computeSegments, renderPath, currentDashArc } from "../utils/gauge";
 import { registerCustomCard } from "../utils/custom-cards";
 import type { BaseEntityConfig, GaugeElementConfig, ModernCircularGaugeConfig, SecondaryEntity, SegmentsConfig, TertiaryEntity } from "./type";
 import { LovelaceLayoutOptions, LovelaceGridOptions } from "../ha/data/lovelace";
@@ -180,7 +180,7 @@ export class ModernCircularGauge extends LitElement {
     const min = Number(this._templateResults?.min?.result ?? this._config.min) || DEFAULT_MIN;
     const max = Number(this._templateResults?.max?.result ?? this._config.max) || DEFAULT_MAX;
 
-    const current = this._config.needle ? undefined : strokeDashArc(numberState > 0 ? 0 : numberState, numberState > 0 ? numberState : 0, min, max, RADIUS);
+    const current = this._config.needle ? undefined : currentDashArc(numberState, min, max, RADIUS, this._config.start_from_zero);
     const needle = this._config.needle ? strokeDashArc(numberState, numberState, min, max, RADIUS) : undefined;
 
     const state = templatedState ?? stateObj.state;
@@ -220,7 +220,7 @@ export class ModernCircularGauge extends LitElement {
       </div>
       ` : nothing}
       <div class="container"
-        style=${styleMap({ "--gauge-color": gaugeForegroundColor && gaugeForegroundColor != "adaptive" ? gaugeForegroundColor : computeSegments(numberState, segments, this._config.smooth_segments) })}
+        style=${styleMap({ "--gauge-color": gaugeForegroundColor && gaugeForegroundColor != "adaptive" ? gaugeForegroundColor : computeSegments(numberState, segments, this._config.smooth_segments, this) })}
       >
         <svg viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid"
           overflow="visible"
@@ -608,9 +608,9 @@ export class ModernCircularGauge extends LitElement {
 
     if (secondary.adaptive_state_color) {
       if (secondary.show_gauge == "outter") {
-        secondaryColor = computeSegments(Number(state), this._config?.segments, this._config?.smooth_segments);
+        secondaryColor = computeSegments(Number(state), this._config?.segments, this._config?.smooth_segments, this);
       } else if (secondary.show_gauge == "inner") {
-        secondaryColor = computeSegments(Number(state), secondary.segments, this._config?.smooth_segments);
+        secondaryColor = computeSegments(Number(state), secondary.segments, this._config?.smooth_segments, this);
       }
     }
 
