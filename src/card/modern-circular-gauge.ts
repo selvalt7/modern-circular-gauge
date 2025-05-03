@@ -529,7 +529,9 @@ export class ModernCircularGauge extends LitElement {
       `;
     }
 
-    if (!(tertiary.show_state ?? true)) {
+    const bigState = typeof this._config?.secondary == "object" ? this._config?.secondary?.state_size == "big" : false;
+
+    if (!(tertiary.show_state ?? true) || bigState) {
       return svg``;
     }
 
