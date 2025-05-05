@@ -286,7 +286,7 @@ export class ModernCircularGauge extends LitElement {
           >
             ${this._getSegmentLabel(numberState, segments) ? this._getSegmentLabel(numberState, segments) : svg`
               ${entityState}
-              ${(this._config.show_unit ?? true) && !this._config.state_text ? svg`<tspan class="unit" dx="-4" dy="-6">${unit}</tspan>` : nothing}
+              ${(this._config.show_unit ?? true) ? svg`<tspan class="unit" dx="-4" dy="-6">${unit}</tspan>` : nothing}
             `}
           </text>
           ${typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big"
@@ -690,7 +690,7 @@ export class ModernCircularGauge extends LitElement {
       dy=${secondary.state_size == "big" ? 14 : iconCenter ? 25 : 20}
     >
       ${entityState}
-      ${(secondary.show_unit ?? true) && !secondary.state_text ? svg`
+      ${(secondary.show_unit ?? true) ? svg`
       <tspan
         class=${classMap({"unit": secondary.state_size == "big"})}
         dx=${secondary.state_size == "big" ? -4 : 0}
