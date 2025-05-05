@@ -7,7 +7,7 @@ import { getNumberFormatOptions, formatNumber } from "../utils/format_number";
 import { registerCustomBadge } from "../utils/custom-badges";
 import { HassEntity, UnsubscribeFunc } from "home-assistant-js-websocket";
 import { styleMap } from "lit/directives/style-map.js";
-import { svgArc, strokeDashArc, computeSegments, getAngle, renderPath, renderColorSegments, currentDashArc } from "../utils/gauge";
+import { svgArc, computeSegments, getAngle, renderPath, renderColorSegments, currentDashArc } from "../utils/gauge";
 import { classMap } from "lit/directives/class-map.js";
 import { ActionHandlerEvent } from "../ha/data/lovelace";
 import { hasAction } from "../ha/panels/lovelace/common/has-action";
@@ -15,6 +15,7 @@ import { handleAction } from "../ha/handle-action";
 import { actionHandler } from "../utils/action-handler-directive";
 import { mdiAlertCircle } from "@mdi/js";
 import { RenderTemplateResult, subscribeRenderTemplate } from "../ha/data/ws-templates";
+import { ifDefined } from "lit/directives/if-defined.js";
 import { isTemplate } from "../utils/template";
 import { SegmentsConfig } from "../card/type";
 
@@ -264,6 +265,9 @@ export class ModernCircularGaugeBadge extends LitElement {
 
     const segments = (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config.segments;
 
+    const gaugeBackgroundStyle = this._config.gauge_background_style;
+    const gaugeForegroundStyle = this._config.gauge_foreground_style;
+
     return html`
     <ha-badge
       .type=${this.hasAction ? "button" : "badge"}
@@ -273,7 +277,7 @@ export class ModernCircularGaugeBadge extends LitElement {
         hasDoubleClick: hasAction(this._config.double_tap_action),
       })}
       .iconOnly=${content === undefined}
-      style=${styleMap({ "--gauge-color": computeSegments(numberState, segments, this._config.smooth_segments, this) })}
+      style=${styleMap({ "--gauge-color": gaugeForegroundStyle?.color && gaugeForegroundStyle?.color != "adaptive" ? gaugeForegroundStyle?.color : computeSegments(numberState, segments, this._config.smooth_segments, this), "--gauge-stroke-width": gaugeForegroundStyle?.width ? `${gaugeForegroundStyle?.width}px` : undefined })}
       .label=${label}
     >
       <div class=${classMap({ "container": true, "icon-only": content === undefined })} slot="icon">
@@ -282,23 +286,37 @@ export class ModernCircularGaugeBadge extends LitElement {
             <defs>
             ${this._config.needle ? svg`
               <mask id="needle-mask">
-                ${renderPath("arc", path, undefined, styleMap({ "stroke": "white" }))}
-                <circle cx="42" cy="0" r="12" fill="black" transform="rotate(${getAngle(numberState, min, max)})"/>
+                ${renderPath("arc", path, undefined, styleMap({ "stroke": "white", "stroke-width": gaugeBackgroundStyle?.width ? `${gaugeBackgroundStyle?.width}px` : undefined  }))}
+                <circle cx="42" cy="0" r=${gaugeForegroundStyle?.width ? gaugeForegroundStyle?.width - 2 : 12} fill="black" transform="rotate(${getAngle(numberState, min, max)})"/>
               </mask>
               ` : nothing}
+              <mask id="gradient-path">
+                ${renderPath("arc", path, undefined, styleMap({ "stroke": "white", "stroke-width": gaugeBackgroundStyle?.width ? `${gaugeBackgroundStyle?.width}px` : undefined }))}
+              </mask>
+              <mask id="gradient-current-path">
+                ${current ? renderPath("arc current", path, current, styleMap({ "stroke": "white", "visibility": numberState <= min && min >= 0 ? "hidden" : "visible" })) : nothing}
+              </mask>
             </defs>
             <g mask="url(#needle-mask)">
-              ${renderPath("arc clear", path)}
-              ${this._config.segments && (this._config.needle) ? svg`
-              <g class="segments">
-                ${renderColorSegments(segments, min, max, RADIUS, this._config?.smooth_segments)}
-              </g>`
-              : nothing}
+              <g class="background" style=${styleMap({ "opacity": this._config.gauge_background_style?.opacity,
+                "--gauge-stroke-width": this._config.gauge_background_style?.width ? `${this._config.gauge_background_style?.width}px` : undefined })}>
+                ${renderPath("arc clear", path, undefined, styleMap({ "stroke": gaugeBackgroundStyle?.color && gaugeBackgroundStyle?.color != "adaptive" ? gaugeBackgroundStyle?.color : undefined }))}
+                ${this._config.segments && (this._config.needle || this._config.gauge_background_style?.color == "adaptive") ? svg`
+                <g class="segments" mask=${ifDefined(this._config.smooth_segments ? "url(#gradient-path)" : undefined)}>
+                  ${renderColorSegments(segments, min, max, RADIUS, this._config?.smooth_segments)}
+                </g>`
+                : nothing
+                }
+              </g>
             </g>
           ${this._config.needle ? svg`
-            <circle class="needle" cx="42" cy="0" r="7" transform="rotate(${getAngle(numberState, min, max)})"/>
+            <circle class="needle" cx="42" cy="0" r=${gaugeForegroundStyle?.width ? gaugeForegroundStyle?.width / 2 : 7} transform="rotate(${getAngle(numberState, min, max)})"/>
           ` : nothing}
-          ${current ? renderPath("arc current", path, current, styleMap({ "visibility": numberState <= min && min >= 0 ? "hidden" : "visible" })) : nothing}
+          ${current ? gaugeForegroundStyle?.color == "adaptive" ? svg`
+            <g class="foreground-segments" mask="url(#gradient-current-path)" style=${styleMap({ "opacity": gaugeForegroundStyle?.opacity })}>
+              ${renderColorSegments(segments, min, max, RADIUS, this._config?.smooth_segments)}
+            </g>
+            ` : renderPath("arc current", path, current, styleMap({ "visibility": numberState <= min && min >= 0 ? "hidden" : "visible", "opacity": gaugeForegroundStyle?.opacity })) : nothing}
           </g>
         </svg>
         ${this._config.show_icon
