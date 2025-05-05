@@ -32,7 +32,7 @@ export interface SecondaryEntity extends BaseEntityConfig {
 };
 
 export interface TertiaryEntity extends BaseEntityConfig {
-    show_gauge?: boolean;
+    show_gauge?: "none" | "inner" | "outter";
     [key: string]: any;
 }
 

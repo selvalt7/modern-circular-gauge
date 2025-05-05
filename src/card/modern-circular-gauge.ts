@@ -266,7 +266,7 @@ export class ModernCircularGauge extends LitElement {
               : nothing
               : nothing}
             ${typeof this._config.tertiary != "string" ? 
-              this._config.tertiary?.show_gauge ? this._renderTertiaryRing()
+              this._config.tertiary?.show_gauge == "inner" || this._config.tertiary?.show_gauge == "outter" ? this._renderTertiaryRing()
               : nothing
               : nothing
             }
@@ -385,7 +385,7 @@ export class ModernCircularGauge extends LitElement {
     }
 
     if (typeof this._config?.tertiary != "string") {
-      initialSize -= this._config?.tertiary?.show_gauge ? 2 : 0;
+      initialSize -= this._config?.tertiary?.show_gauge == "inner" ? 2 : 0;
     }
 
     if (state.length >= (this._config?.state_scaling_limit ?? 7)) {
@@ -447,20 +447,50 @@ export class ModernCircularGauge extends LitElement {
     const tertiaryObj = this._config?.tertiary as TertiaryEntity;
     const stateObj = this.hass.states[tertiaryObj.entity || ""];
     const templatedState = this._templateResults?.tertiaryEntity?.result;
-
-    if ((!stateObj || !tertiaryObj) && templatedState === undefined) {
-      return svg`
-      <g class="tertiary">
-        ${renderPath("arc clear", TERTIARY_PATH)}
-      </g>
-      `;
+    
+    if (!tertiaryObj) {
+      return svg``;
     }
 
-    const min = Number(this._templateResults?.tertiaryMin?.result ?? tertiaryObj.min) || DEFAULT_MIN;
-    const max = Number(this._templateResults?.tertiaryMax?.result ?? tertiaryObj.max) || DEFAULT_MAX;
-    const segments = (this._templateResults?.tertiarySegments as unknown) as SegmentsConfig[] ?? tertiaryObj.segments;
+    if (tertiaryObj.show_gauge == "inner") {
+      if (!stateObj && templatedState === undefined) {
+        return svg`
+        <g class="tertiary">
+          ${renderPath("arc clear", TERTIARY_PATH)}
+        </g>
+        `;
+      }
 
-    return this._renderGaugeRing("tertiary", templatedState ?? stateObj.state, min, max, TERTIARY_PATH, TERTIARY_RADIUS, tertiaryObj.needle, segments, tertiaryObj.gauge_foreground_style, tertiaryObj.gauge_background_style);
+      const min = Number(this._templateResults?.tertiaryMin?.result ?? tertiaryObj.min) || DEFAULT_MIN;
+      const max = Number(this._templateResults?.tertiaryMax?.result ?? tertiaryObj.max) || DEFAULT_MAX;
+      const segments = (this._templateResults?.tertiarySegments as unknown) as SegmentsConfig[] ?? tertiaryObj.segments;
+
+      return this._renderGaugeRing("tertiary", templatedState ?? stateObj.state, min, max, TERTIARY_PATH, TERTIARY_RADIUS, tertiaryObj.needle, segments, tertiaryObj.gauge_foreground_style, tertiaryObj.gauge_background_style);
+    } else {
+      if (!stateObj && templatedState === undefined) {
+        return svg``;
+      }
+
+      const numberState = Number(templatedState ?? stateObj.state);
+
+      if (stateObj?.state === "unavailable" && templatedState) {
+        return svg``;
+      }
+  
+      if (isNaN(numberState)) {
+        return svg``;
+      }
+  
+      const min = Number(this._templateResults?.min?.result ?? this._config?.min) || DEFAULT_MIN; 
+      const max = Number(this._templateResults?.max?.result ?? this._config?.max) || DEFAULT_MAX;
+  
+      const current = strokeDashArc(numberState, numberState, min, max, RADIUS);
+  
+      return svg`
+      ${renderPath("dot border tertiary", path, current, styleMap({ "opacity": tertiaryObj.gauge_foreground_style?.opacity ?? 1, "stroke": tertiaryObj.gauge_foreground_style?.color, "stroke-width": tertiaryObj.gauge_foreground_style?.width }))}
+      ${renderPath("dot", path, current, styleMap({ "opacity": tertiaryObj.gauge_foreground_style?.opacity ?? 1, "stroke": tertiaryObj.gauge_foreground_style?.color, "stroke-width": tertiaryObj.gauge_foreground_style?.width }))}
+      `;
+    }
   }
 
   private _renderInnerGauge(): TemplateResult {
@@ -508,7 +538,10 @@ export class ModernCircularGauge extends LitElement {
 
     const current = strokeDashArc(numberState, numberState, min, max, RADIUS);
 
-    return renderPath("dot", path, current, styleMap({ "opacity": secondaryObj.gauge_foreground_style?.opacity ?? 0.8, "stroke": secondaryObj.gauge_foreground_style?.color, "stroke-width": secondaryObj.gauge_foreground_style?.width }));
+    return svg`
+    ${renderPath("dot border secondary", path, current, styleMap({ "opacity": secondaryObj.gauge_foreground_style?.opacity ?? 1, "stroke": secondaryObj.gauge_foreground_style?.color, "stroke-width": secondaryObj.gauge_foreground_style?.width }))}
+    ${renderPath("dot", path, current, styleMap({ "opacity": secondaryObj.gauge_foreground_style?.opacity ?? 1, "stroke": secondaryObj.gauge_foreground_style?.color, "stroke-width": secondaryObj.gauge_foreground_style?.width }))}
+    `;
   }
 
   private _renderTertiary(): TemplateResult {
@@ -1168,7 +1201,11 @@ export class ModernCircularGauge extends LitElement {
       stroke-width: calc(var(--gauge-stroke-width) / 2);
       stroke: var(--primary-text-color);
       transition: all 1s ease 0s;
-      opacity: 0.5;
+    }
+
+    .dot.border {
+      stroke: var(--gauge-color);
+      stroke-width: var(--gauge-stroke-width);
     }
     `;
   }
