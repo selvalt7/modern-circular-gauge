@@ -11,6 +11,7 @@ export interface ModernCircularGaugeBadgeConfig extends LovelaceBadgeConfig {
   show_name?: boolean;
   show_state?: boolean;
   show_icon?: boolean;
+  show_unit?: boolean;
   needle?: boolean;
   state_text?: string;
   start_from_zero?: boolean;

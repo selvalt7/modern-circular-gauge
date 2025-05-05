@@ -254,7 +254,7 @@ export class ModernCircularGaugeBadge extends LitElement {
     const state = templatedState ?? stateObj.state;
 
     const stateOverride = this._templateResults?.stateText?.result ?? (isTemplate(String(this._config.state_text)) ? "" : this._config.state_text);
-    const unit = stateOverride ? "" : (this._config.unit ?? stateObj?.attributes.unit_of_measurement) || "";
+    const unit = this._config.show_unit ?? true ? (this._config.unit ?? stateObj?.attributes.unit_of_measurement) || "" : "";
 
     const entityState = stateOverride ?? formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj?.entity_id])) ?? templatedState;
 
@@ -314,7 +314,9 @@ export class ModernCircularGaugeBadge extends LitElement {
           <svg class="state" viewBox="-50 -50 100 100">
             <text x="0" y="0" class="value" style=${styleMap({ "font-size": this._calcStateSize(entityState) })}>
               ${entityState}
+              ${this._config.show_unit ?? true ? svg`
               <tspan class="unit" dx="-4" dy="-6">${unit}</tspan>
+              ` : nothing}
             </text>
           </svg>
           ` : nothing}
