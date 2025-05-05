@@ -133,7 +133,7 @@ Templates are supported on selected options, configurable only via `yaml`.
 #### Gauge element style object
 | Name | Type | Default | Description |
 |------|:----:|:-------:|:------------|
-| width | `number` | `6 or 4` | Gauge element width
+| width | `number` | `6 or 4`, `14` for badge | Gauge element width
 | color | `string` or `adaptive` | Optional | Gauge element color
 | opacity | `number` | Optional | Gauge element opacity
 
