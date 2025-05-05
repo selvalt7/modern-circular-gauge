@@ -3,8 +3,8 @@ import { HomeAssistant } from "../ha/types";
 import { html, LitElement, nothing, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { ModernCircularGaugeConfig } from "./type";
-import { mdiSegment, mdiInformationOutline } from "@mdi/js";
-import { hexToRgb } from "../utils/color";
+import { mdiSegment, mdiInformationOutline, mdiNumeric3BoxOutline } from "@mdi/js";
+import { getSecondarySchema, getTertiarySchema } from "./mcg-schema";
 import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS } from "../const";
 import memoizeOne from "memoize-one";
 import "../components/ha-form-mcg-list";
@@ -32,29 +32,29 @@ export class ModernCircularGaugeEditor extends LitElement {
   }
 
   private _schema = memoizeOne(
-    (showInnerGaugeOptions: boolean) =>
+    (showInnerGaugeOptions: boolean, showTertiaryGaugeOptions: boolean) =>
     [
+      {
+        name: "entity",
+        required: true,
+        selector: { entity: {
+          domain: NUMBER_ENTITY_DOMAINS,
+        }},
+      },
+      {
+        name: "name",
+        selector: { text: {} },
+      },
       {
         name: "",
         type: "grid",
         schema: [
-          {
-            name: "entity",
-            required: true,
-            selector: { entity: {
-              domain: NUMBER_ENTITY_DOMAINS,
-            }},
-          },
           {
             name: "icon",
             selector: { icon: {} },
             context: {
               icon_entity: "entity",
             },
-          },
-          {
-            name: "name",
-            selector: { text: {} },
           },
           {
             name: "unit",
@@ -74,133 +74,8 @@ export class ModernCircularGaugeEditor extends LitElement {
           },
         ],
       },
-      {
-        name: "secondary",
-        type: "expandable",
-        label: "Secondary info",
-        iconPath: mdiInformationOutline,
-        schema: [
-          {
-            name: "",
-            type: "grid",
-            schema: [
-              {
-                name: "entity",
-                selector: { entity: { 
-                  domain: NUMBER_ENTITY_DOMAINS,
-                }},
-              },
-              {
-                name: "unit",
-                selector: { text: {} },
-              },
-            ]
-          },
-          {
-            name: "state_size",
-            label: "State size",
-            selector: { select: {
-              options: [
-                { value: "small", label: "Small"},
-                { value: "big", label: "Big"},
-              ],
-              mode: "dropdown",
-            }},
-          },
-          {
-            name: "show_gauge",
-            label: "Gauge visibility",
-            selector: { select: {
-              options: [
-                { value: "none", label: "None" },
-                { value: "inner", label: "Inner gauge" },
-                { value: "outter", label: "Outter gauge" },
-              ],
-              mode: "dropdown",
-            }},
-          },
-          {
-            name: "",
-            type: "grid",
-            disabled: !showInnerGaugeOptions,
-            schema: [
-              {
-                name: "min",
-                default: DEFAULT_MIN,
-                label: "generic.minimum",
-                selector: { number: { step: 0.1 } },
-              },
-              {
-                name: "max",
-                default: DEFAULT_MAX,
-                label: "generic.maximum",
-                selector: { number: { step: 0.1 } },
-              },
-              {
-                name: "needle",
-                label: "gauge.needle_gauge",
-                selector: { boolean: {} },
-              },
-            ],
-          },
-          {
-            name: "",
-            type: "grid",
-            schema: [
-              {
-                name: "show_state",
-                label: "Show state",
-                default: true,
-                selector: { boolean: {} },
-              },
-              {
-                name: "show_unit",
-                label: "Show unit",
-                default: true,
-                selector: { boolean: {} },
-              },
-              {
-                name: "adaptive_state_color",
-                label: "Adaptive state color",
-                default: false,
-                selector: { boolean: {} },
-              },
-            ],
-          },
-          {
-            name: "segments",
-            type: "mcg-list",
-            title: "Color segments",
-            iconPath: mdiSegment,
-            disabled: !showInnerGaugeOptions,
-            schema: [
-              {
-                name: "",
-                type: "grid",
-                column_min_width: "100px",
-                schema: [
-                  {
-                    name: "from",
-                    label: "From",
-                    required: true,
-                    selector: { number: { step: 0.1 } },
-                  },
-                  {
-                    name: "color",
-                    label: "heading.entity_config.color",
-                    required: true,
-                    selector: { color_rgb: {} },
-                  },
-                ],
-              },
-            ],
-          },
-          {
-            name: "tap_action",
-            selector: { ui_action: {} },
-          }
-        ],
-      },
+        getSecondarySchema(showInnerGaugeOptions),
+        getTertiarySchema(showTertiaryGaugeOptions),
       {
         name: "header_position",
         label: "Header position",
@@ -312,7 +187,7 @@ export class ModernCircularGaugeEditor extends LitElement {
       return nothing;
     }
 
-    const schema = this._schema(typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner");
+    const schema = this._schema(typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner", typeof this._config.tertiary != "string" && this._config.tertiary?.show_gauge == "inner");
 
     const DATA = {
       ...this._config,

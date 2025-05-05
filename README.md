@@ -81,6 +81,7 @@ Templates are supported on selected options, configurable only via `yaml`.
 | state_scaling_multiplier | `number` | `1` | State scaling multiplier
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
 | secondary | `object` or `string` | Optional | Secondary info to display under the state, see [secondary entity object](#secondary-entity-object). May contain [templates](https://www.home-assistant.io/docs/configuration/templating/) see [example](#gauge-with-templated-additional-info-and-segments)
+| tertiary | `object` or `string` | Optional | Secondary info to display above the state, see [tertiary entity object](#Tertiary-entity-object). May contain [templates](https://www.home-assistant.io/docs/configuration/templating/) see [example](#gauge-with-templated-additional-info-and-segments)
 
 ### Badge options
 
@@ -122,6 +123,23 @@ Templates are supported on selected options, configurable only via `yaml`.
 | max | `number` | Optional | Maximum inner gauge value. May contain templates
 | label | `string` | Optional | Label under the state, only used when `state_size` is set to `big`
 | state_size | `small` or `big` | `small` | Secondary state size 
+| show_state | `boolean` | `true` | Show secondary state
+| show_unit | `boolean` | `true` | Show secondary unit
+| start_from_zero | `boolean` | `false` | Start gauge from zero instead of min
+| gauge_background_style | `object` | Optional | Gauge background style, see [gauge element style object](#gauge-element-style-object)
+| gauge_foreground_style | `object` | Optional | Gauge foreground style, see [gauge element style object](#gauge-element-style-object)
+| needle | `boolean` | `false` |
+| adaptive_state_color | `boolean` | `false` | Makes state color adaptive to current color segment based on `show_gauge` config
+| segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
+
+#### Tertiary entity object
+| Name | Type | Default | Description |
+|------|:----:|:-------:|:------------|
+| entity | `string` | Optional | Secondary entity. May contain templates
+| unit | `string` | Optional | Custom unit
+| show_gauge | `none`, `inner`, `outter` | `none` | Display secondary info as dot on main gauge or on inner gauge
+| min | `number` | Optional | Minimum inner gauge value. May contain templates
+| max | `number` | Optional | Maximum inner gauge value. May contain templates
 | show_state | `boolean` | `true` | Show secondary state
 | show_unit | `boolean` | `true` | Show secondary unit
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min

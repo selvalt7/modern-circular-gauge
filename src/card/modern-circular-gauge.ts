@@ -4,7 +4,7 @@ import { ActionHandlerEvent } from "../ha/data/lovelace";
 import { hasAction } from "../ha/panels/lovelace/common/has-action";
 import { svgArc, strokeDashArc, renderColorSegments, computeSegments, renderPath, currentDashArc } from "../utils/gauge";
 import { registerCustomCard } from "../utils/custom-cards";
-import type { ModernCircularGaugeConfig, SecondaryEntity, SegmentsConfig } from "./type";
+import type { BaseEntityConfig, GaugeElementConfig, ModernCircularGaugeConfig, SecondaryEntity, SegmentsConfig, TertiaryEntity } from "./type";
 import { LovelaceLayoutOptions, LovelaceGridOptions } from "../ha/data/lovelace";
 import { handleAction } from "../ha/handle-action";
 import { HomeAssistant } from "../ha/types";
@@ -22,6 +22,7 @@ import { mdiHelp } from "@mdi/js";
 const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
 const RADIUS = 47;
 const INNER_RADIUS = 42;
+const TERTIARY_RADIUS = 37;
 
 const path = svgArc({
   x: 0,
@@ -37,6 +38,14 @@ const innerPath = svgArc({
   start: 0,
   end: MAX_ANGLE,
   r: INNER_RADIUS,
+});
+
+const TERTIARY_PATH = svgArc({
+  x: 0,
+  y: 0,
+  start: 0,
+  end: MAX_ANGLE,
+  r: TERTIARY_RADIUS,
 });
 
 registerCustomCard({
@@ -231,6 +240,10 @@ export class ModernCircularGauge extends LitElement {
                 ${renderPath("arc", innerPath, undefined, styleMap({ "stroke": "white", "stroke-width": typeof this._config.secondary == "object" ? this._config.secondary?.gauge_background_style?.width ? `${this._config.secondary?.gauge_background_style?.width}px` 
                   : 'var(--inner-gauge-stroke-width)' : 'var(--inner-gauge-stroke-width)' }))}
               </mask>
+              <mask id="gradient-tertiary-path">
+                ${renderPath("arc", TERTIARY_PATH, undefined, styleMap({ "stroke": "white", "stroke-width": typeof this._config.tertiary == "object" ? this._config.tertiary?.gauge_background_style?.width ? `${this._config.tertiary?.gauge_background_style?.width}px`
+                  : 'var(--inner-gauge-stroke-width)' : 'var(--inner-gauge-stroke-width)' }))}
+              </mask>
             </defs>
             <g class="background" style=${styleMap({ "opacity": this._config.gauge_background_style?.opacity,
               "--gauge-stroke-width": this._config.gauge_background_style?.width ? `${this._config.gauge_background_style?.width}px` : undefined })}>
@@ -252,13 +265,18 @@ export class ModernCircularGauge extends LitElement {
               : this._config.secondary?.show_gauge == "inner" ? this._renderInnerGauge()
               : nothing
               : nothing}
+            ${typeof this._config.tertiary != "string" ? 
+              this._config.tertiary?.show_gauge == "inner" || this._config.tertiary?.show_gauge == "outter" ? this._renderTertiaryRing()
+              : nothing
+              : nothing
+            }
             ${needle ? svg`
               ${renderPath("needle-border", path, needle)}
               ${renderPath("needle", path, needle)}
               ` : nothing}
           </g>
         </svg>
-        <svg class="state" overflow="visible" viewBox="-50 ${iconCenter ? -55 : -50} 100 100">
+        <svg class="state" overflow="visible" viewBox="-50 -50 100 100">
           ${this._config.show_state ? svg`
           <text
             x="0" y="0" 
@@ -282,6 +300,7 @@ export class ModernCircularGauge extends LitElement {
             : nothing}
           ` : nothing}
           ${this._renderSecondary()}
+          ${this._renderTertiary()}
         </svg>
         ${this._config.show_icon ?? true ? html`
         <div class="icon-container">
@@ -365,10 +384,113 @@ export class ModernCircularGauge extends LitElement {
       initialSize -= this._config?.secondary?.state_size == "big" ? 3 : 0;
     }
 
+    if (typeof this._config?.tertiary != "string") {
+      initialSize -= this._config?.tertiary?.show_gauge == "inner" ? 2 : 0;
+    }
+
     if (state.length >= (this._config?.state_scaling_limit ?? 7)) {
       return `${initialSize - (state.length - 4) * (this._config?.state_scaling_multiplier ?? 1)}px`
     }
     return `${initialSize}px`;
+  }
+
+  private _renderGaugeRing(gaugeName: string, state: string, min: number, max: number, d: string, radius: number, needle?: boolean , segments?: SegmentsConfig[], foregroundStyle?: GaugeElementConfig, backgroundStyle?: GaugeElementConfig): TemplateResult {
+    const numberState = Number(state);
+
+    if (state === "unavailable") {
+      return svg`
+      <g class="${gaugeName}">
+        ${renderPath("arc clear", d)}
+      </g>
+      `;
+    }
+
+    if (isNaN(numberState)) {
+      return svg``;
+    }
+
+    const current = needle ? undefined : currentDashArc(numberState, min, max, radius, this._config?.start_from_zero);
+    const needleArc = needle ? strokeDashArc(numberState, numberState, min, max, radius) : undefined;
+
+    return svg`
+    <g class="${gaugeName}"
+      style=${styleMap({ "--gauge-color": foregroundStyle?.color && foregroundStyle.color != "adaptive" ? foregroundStyle.color : computeSegments(numberState, segments, this._config?.smooth_segments, this) })}
+    >
+      <mask id="gradient-current-${gaugeName}-path">
+        ${current ? renderPath("arc current", d, current, styleMap({ "stroke": "white", "visibility": numberState <= min && min >= 0 ? "hidden" : "visible" })) : nothing}
+      </mask>
+      <g class="background" style=${styleMap({ "opacity": backgroundStyle?.opacity,
+        "--gauge-stroke-width": backgroundStyle?.width ? `${backgroundStyle?.width}px` : undefined })}
+      >
+        ${renderPath("arc clear", d, undefined, styleMap({ "stroke": backgroundStyle?.color && backgroundStyle?.color != "adaptive" ? backgroundStyle?.color : undefined }))}
+        ${segments && (needleArc || backgroundStyle?.color == "adaptive") ? svg`
+        <g class="segments" mask=${ifDefined(this._config?.smooth_segments ? `url(#gradient-${gaugeName}-path)` : undefined)}>
+          ${renderColorSegments(segments, min, max, radius, this._config?.smooth_segments)}
+        </g>`
+        : nothing
+        }
+      </g>
+      ${current ? foregroundStyle?.color == "adaptive" && segments ? svg`
+        <g class="foreground-segments" mask="url(#gradient-current-${gaugeName}-path)" style=${styleMap({ "opacity": foregroundStyle?.opacity })}>
+          ${renderColorSegments(segments, min, max, radius, this._config?.smooth_segments)}
+        </g>
+      ` : renderPath("arc current", d, current, styleMap({ "visibility": numberState <= min && min >= 0 ? "hidden" : "visible", "opacity": foregroundStyle?.opacity })) : nothing}
+      ${needleArc ? svg`
+        ${renderPath("needle-border", d, needleArc)}
+        ${renderPath("needle", d, needleArc)}
+        ` : nothing}
+    </g>
+    `;
+  }
+
+  private _renderTertiaryRing(): TemplateResult {
+    const tertiaryObj = this._config?.tertiary as TertiaryEntity;
+    const stateObj = this.hass.states[tertiaryObj.entity || ""];
+    const templatedState = this._templateResults?.tertiaryEntity?.result;
+    
+    if (!tertiaryObj) {
+      return svg``;
+    }
+
+    if (tertiaryObj.show_gauge == "inner") {
+      if (!stateObj && templatedState === undefined) {
+        return svg`
+        <g class="tertiary">
+          ${renderPath("arc clear", TERTIARY_PATH)}
+        </g>
+        `;
+      }
+
+      const min = Number(this._templateResults?.tertiaryMin?.result ?? tertiaryObj.min) || DEFAULT_MIN;
+      const max = Number(this._templateResults?.tertiaryMax?.result ?? tertiaryObj.max) || DEFAULT_MAX;
+      const segments = (this._templateResults?.tertiarySegments as unknown) as SegmentsConfig[] ?? tertiaryObj.segments;
+
+      return this._renderGaugeRing("tertiary", templatedState ?? stateObj.state, min, max, TERTIARY_PATH, TERTIARY_RADIUS, tertiaryObj.needle, segments, tertiaryObj.gauge_foreground_style, tertiaryObj.gauge_background_style);
+    } else {
+      if (!stateObj && templatedState === undefined) {
+        return svg``;
+      }
+
+      const numberState = Number(templatedState ?? stateObj.state);
+
+      if (stateObj?.state === "unavailable" && templatedState) {
+        return svg``;
+      }
+  
+      if (isNaN(numberState)) {
+        return svg``;
+      }
+  
+      const min = Number(this._templateResults?.min?.result ?? this._config?.min) || DEFAULT_MIN; 
+      const max = Number(this._templateResults?.max?.result ?? this._config?.max) || DEFAULT_MAX;
+  
+      const current = strokeDashArc(numberState, numberState, min, max, RADIUS);
+  
+      return svg`
+      ${!tertiaryObj.gauge_foreground_style?.color ? renderPath("dot border tertiary", path, current, styleMap({ "opacity": tertiaryObj.gauge_foreground_style?.opacity ?? 1, "stroke": tertiaryObj.gauge_foreground_style?.color, "stroke-width": tertiaryObj.gauge_foreground_style?.width })) : nothing}
+      ${renderPath("dot", path, current, styleMap({ "opacity": tertiaryObj.gauge_foreground_style?.opacity ?? 1, "stroke": tertiaryObj.gauge_foreground_style?.color, "stroke-width": tertiaryObj.gauge_foreground_style?.width }))}
+      `;
+    }
   }
 
   private _renderInnerGauge(): TemplateResult {
@@ -376,6 +498,7 @@ export class ModernCircularGauge extends LitElement {
     const stateObj = this.hass.states[secondaryObj.entity || ""];
     const templatedState = this._templateResults?.secondaryEntity?.result;
 
+    
     if ((!stateObj || !secondaryObj) && templatedState === undefined) {
       return svg`
       <g class="inner">
@@ -384,57 +507,11 @@ export class ModernCircularGauge extends LitElement {
       `;
     }
 
-    const numberState = Number(templatedState ?? stateObj.state);
-
-    if (stateObj?.state === "unavailable" && templatedState) {
-      return svg``;
-    }
-
-    if (isNaN(numberState)) {
-      return svg``;
-    }
-
     const min = Number(this._templateResults?.secondaryMin?.result ?? secondaryObj.min) || DEFAULT_MIN; 
     const max = Number(this._templateResults?.secondaryMax?.result ?? secondaryObj.max) || DEFAULT_MAX;
-
-    const current = secondaryObj.needle ? undefined : currentDashArc(numberState, min, max, INNER_RADIUS, secondaryObj.start_from_zero);
-    const needle = secondaryObj.needle ? strokeDashArc(numberState, numberState, min, max, INNER_RADIUS) : undefined;
-
     const segments = (this._templateResults?.secondarySegments as unknown) as SegmentsConfig[] ?? secondaryObj.segments;
 
-    const gaugeBackgroundColor = secondaryObj.gauge_background_style?.color;
-    const gaugeForegroundColor = secondaryObj.gauge_foreground_style?.color;
-
-    return svg`
-    <g 
-      class="inner"
-      style=${styleMap({ "--gauge-color": gaugeForegroundColor && gaugeForegroundColor != "adaptive" ? gaugeForegroundColor : computeSegments(numberState, (this._templateResults?.secondarySegments as unknown) as SegmentsConfig[] ?? secondaryObj.segments, this._config?.smooth_segments, this) })}
-      >
-      <mask id="gradient-current-inner-path">
-        ${current ? renderPath("arc current", innerPath, current, styleMap({ "stroke": "white", "visibility": numberState <= min && min >= 0 ? "hidden" : "visible" })) : nothing}
-      </mask>
-      <g class="background" style=${styleMap({ "opacity": secondaryObj.gauge_background_style?.opacity,
-        "--gauge-stroke-width": secondaryObj.gauge_background_style?.width ? `${secondaryObj.gauge_background_style?.width}px` : undefined })}
-      >
-        ${renderPath("arc clear", innerPath, undefined, styleMap({ "stroke": gaugeBackgroundColor && gaugeBackgroundColor != "adaptive" ? gaugeBackgroundColor : undefined }))}
-        ${this._config?.segments && (needle || secondaryObj.gauge_background_style?.color == "adaptive") ? svg`
-        <g class="segments" mask=${ifDefined(this._config.smooth_segments ? "url(#gradient-inner-path)" : undefined)}>
-          ${renderColorSegments(segments, min, max, INNER_RADIUS, this._config?.smooth_segments)}
-        </g>`
-        : nothing
-        }
-      </g>
-      ${current ? gaugeForegroundColor == "adaptive" ? svg`
-        <g class="foreground-segments" mask="url(#gradient-current-inner-path)" style=${styleMap({ "opacity": secondaryObj.gauge_foreground_style?.opacity })}>
-          ${renderColorSegments(segments, min, max, INNER_RADIUS, this._config?.smooth_segments)}
-        </g>
-        ` : renderPath("arc current", innerPath, current, styleMap({ "visibility": numberState <= min && min >= 0 ? "hidden" : "visible", "opacity": secondaryObj.gauge_foreground_style?.opacity })) : nothing}
-      ${needle ? svg`
-        ${renderPath("needle-border", innerPath, needle)}
-        ${renderPath("needle", innerPath, needle)}
-        `  : nothing}
-    </g>
-    `;
+    return this._renderGaugeRing("inner", templatedState ?? stateObj.state, min, max, innerPath, INNER_RADIUS, secondaryObj.needle, segments, secondaryObj.gauge_foreground_style, secondaryObj.gauge_background_style);
   }
 
   private _renderOutterSecondary(): TemplateResult {
@@ -461,7 +538,87 @@ export class ModernCircularGauge extends LitElement {
 
     const current = strokeDashArc(numberState, numberState, min, max, RADIUS);
 
-    return renderPath("dot", path, current, styleMap({ "opacity": secondaryObj.gauge_foreground_style?.opacity ?? 0.8, "stroke": secondaryObj.gauge_foreground_style?.color, "stroke-width": secondaryObj.gauge_foreground_style?.width }));
+    return svg`
+    ${!secondaryObj.gauge_foreground_style?.color ? renderPath("dot border secondary", path, current, styleMap({ "opacity": secondaryObj.gauge_foreground_style?.opacity ?? 1, "stroke-width": secondaryObj.gauge_foreground_style?.width })) : nothing}
+    ${renderPath("dot", path, current, styleMap({ "opacity": secondaryObj.gauge_foreground_style?.opacity ?? 1, "stroke": secondaryObj.gauge_foreground_style?.color, "stroke-width": secondaryObj.gauge_foreground_style?.width }))}
+    `;
+  }
+
+  private _renderTertiary(): TemplateResult {
+    const tertiary = this._config?.tertiary;
+    if (!tertiary) {
+      return svg``;
+    }
+
+    const iconCenter = !(this._config?.show_state ?? false) && (this._config?.show_icon ?? true);
+
+    if (typeof tertiary === "string") {
+      return svg`
+      <text
+        x="0" y="0"
+        class="tertiary-state"
+        dy=${iconCenter ? -19 : -16}
+      >
+        ${this._templateResults?.tertiary?.result ?? this._config?.tertiary}
+      </text>
+      `;
+    }
+
+    const bigState = typeof this._config?.secondary == "object" ? this._config?.secondary?.state_size == "big" : false;
+
+    if (!(tertiary.show_state ?? true) || bigState) {
+      return svg``;
+    }
+
+    const stateObj = this.hass.states[tertiary.entity || ""];
+    const templatedState = this._templateResults?.tertiaryEntity?.result;
+
+    if (!stateObj && templatedState === undefined) {
+      return svg``;
+    }
+
+    const attributes = stateObj?.attributes ?? undefined;
+    const unit = tertiary.unit ?? attributes?.unit_of_measurement;
+    const state = templatedState ?? stateObj.state;
+    const stateOverride = this._templateResults?.tertiaryStateText?.result ?? (isTemplate(String(tertiary.state_text)) ? "" : tertiary.state_text);
+    const entityState = stateOverride ?? formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj?.entity_id])) ?? templatedState;
+
+    let adaptiveColor;
+
+    if (tertiary.adaptive_state_color) {
+      if (tertiary.show_gauge == "outter") {
+        adaptiveColor = computeSegments(Number(state), (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config?.segments, this._config?.smooth_segments, this);
+      } else if (tertiary.show_gauge == "inner") {
+        adaptiveColor = computeSegments(Number(state), tertiary.segments, this._config?.smooth_segments, this);
+      }
+
+      if (tertiary.gauge_foreground_style?.color && tertiary.gauge_foreground_style?.color != "adaptive") {
+        adaptiveColor = tertiary.gauge_foreground_style?.color;
+      }
+    }
+
+    return svg`
+    <text
+      @action=${this._handleTertiaryAction}
+      .actionHandler=${actionHandler({
+        hasHold: hasAction(tertiary.hold_action),
+        hasDoubleClick: hasAction(tertiary.double_tap_action),
+      })}
+      class="tertiary-state ${classMap({ "adaptive": !!tertiary.adaptive_state_color })}"
+      style=${styleMap({ "fill": adaptiveColor ?? undefined })}
+      dy=${iconCenter ? -19 : -16}
+    >
+      ${entityState}
+      ${(tertiary.show_unit ?? true) ? svg`
+      <tspan
+        dx=0
+        dy=0
+      >
+        ${unit}
+      </tspan>
+      ` : nothing}
+    </text>
+    `;
   }
 
   private _renderSecondary(): TemplateResult {
@@ -470,13 +627,15 @@ export class ModernCircularGauge extends LitElement {
       return svg``;
     }
 
+    const iconCenter = !(this._config?.show_state ?? false) && (this._config?.show_icon ?? true);
+
     if (typeof secondary === "string") {
       this._hasSecondary = true;
       return svg`
       <text
         x="0" y="0"
         class="secondary"
-        dy=19
+        dy=${iconCenter ? 25 : 20}
       >
         ${this._templateResults?.secondary?.result ?? this._config?.secondary}
       </text>`;
@@ -507,9 +666,13 @@ export class ModernCircularGauge extends LitElement {
 
     if (secondary.adaptive_state_color) {
       if (secondary.show_gauge == "outter") {
-        secondaryColor = computeSegments(Number(state), this._config?.segments, this._config?.smooth_segments, this);
+        secondaryColor = computeSegments(Number(state), (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config?.segments, this._config?.smooth_segments, this);
       } else if (secondary.show_gauge == "inner") {
         secondaryColor = computeSegments(Number(state), secondary.segments, this._config?.smooth_segments, this);
+      }
+
+      if (secondary.gauge_foreground_style?.color && secondary.gauge_foreground_style?.color != "adaptive") {
+        secondaryColor = secondary.gauge_foreground_style?.color;
       }
     }
 
@@ -524,7 +687,7 @@ export class ModernCircularGauge extends LitElement {
       style=${styleMap({ "font-size": secondary.state_size == "big" ? this._calcStateSize(entityState) : undefined,
         "fill": secondaryColor ?? undefined
        })}
-      dy=${secondary.state_size == "big" ? 14 : 20}
+      dy=${secondary.state_size == "big" ? 14 : iconCenter ? 25 : 20}
     >
       ${entityState}
       ${(secondary.show_unit ?? true) ? svg`
@@ -572,7 +735,8 @@ export class ModernCircularGauge extends LitElement {
       max: this._config?.max,
       segments: this._config?.segments,
       stateText: this._config?.state_text,
-      secondary: this._config?.secondary
+      secondary: this._config?.secondary,
+      tertiary: this._config?.tertiary
     };
     
     Object.entries(templates).forEach(([key, value]) => {
@@ -598,6 +762,26 @@ export class ModernCircularGauge extends LitElement {
         if (typeof value == "string") {
           this._tryConnectKey(key, value);
         } else if (key == "secondarySegments") {
+          const segmentsStringified = JSON.stringify(value);
+          this._tryConnectKey(key, segmentsStringified);
+        }
+      });
+    }
+
+    if (typeof this._config?.tertiary != "string") {
+      const tertiary = this._config?.tertiary;
+      const tertiaryTemplates = {
+        tertiaryMin: tertiary?.min,
+        tertiaryMax: tertiary?.max,
+        tertiaryEntity: tertiary?.entity,
+        tertiaryStateText: tertiary?.state_text,
+        tertiarySegments: tertiary?.segments
+      };
+
+      Object.entries(tertiaryTemplates).forEach(([key, value]) => {
+        if (typeof value == "string") {
+          this._tryConnectKey(key, value);
+        } else if (key == "tertiarySegments") {
           const segmentsStringified = JSON.stringify(value);
           this._tryConnectKey(key, segmentsStringified);
         }
@@ -660,7 +844,8 @@ export class ModernCircularGauge extends LitElement {
       max: this._config?.max,
       segments: this._config?.segments,
       stateText: this._config?.state_text,
-      secondary: this._config?.secondary
+      secondary: this._config?.secondary,
+      tertiary: this._config?.tertiary
     };
     
     Object.entries(templates).forEach(([key, _]) => {
@@ -678,6 +863,21 @@ export class ModernCircularGauge extends LitElement {
       };
 
       Object.entries(secondaryTemplates).forEach(([key, _]) => {
+        this._tryDisconnectKey(key);
+      });
+    }
+
+    if (typeof this._config?.tertiary != "string") {
+      const tertiary = this._config?.tertiary;
+      const tertiaryTemplates = {
+        tertiaryMin: tertiary?.min,
+        tertiaryMax: tertiary?.max,
+        tertiaryEntity: tertiary?.entity,
+        tertiaryStateText: tertiary?.state_text,
+        tertiarySegments: tertiary?.segments
+      };
+
+      Object.entries(tertiaryTemplates).forEach(([key, _]) => {
         this._tryDisconnectKey(key);
       });
     }
@@ -726,6 +926,19 @@ export class ModernCircularGauge extends LitElement {
     }
   }
 
+  private _handleTertiaryAction(ev: ActionHandlerEvent) {
+    ev.stopPropagation();
+    if (typeof this._config?.tertiary != "string") {
+      const entity = typeof this._config?.tertiary != "string" ? this._config?.tertiary?.entity : "";
+      const config = {
+        ...this._config?.tertiary,
+        entity: isTemplate(entity ?? "") ? "" : entity
+      }
+      
+      handleAction(this, this.hass!, config, ev.detail.action!);
+    }
+  }
+
   public getGridOptions(): LovelaceGridOptions {
     return {
       columns: 6,
@@ -751,7 +964,11 @@ export class ModernCircularGauge extends LitElement {
   static get styles() {
     return css`
     :host {
-      --gauge-color: var(--primary-color);
+      --gauge-primary-color: var(--light-blue-color);
+      --gauge-secondary-color: var(--orange-color);
+      --gauge-tertiary-color: var(--light-green-color);
+
+      --gauge-color: var(--gauge-primary-color);
       --gauge-stroke-width: 6px;
       --inner-gauge-stroke-width: 4px;
       --gauge-header-font-size: 14px;
@@ -810,9 +1027,14 @@ export class ModernCircularGauge extends LitElement {
       margin-bottom: 0px;
     }
 
-    .secondary {
+    .secondary, .tertiary-state {
       font-size: 10px;
       fill: var(--secondary-text-color);
+      --gauge-color: var(--gauge-secondary-color);
+    }
+
+    .tertiary-state {
+      --gauge-color: var(--gauge-tertiary-color);
     }
 
     .state-label {
@@ -900,7 +1122,7 @@ export class ModernCircularGauge extends LitElement {
       color: var(--gauge-color);
     }
 
-    .value.adaptive, .secondary.adaptive {
+    .value.adaptive, .secondary.adaptive, .tertiary-state.adaptive {
       fill: var(--gauge-color);
     }
 
@@ -977,8 +1199,12 @@ export class ModernCircularGauge extends LitElement {
     }
 
     .inner {
-      --gauge-color: var(--accent-color);
+      --gauge-color: var(--gauge-secondary-color);
       --gauge-stroke-width: var(--inner-gauge-stroke-width);
+    }
+
+    .tertiary {
+      --gauge-color: var(--gauge-tertiary-color);
     }
 
     .dual-gauge {
@@ -991,7 +1217,11 @@ export class ModernCircularGauge extends LitElement {
       stroke-width: calc(var(--gauge-stroke-width) / 2);
       stroke: var(--primary-text-color);
       transition: all 1s ease 0s;
-      opacity: 0.5;
+    }
+
+    .dot.border {
+      stroke: var(--gauge-color);
+      stroke-width: var(--gauge-stroke-width);
     }
     `;
   }
