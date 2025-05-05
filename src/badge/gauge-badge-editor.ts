@@ -63,6 +63,12 @@ const FORM = [
         selector: { boolean: {} },
       },
       {
+        name: "show_unit",
+        label: "Show unit",
+        default: true,
+        selector: { boolean: {} },
+      },
+      {
         name: "show_icon",
         label: "Show icon",
         default: false,

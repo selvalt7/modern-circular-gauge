@@ -96,6 +96,7 @@ Templates are supported on selected options, configurable only via `yaml`.
 | show_name | `bool` | `false` | Show badge name
 | show_state | `bool` | `true` | Show entity state
 | show_icon | `bool` | `false` | Show icon
+| show_unit | `bool` | `true` | Show unit
 | needle | `bool` | `false` | 
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min
 | state_text | `string` | Entity state | Displayed state override. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
