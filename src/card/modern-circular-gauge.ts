@@ -276,7 +276,7 @@ export class ModernCircularGauge extends LitElement {
               ` : nothing}
           </g>
         </svg>
-        <svg class="state" overflow="visible" viewBox="-50 ${iconCenter ? -55 : -50} 100 100">
+        <svg class="state" overflow="visible" viewBox="-50 -50 100 100">
           ${this._config.show_state ? svg`
           <text
             x="0" y="0" 
@@ -550,12 +550,14 @@ export class ModernCircularGauge extends LitElement {
       return svg``;
     }
 
+    const iconCenter = !(this._config?.show_state ?? false) && (this._config?.show_icon ?? true);
+
     if (typeof tertiary === "string") {
       return svg`
       <text
         x="0" y="0"
         class="tertiary-state"
-        dy=-19
+        dy=${iconCenter ? -19 : -16}
       >
         ${this._templateResults?.tertiary?.result ?? this._config?.tertiary}
       </text>
@@ -596,7 +598,7 @@ export class ModernCircularGauge extends LitElement {
       })}
       class="tertiary-state ${classMap({ "adaptive": !!tertiary.adaptive_state_color })}"
       style=${styleMap({ "fill": adaptiveColor ?? undefined })}
-      dy=-16
+      dy=${iconCenter ? -19 : -16}
     >
       ${entityState}
       ${(tertiary.show_unit ?? true) && !tertiary.state_text ? svg`
@@ -617,13 +619,15 @@ export class ModernCircularGauge extends LitElement {
       return svg``;
     }
 
+    const iconCenter = !(this._config?.show_state ?? false) && (this._config?.show_icon ?? true);
+
     if (typeof secondary === "string") {
       this._hasSecondary = true;
       return svg`
       <text
         x="0" y="0"
         class="secondary"
-        dy=19
+        dy=${iconCenter ? 25 : 20}
       >
         ${this._templateResults?.secondary?.result ?? this._config?.secondary}
       </text>`;
@@ -671,7 +675,7 @@ export class ModernCircularGauge extends LitElement {
       style=${styleMap({ "font-size": secondary.state_size == "big" ? this._calcStateSize(entityState) : undefined,
         "fill": secondaryColor ?? undefined
        })}
-      dy=${secondary.state_size == "big" ? 14 : 20}
+      dy=${secondary.state_size == "big" ? 14 : iconCenter ? 25 : 20}
     >
       ${entityState}
       ${(secondary.show_unit ?? true) && !secondary.state_text ? svg`
