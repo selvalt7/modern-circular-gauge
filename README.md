@@ -126,6 +126,7 @@ Templates are supported on selected options, configurable only via `yaml`.
 | show_state | `boolean` | `true` | Show secondary state
 | show_unit | `boolean` | `true` | Show secondary unit
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min
+| state_font_size | `number` | `10` or `24` | State size in px
 | gauge_background_style | `object` | Optional | Gauge background style, see [gauge element style object](#gauge-element-style-object)
 | gauge_foreground_style | `object` | Optional | Gauge foreground style, see [gauge element style object](#gauge-element-style-object)
 | needle | `boolean` | `false` |
@@ -143,6 +144,7 @@ Templates are supported on selected options, configurable only via `yaml`.
 | show_state | `boolean` | `true` | Show secondary state
 | show_unit | `boolean` | `true` | Show secondary unit
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min
+| state_font_size | `number` | `10` | State size in px
 | gauge_background_style | `object` | Optional | Gauge background style, see [gauge element style object](#gauge-element-style-object)
 | gauge_foreground_style | `object` | Optional | Gauge foreground style, see [gauge element style object](#gauge-element-style-object)
 | needle | `boolean` | `false` |
