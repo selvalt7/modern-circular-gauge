@@ -377,8 +377,8 @@ export class ModernCircularGauge extends LitElement {
       `;
   }
 
-  private _calcStateSize(state: string): string {
-    let initialSize = this._config?.state_font_size ?? 24;
+  private _calcStateSize(state: string, initialStateSize?: number): string {
+    let initialSize = initialStateSize ?? this._config?.state_font_size ?? 24;
     if (typeof this._config?.secondary != "string") {
       initialSize -= this._config?.secondary?.show_gauge == "inner" ? 2 : 0;
       initialSize -= this._config?.secondary?.state_size == "big" ? 3 : 0;
@@ -605,7 +605,7 @@ export class ModernCircularGauge extends LitElement {
         hasDoubleClick: hasAction(tertiary.double_tap_action),
       })}
       class="tertiary-state ${classMap({ "adaptive": !!tertiary.adaptive_state_color })}"
-      style=${styleMap({ "fill": adaptiveColor ?? undefined })}
+      style=${styleMap({ "fill": adaptiveColor ?? undefined, "font-size": tertiary.state_font_size ? `${tertiary.state_font_size}px` : undefined })}
       dy=${iconCenter ? -19 : -16}
     >
       ${entityState}
@@ -684,7 +684,7 @@ export class ModernCircularGauge extends LitElement {
         hasDoubleClick: hasAction(secondary.double_tap_action),
       })}
       class="secondary ${classMap({ "dual-state": secondary.state_size == "big", "adaptive": !!secondary.adaptive_state_color })}"
-      style=${styleMap({ "font-size": secondary.state_size == "big" ? this._calcStateSize(entityState) : undefined,
+      style=${styleMap({ "font-size": secondary.state_size == "big" ? this._calcStateSize(entityState, secondary.state_font_size) : secondary.state_font_size ? `${secondary.state_font_size}px` : undefined,
         "fill": secondaryColor ?? undefined
        })}
       dy=${secondary.state_size == "big" ? 14 : iconCenter ? 25 : 20}
