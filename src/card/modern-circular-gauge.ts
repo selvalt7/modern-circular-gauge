@@ -586,7 +586,15 @@ export class ModernCircularGauge extends LitElement {
     let adaptiveColor;
 
     if (tertiary.adaptive_state_color) {
-      adaptiveColor = computeSegments(Number(state), tertiary.segments, this._config?.smooth_segments, this);
+      if (tertiary.show_gauge == "outter") {
+        adaptiveColor = computeSegments(Number(state), (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config?.segments, this._config?.smooth_segments, this);
+      } else if (tertiary.show_gauge == "inner") {
+        adaptiveColor = computeSegments(Number(state), tertiary.segments, this._config?.smooth_segments, this);
+      }
+
+      if (tertiary.gauge_foreground_style?.color && tertiary.gauge_foreground_style?.color != "adaptive") {
+        adaptiveColor = tertiary.gauge_foreground_style?.color;
+      }
     }
 
     return svg`
@@ -658,9 +666,13 @@ export class ModernCircularGauge extends LitElement {
 
     if (secondary.adaptive_state_color) {
       if (secondary.show_gauge == "outter") {
-        secondaryColor = computeSegments(Number(state), this._config?.segments, this._config?.smooth_segments, this);
+        secondaryColor = computeSegments(Number(state), (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config?.segments, this._config?.smooth_segments, this);
       } else if (secondary.show_gauge == "inner") {
         secondaryColor = computeSegments(Number(state), secondary.segments, this._config?.smooth_segments, this);
+      }
+
+      if (secondary.gauge_foreground_style?.color && secondary.gauge_foreground_style?.color != "adaptive") {
+        secondaryColor = secondary.gauge_foreground_style?.color;
       }
     }
 
