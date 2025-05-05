@@ -609,7 +609,7 @@ export class ModernCircularGauge extends LitElement {
       dy=${iconCenter ? -19 : -16}
     >
       ${entityState}
-      ${(tertiary.show_unit ?? true) && !tertiary.state_text ? svg`
+      ${(tertiary.show_unit ?? true) ? svg`
       <tspan
         dx=0
         dy=0
