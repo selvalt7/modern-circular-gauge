@@ -487,7 +487,7 @@ export class ModernCircularGauge extends LitElement {
       const current = strokeDashArc(numberState, numberState, min, max, RADIUS);
   
       return svg`
-      ${renderPath("dot border tertiary", path, current, styleMap({ "opacity": tertiaryObj.gauge_foreground_style?.opacity ?? 1, "stroke": tertiaryObj.gauge_foreground_style?.color, "stroke-width": tertiaryObj.gauge_foreground_style?.width }))}
+      ${!tertiaryObj.gauge_foreground_style?.color ? renderPath("dot border tertiary", path, current, styleMap({ "opacity": tertiaryObj.gauge_foreground_style?.opacity ?? 1, "stroke": tertiaryObj.gauge_foreground_style?.color, "stroke-width": tertiaryObj.gauge_foreground_style?.width })) : nothing}
       ${renderPath("dot", path, current, styleMap({ "opacity": tertiaryObj.gauge_foreground_style?.opacity ?? 1, "stroke": tertiaryObj.gauge_foreground_style?.color, "stroke-width": tertiaryObj.gauge_foreground_style?.width }))}
       `;
     }
@@ -539,7 +539,7 @@ export class ModernCircularGauge extends LitElement {
     const current = strokeDashArc(numberState, numberState, min, max, RADIUS);
 
     return svg`
-    ${renderPath("dot border secondary", path, current, styleMap({ "opacity": secondaryObj.gauge_foreground_style?.opacity ?? 1, "stroke": secondaryObj.gauge_foreground_style?.color, "stroke-width": secondaryObj.gauge_foreground_style?.width }))}
+    ${!secondaryObj.gauge_foreground_style?.color ? renderPath("dot border secondary", path, current, styleMap({ "opacity": secondaryObj.gauge_foreground_style?.opacity ?? 1, "stroke-width": secondaryObj.gauge_foreground_style?.width })) : nothing}
     ${renderPath("dot", path, current, styleMap({ "opacity": secondaryObj.gauge_foreground_style?.opacity ?? 1, "stroke": secondaryObj.gauge_foreground_style?.color, "stroke-width": secondaryObj.gauge_foreground_style?.width }))}
     `;
   }
