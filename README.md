@@ -8,14 +8,15 @@
 
 Modern look at the default Home Assistant gauge card
 
-![cards](https://github.com/user-attachments/assets/53a0000e-8f74-4dc1-8642-2703d9136c76)
+![cards](https://github.com/user-attachments/assets/91d0ad86-2851-4203-bc48-bb686001ecc1)
 
 ### Features
 - Card and badge gauge
 - Secondary info under the state with two size options
+- Tertiary info above the state
 - Sections support
 - Needle
-- Template support for `min`, `max`, `entity`, `name`, `icon` and `secondary` (YAML only)
+- Template support for `min`, `max`, `entity`, `name`, `icon`, `secondary` and `tertiary` (YAML only)
 - Color segments with gradient
 - Dual gauge
 - Dual value representing as a dot on the same gauge
