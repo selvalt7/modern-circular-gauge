@@ -1,3 +1,9 @@
+[![release][github-release]](https://github.com/selvalt7/modern-circular-gauge/releases/latest)
+![downloads-latest][github-latest-downloads]
+![downloads-total][github-downloads]
+![stars][github-stars]
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/B0B016VT8K)
 # Modern Circular Gauge
 
 Modern look at the default Home Assistant gauge card
@@ -384,3 +390,8 @@ The new `modern-circular-gauge.js` will be build in `dist` folder
 4. Refresh your browser to see changes
    
    **Note:** Make sure to disable browser cache
+
+[gitHub-release]: https://img.shields.io/github/v/release/selvalt7/modern-circular-gauge?style=flat
+[github-downloads]: https://img.shields.io/github/downloads/selvalt7/modern-circular-gauge/total?style=flat
+[github-latest-downloads]: https://img.shields.io/github/downloads/selvalt7/modern-circular-gauge/latest/total?style=flat
+[github-stars]: https://img.shields.io/github/stars/selvalt7/modern-circular-gauge?style=flat
