@@ -26,11 +26,9 @@ Modern look at the default Home Assistant gauge card
 
 ### HACS
 
-Add this repository via [HACS](https://hacs.xyz/) custom repositories for easy update
+Modern circular gauge is available in [HACS](https://hacs.xyz/).
 
-https://github.com/selvalt7/modern-circular-gauge
-
-([How to add Custom Repositories](https://hacs.xyz/docs/faq/custom_repositories/))
+Simply click on the button to open the repository in HACS or just search for "Modern Circular Gauge" and download it through the UI.
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=selvalt7&repository=modern-circular-gauge&category=plugin)
 
