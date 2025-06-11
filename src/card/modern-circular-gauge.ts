@@ -230,6 +230,12 @@ export class ModernCircularGauge extends LitElement {
         >
           <g transform="rotate(${ROTATE_ANGLE})">
             <defs>
+              ${needle ? svg`
+              <mask id="needle-border-mask">
+                <rect x="-60" y="-60" width="120" height="120" fill="white"/>
+                ${renderPath("needle-border", path, needle, styleMap({ "stroke": "black" }))}
+              </mask>`
+               : nothing}
               <mask id="gradient-path">
                 ${renderPath("arc", path, undefined, styleMap({ "stroke": "white", "stroke-width": this._config.gauge_background_style?.width ? `${this._config.gauge_background_style?.width}px` : undefined }))}
               </mask>
@@ -245,7 +251,7 @@ export class ModernCircularGauge extends LitElement {
                   : 'var(--inner-gauge-stroke-width)' : 'var(--inner-gauge-stroke-width)' }))}
               </mask>
             </defs>
-            <g class="background" style=${styleMap({ "opacity": this._config.gauge_background_style?.opacity,
+            <g class="background" mask=${ifDefined(needle ? "url(#needle-border-mask)" : undefined)} style=${styleMap({ "opacity": this._config.gauge_background_style?.opacity,
               "--gauge-stroke-width": this._config.gauge_background_style?.width ? `${this._config.gauge_background_style?.width}px` : undefined })}>
               ${renderPath("arc clear", path, undefined, styleMap({ "stroke": gaugeBackgroundColor && gaugeBackgroundColor != "adaptive" ? gaugeBackgroundColor : undefined }))}
               ${this._config.segments && (needle || this._config.gauge_background_style?.color == "adaptive") ? svg`
@@ -271,7 +277,6 @@ export class ModernCircularGauge extends LitElement {
               : nothing
             }
             ${needle ? svg`
-              ${renderPath("needle-border", path, needle)}
               ${renderPath("needle", path, needle)}
               ` : nothing}
           </g>
@@ -416,10 +421,16 @@ export class ModernCircularGauge extends LitElement {
     <g class="${gaugeName}"
       style=${styleMap({ "--gauge-color": foregroundStyle?.color && foregroundStyle.color != "adaptive" ? foregroundStyle.color : computeSegments(numberState, segments, this._config?.smooth_segments, this) })}
     >
+      ${needleArc ? svg`
+      <mask id="needle-border-${gaugeName}-mask">
+        <rect x="-60" y="-60" width="120" height="120" fill="white"/>
+        ${renderPath("needle-border", path, needleArc, styleMap({ "stroke": "black" }))}
+      </mask>`
+        : nothing}
       <mask id="gradient-current-${gaugeName}-path">
         ${current ? renderPath("arc current", d, current, styleMap({ "stroke": "white", "visibility": numberState <= min && min >= 0 ? "hidden" : "visible" })) : nothing}
       </mask>
-      <g class="background" style=${styleMap({ "opacity": backgroundStyle?.opacity,
+      <g class="background" mask=${ifDefined(needleArc ? `url(#needle-border-${gaugeName}-mask)` : undefined)} style=${styleMap({ "opacity": backgroundStyle?.opacity,
         "--gauge-stroke-width": backgroundStyle?.width ? `${backgroundStyle?.width}px` : undefined })}
       >
         ${renderPath("arc clear", d, undefined, styleMap({ "stroke": backgroundStyle?.color && backgroundStyle?.color != "adaptive" ? backgroundStyle?.color : undefined }))}
@@ -436,7 +447,6 @@ export class ModernCircularGauge extends LitElement {
         </g>
       ` : renderPath("arc current", d, current, styleMap({ "visibility": numberState <= min && min >= 0 ? "hidden" : "visible", "opacity": foregroundStyle?.opacity })) : nothing}
       ${needleArc ? svg`
-        ${renderPath("needle-border", d, needleArc)}
         ${renderPath("needle", d, needleArc)}
         ` : nothing}
     </g>
@@ -1193,7 +1203,7 @@ export class ModernCircularGauge extends LitElement {
     .needle-border {
       fill: none;
       stroke-linecap: round;
-      stroke-width: calc(var(--gauge-stroke-width) + 2px);
+      stroke-width: calc(var(--gauge-stroke-width) + 4px);
       stroke: var(--card-background-color);
       transition: all 1s ease 0s, stroke 0.3s ease-out;
     }
