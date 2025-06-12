@@ -1,9 +1,8 @@
-import { html, LitElement, css, svg, nothing, PropertyValues } from "lit";
+import { html, LitElement, css, svg, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { DEFAULT_MAX, DEFAULT_MIN, MAX_ANGLE } from "../const";
 import { GaugeElementConfig, SegmentsConfig } from "../card/type";
 import { styleMap } from "lit/directives/style-map.js";
-import { classMap } from "lit/directives/class-map.js";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { svgArc, renderPath, currentDashArc, strokeDashArc, renderColorSegments, computeSegments } from "../utils/gauge";
 

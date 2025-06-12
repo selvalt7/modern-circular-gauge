@@ -2,9 +2,9 @@ import { html, LitElement, TemplateResult, css, svg, nothing, PropertyValues } f
 import { customElement, property, state } from "lit/decorators.js";
 import { ActionHandlerEvent } from "../ha/data/lovelace";
 import { hasAction } from "../ha/panels/lovelace/common/has-action";
-import { svgArc, strokeDashArc, renderColorSegments, computeSegments, renderPath, currentDashArc } from "../utils/gauge";
+import { svgArc, computeSegments, renderPath } from "../utils/gauge";
 import { registerCustomCard } from "../utils/custom-cards";
-import type { BaseEntityConfig, GaugeElementConfig, ModernCircularGaugeConfig, SecondaryEntity, SegmentsConfig, TertiaryEntity } from "./type";
+import type { ModernCircularGaugeConfig, SecondaryEntity, SegmentsConfig, TertiaryEntity } from "./type";
 import { LovelaceLayoutOptions, LovelaceGridOptions } from "../ha/data/lovelace";
 import { handleAction } from "../ha/handle-action";
 import { HomeAssistant } from "../ha/types";
@@ -398,7 +398,6 @@ export class ModernCircularGauge extends LitElement {
         .startFromZero=${tertiaryObj?.start_from_zero}
       ></modern-circular-gauge-element>
       `;
-      // return this._renderGaugeRing("tertiary", templatedState ?? stateObj.state, min, max, TERTIARY_PATH, TERTIARY_RADIUS, tertiaryObj.needle, segments, tertiaryObj.gauge_foreground_style, tertiaryObj.gauge_background_style);
     } else {
       if (!stateObj && templatedState === undefined) {
         return html``;
