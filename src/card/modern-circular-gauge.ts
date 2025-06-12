@@ -216,30 +216,33 @@ export class ModernCircularGauge extends LitElement {
       ` : nothing}
       <div
         class="container${classMap({ "dual-gauge": typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner" })}"
+        style=${styleMap({"--gauge-color": this._config.gauge_foreground_style?.color && this._config.gauge_foreground_style?.color != "adaptive" ? this._config.gauge_foreground_style?.color : computeSegments(numberState, this._config.segments, this._config.smoothSegments, this)})}
       >
-        <modern-circular-gauge-element
-          .min=${min}
-          .max=${max}
-          .value=${numberState}
-          .radius=${RADIUS}
-          .maxAngle=${MAX_ANGLE}
-          .segments=${segments}
-          .smoothSegments=${this._config.smooth_segments}
-          .foregroundStyle=${this._config.gauge_foreground_style}
-          .backgroundStyle=${this._config.gauge_background_style}
-          .needle=${this._config.needle}
-          .startFromZero=${this._config.start_from_zero}
-        ></modern-circular-gauge-element>
-        ${typeof this._config.secondary != "string" ? 
-        this._config.secondary?.show_gauge == "outter" || this._config.secondary?.show_gauge == "inner" ?
-        this._renderSecondaryGauge()
-        : nothing
-        : nothing}
-        ${typeof this._config.tertiary != "string" ? 
-        this._config.tertiary?.show_gauge == "outter" || this._config.tertiary?.show_gauge == "inner" ?
-        this._renderTertiaryRing()
-        : nothing
-        : nothing}
+        <div class="gauge-container">
+          <modern-circular-gauge-element
+            .min=${min}
+            .max=${max}
+            .value=${numberState}
+            .radius=${RADIUS}
+            .maxAngle=${MAX_ANGLE}
+            .segments=${segments}
+            .smoothSegments=${this._config.smooth_segments}
+            .foregroundStyle=${this._config.gauge_foreground_style}
+            .backgroundStyle=${this._config.gauge_background_style}
+            .needle=${this._config.needle}
+            .startFromZero=${this._config.start_from_zero}
+          ></modern-circular-gauge-element>
+          ${typeof this._config.secondary != "string" ? 
+          this._config.secondary?.show_gauge == "outter" || this._config.secondary?.show_gauge == "inner" ?
+          this._renderSecondaryGauge()
+          : nothing
+          : nothing}
+          ${typeof this._config.tertiary != "string" ? 
+          this._config.tertiary?.show_gauge == "outter" || this._config.tertiary?.show_gauge == "inner" ?
+          this._renderTertiaryRing()
+          : nothing
+          : nothing}
+        </div>
         <svg class="state" overflow="visible" viewBox="-50 -50 100 100">
           ${this._config.show_state ? svg`
           <text
@@ -337,6 +340,7 @@ export class ModernCircularGauge extends LitElement {
               ` : html`<ha-svg-icon class="warning-icon" .path=${icon}></ha-svg-icon>`}
           </div>
         </div>
+      </div>
       </ha-card>
       `;
   }
@@ -381,13 +385,14 @@ export class ModernCircularGauge extends LitElement {
       const min = Number(this._templateResults?.tertiaryMin?.result ?? tertiaryObj.min) || DEFAULT_MIN;
       const max = Number(this._templateResults?.tertiaryMax?.result ?? tertiaryObj.max) || DEFAULT_MAX;
       const segments = (this._templateResults?.tertiarySegments as unknown) as SegmentsConfig[] ?? tertiaryObj.segments;
+      const numberState = Number(templatedState ?? stateObj.state);
 
       return html`
       <modern-circular-gauge-element
         class="tertiary"
         .min=${min}
         .max=${max}
-        .value=${templatedState ?? stateObj.state}
+        .value=${numberState}
         .radius=${TERTIARY_RADIUS}
         .maxAngle=${MAX_ANGLE}
         .segments=${segments}
@@ -421,7 +426,7 @@ export class ModernCircularGauge extends LitElement {
         class="tertiary"
         .min=${min}
         .max=${max}
-        .value=${templatedState ?? stateObj.state}
+        .value=${numberState}
         .radius=${RADIUS}
         .maxAngle=${MAX_ANGLE}
         .foregroundStyle=${tertiaryObj?.gauge_foreground_style}
@@ -455,13 +460,14 @@ export class ModernCircularGauge extends LitElement {
       const min = Number(this._templateResults?.secondaryMin?.result ?? secondaryObj.min) || DEFAULT_MIN; 
       const max = Number(this._templateResults?.secondaryMax?.result ?? secondaryObj.max) || DEFAULT_MAX;
       const segments = (this._templateResults?.secondarySegments as unknown) as SegmentsConfig[] ?? secondaryObj.segments;
+      const numberState = Number(templatedState ?? stateObj.state);
 
       return html`
       <modern-circular-gauge-element
         class="secondary"
         .min=${min}
         .max=${max}
-        .value=${templatedState ?? stateObj.state}
+        .value=${numberState}
         .radius=${INNER_RADIUS}
         .maxAngle=${MAX_ANGLE}
         .segments=${segments}
@@ -495,7 +501,7 @@ export class ModernCircularGauge extends LitElement {
         class="secondary"
         .min=${min}
         .max=${max}
-        .value=${templatedState ?? stateObj.state}
+        .value=${numberState}
         .radius=${RADIUS}
         .maxAngle=${MAX_ANGLE}
         .foregroundStyle=${secondaryObj?.gauge_foreground_style}
@@ -1109,6 +1115,12 @@ export class ModernCircularGauge extends LitElement {
     .unit {
       font-size: .33em;
       opacity: 0.6;
+    }
+
+    .gauge-container {
+      height: 100%;
+      width: 100%;
+      display: block;
     }
 
     modern-circular-gauge-element.secondary, modern-circular-gauge-element.tertiary {
