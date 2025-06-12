@@ -2,9 +2,9 @@ import { html, LitElement, TemplateResult, css, svg, nothing, PropertyValues } f
 import { customElement, property, state } from "lit/decorators.js";
 import { ActionHandlerEvent } from "../ha/data/lovelace";
 import { hasAction } from "../ha/panels/lovelace/common/has-action";
-import { svgArc, strokeDashArc, renderColorSegments, computeSegments, renderPath, currentDashArc } from "../utils/gauge";
+import { svgArc, computeSegments, renderPath } from "../utils/gauge";
 import { registerCustomCard } from "../utils/custom-cards";
-import type { BaseEntityConfig, GaugeElementConfig, ModernCircularGaugeConfig, SecondaryEntity, SegmentsConfig, TertiaryEntity } from "./type";
+import type { ModernCircularGaugeConfig, SecondaryEntity, SegmentsConfig, TertiaryEntity } from "./type";
 import { LovelaceLayoutOptions, LovelaceGridOptions } from "../ha/data/lovelace";
 import { handleAction } from "../ha/handle-action";
 import { HomeAssistant } from "../ha/types";
@@ -18,6 +18,7 @@ import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS, MAX_ANGLE } from "../c
 import { RenderTemplateResult, subscribeRenderTemplate } from "../ha/data/ws-templates";
 import { isTemplate } from "../utils/template";
 import { mdiHelp } from "@mdi/js";
+import "../components/modern-circular-gauge-element"
 
 const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
 const RADIUS = 47;
@@ -180,18 +181,12 @@ export class ModernCircularGauge extends LitElement {
     const min = Number(this._templateResults?.min?.result ?? this._config.min) || DEFAULT_MIN;
     const max = Number(this._templateResults?.max?.result ?? this._config.max) || DEFAULT_MAX;
 
-    const current = this._config.needle ? undefined : currentDashArc(numberState, min, max, RADIUS, this._config.start_from_zero);
-    const needle = this._config.needle ? strokeDashArc(numberState, numberState, min, max, RADIUS) : undefined;
-
     const state = templatedState ?? stateObj.state;
     const stateOverride = this._templateResults?.stateText?.result ?? (isTemplate(String(this._config.state_text)) ? "" : this._config.state_text);
     const entityState = stateOverride ?? formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj?.entity_id])) ?? templatedState;
 
     const iconCenter = !(this._config.show_state ?? false) && (this._config.show_icon ?? true);
     const segments = (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config.segments;
-
-    const gaugeBackgroundColor = this._config.gauge_background_style?.color;
-    const gaugeForegroundColor = this._config.gauge_foreground_style?.color;
 
     return html`
     <ha-card
@@ -219,63 +214,35 @@ export class ModernCircularGauge extends LitElement {
         </p>
       </div>
       ` : nothing}
-      <div class="container"
-        style=${styleMap({ "--gauge-color": gaugeForegroundColor && gaugeForegroundColor != "adaptive" ? gaugeForegroundColor : computeSegments(numberState, segments, this._config.smooth_segments, this) })}
+      <div
+        class="container${classMap({ "dual-gauge": typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner" })}"
+        style=${styleMap({"--gauge-color": this._config.gauge_foreground_style?.color && this._config.gauge_foreground_style?.color != "adaptive" ? this._config.gauge_foreground_style?.color : computeSegments(numberState, this._config.segments, this._config.smoothSegments, this)})}
       >
-        <svg viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid"
-          overflow="visible"
-          style=${styleMap({ "--gauge-stroke-width": this._config.gauge_foreground_style?.width ? `${this._config.gauge_foreground_style?.width}px` : undefined,
-            "--inner-gauge-stroke-width": typeof this._config.secondary == "object" ? this._config.secondary?.gauge_foreground_style?.width ? `${this._config.secondary?.gauge_foreground_style?.width}px` : undefined : undefined })}
-          class=${classMap({ "dual-gauge": typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner" })}
-        >
-          <g transform="rotate(${ROTATE_ANGLE})">
-            <defs>
-              <mask id="gradient-path">
-                ${renderPath("arc", path, undefined, styleMap({ "stroke": "white", "stroke-width": this._config.gauge_background_style?.width ? `${this._config.gauge_background_style?.width}px` : undefined }))}
-              </mask>
-              <mask id="gradient-current-path">
-                ${current ? renderPath("arc current", path, current, styleMap({ "stroke": "white", "visibility": numberState <= min && min >= 0 ? "hidden" : "visible" })) : nothing}
-              </mask>
-              <mask id="gradient-inner-path">
-                ${renderPath("arc", innerPath, undefined, styleMap({ "stroke": "white", "stroke-width": typeof this._config.secondary == "object" ? this._config.secondary?.gauge_background_style?.width ? `${this._config.secondary?.gauge_background_style?.width}px` 
-                  : 'var(--inner-gauge-stroke-width)' : 'var(--inner-gauge-stroke-width)' }))}
-              </mask>
-              <mask id="gradient-tertiary-path">
-                ${renderPath("arc", TERTIARY_PATH, undefined, styleMap({ "stroke": "white", "stroke-width": typeof this._config.tertiary == "object" ? this._config.tertiary?.gauge_background_style?.width ? `${this._config.tertiary?.gauge_background_style?.width}px`
-                  : 'var(--inner-gauge-stroke-width)' : 'var(--inner-gauge-stroke-width)' }))}
-              </mask>
-            </defs>
-            <g class="background" style=${styleMap({ "opacity": this._config.gauge_background_style?.opacity,
-              "--gauge-stroke-width": this._config.gauge_background_style?.width ? `${this._config.gauge_background_style?.width}px` : undefined })}>
-              ${renderPath("arc clear", path, undefined, styleMap({ "stroke": gaugeBackgroundColor && gaugeBackgroundColor != "adaptive" ? gaugeBackgroundColor : undefined }))}
-              ${this._config.segments && (needle || this._config.gauge_background_style?.color == "adaptive") ? svg`
-              <g class="segments" mask=${ifDefined(this._config.smooth_segments ? "url(#gradient-path)" : undefined)}>
-                ${renderColorSegments(segments, min, max, RADIUS, this._config?.smooth_segments)}
-              </g>`
-              : nothing
-              }
-            </g>
-            ${current ? gaugeForegroundColor == "adaptive" ? svg`
-              <g class="foreground-segments" mask="url(#gradient-current-path)" style=${styleMap({ "opacity": this._config.gauge_foreground_style?.opacity })}>
-                ${renderColorSegments(segments, min, max, RADIUS, this._config?.smooth_segments)}
-              </g>
-              ` : renderPath("arc current", path, current, styleMap({ "visibility": numberState <= min && min >= 0 ? "hidden" : "visible", "opacity": this._config.gauge_foreground_style?.opacity })) : nothing}
-            ${typeof this._config.secondary != "string" ? 
-              this._config.secondary?.show_gauge == "outter" ? this._renderOutterSecondary()
-              : this._config.secondary?.show_gauge == "inner" ? this._renderInnerGauge()
-              : nothing
-              : nothing}
-            ${typeof this._config.tertiary != "string" ? 
-              this._config.tertiary?.show_gauge == "inner" || this._config.tertiary?.show_gauge == "outter" ? this._renderTertiaryRing()
-              : nothing
-              : nothing
-            }
-            ${needle ? svg`
-              ${renderPath("needle-border", path, needle)}
-              ${renderPath("needle", path, needle)}
-              ` : nothing}
-          </g>
-        </svg>
+        <div class="gauge-container">
+          <modern-circular-gauge-element
+            .min=${min}
+            .max=${max}
+            .value=${numberState}
+            .radius=${RADIUS}
+            .maxAngle=${MAX_ANGLE}
+            .segments=${segments}
+            .smoothSegments=${this._config.smooth_segments}
+            .foregroundStyle=${this._config.gauge_foreground_style}
+            .backgroundStyle=${this._config.gauge_background_style}
+            .needle=${this._config.needle}
+            .startFromZero=${this._config.start_from_zero}
+          ></modern-circular-gauge-element>
+          ${typeof this._config.secondary != "string" ? 
+          this._config.secondary?.show_gauge == "outter" || this._config.secondary?.show_gauge == "inner" ?
+          this._renderSecondaryGauge()
+          : nothing
+          : nothing}
+          ${typeof this._config.tertiary != "string" ? 
+          this._config.tertiary?.show_gauge == "outter" || this._config.tertiary?.show_gauge == "inner" ?
+          this._renderTertiaryRing()
+          : nothing
+          : nothing}
+        </div>
         <svg class="state" overflow="visible" viewBox="-50 -50 100 100">
           ${this._config.show_state ? svg`
           <text
@@ -373,6 +340,7 @@ export class ModernCircularGauge extends LitElement {
               ` : html`<ha-svg-icon class="warning-icon" .path=${icon}></ha-svg-icon>`}
           </div>
         </div>
+      </div>
       </ha-card>
       `;
   }
@@ -394,154 +362,154 @@ export class ModernCircularGauge extends LitElement {
     return `${initialSize}px`;
   }
 
-  private _renderGaugeRing(gaugeName: string, state: string, min: number, max: number, d: string, radius: number, needle?: boolean , segments?: SegmentsConfig[], foregroundStyle?: GaugeElementConfig, backgroundStyle?: GaugeElementConfig): TemplateResult {
-    const numberState = Number(state);
-
-    if (state === "unavailable") {
-      return svg`
-      <g class="${gaugeName}">
-        ${renderPath("arc clear", d)}
-      </g>
-      `;
-    }
-
-    if (isNaN(numberState)) {
-      return svg``;
-    }
-
-    const current = needle ? undefined : currentDashArc(numberState, min, max, radius, this._config?.start_from_zero);
-    const needleArc = needle ? strokeDashArc(numberState, numberState, min, max, radius) : undefined;
-
-    return svg`
-    <g class="${gaugeName}"
-      style=${styleMap({ "--gauge-color": foregroundStyle?.color && foregroundStyle.color != "adaptive" ? foregroundStyle.color : computeSegments(numberState, segments, this._config?.smooth_segments, this) })}
-    >
-      <mask id="gradient-current-${gaugeName}-path">
-        ${current ? renderPath("arc current", d, current, styleMap({ "stroke": "white", "visibility": numberState <= min && min >= 0 ? "hidden" : "visible" })) : nothing}
-      </mask>
-      <g class="background" style=${styleMap({ "opacity": backgroundStyle?.opacity,
-        "--gauge-stroke-width": backgroundStyle?.width ? `${backgroundStyle?.width}px` : undefined })}
-      >
-        ${renderPath("arc clear", d, undefined, styleMap({ "stroke": backgroundStyle?.color && backgroundStyle?.color != "adaptive" ? backgroundStyle?.color : undefined }))}
-        ${segments && (needleArc || backgroundStyle?.color == "adaptive") ? svg`
-        <g class="segments" mask=${ifDefined(this._config?.smooth_segments ? `url(#gradient-${gaugeName}-path)` : undefined)}>
-          ${renderColorSegments(segments, min, max, radius, this._config?.smooth_segments)}
-        </g>`
-        : nothing
-        }
-      </g>
-      ${current ? foregroundStyle?.color == "adaptive" && segments ? svg`
-        <g class="foreground-segments" mask="url(#gradient-current-${gaugeName}-path)" style=${styleMap({ "opacity": foregroundStyle?.opacity })}>
-          ${renderColorSegments(segments, min, max, radius, this._config?.smooth_segments)}
-        </g>
-      ` : renderPath("arc current", d, current, styleMap({ "visibility": numberState <= min && min >= 0 ? "hidden" : "visible", "opacity": foregroundStyle?.opacity })) : nothing}
-      ${needleArc ? svg`
-        ${renderPath("needle-border", d, needleArc)}
-        ${renderPath("needle", d, needleArc)}
-        ` : nothing}
-    </g>
-    `;
-  }
-
   private _renderTertiaryRing(): TemplateResult {
     const tertiaryObj = this._config?.tertiary as TertiaryEntity;
     const stateObj = this.hass.states[tertiaryObj.entity || ""];
     const templatedState = this._templateResults?.tertiaryEntity?.result;
     
     if (!tertiaryObj) {
-      return svg``;
+      return html``;
     }
 
     if (tertiaryObj.show_gauge == "inner") {
       if (!stateObj && templatedState === undefined) {
-        return svg`
-        <g class="tertiary">
-          ${renderPath("arc clear", TERTIARY_PATH)}
-        </g>
+        return html`
+        <modern-circular-gauge-element
+          class="tertiary"
+          .radius=${TERTIARY_RADIUS}
+          .maxAngle=${MAX_ANGLE}
+        ></modern-circular-gauge-element>
         `;
       }
 
       const min = Number(this._templateResults?.tertiaryMin?.result ?? tertiaryObj.min) || DEFAULT_MIN;
       const max = Number(this._templateResults?.tertiaryMax?.result ?? tertiaryObj.max) || DEFAULT_MAX;
       const segments = (this._templateResults?.tertiarySegments as unknown) as SegmentsConfig[] ?? tertiaryObj.segments;
+      const numberState = Number(templatedState ?? stateObj.state);
 
-      return this._renderGaugeRing("tertiary", templatedState ?? stateObj.state, min, max, TERTIARY_PATH, TERTIARY_RADIUS, tertiaryObj.needle, segments, tertiaryObj.gauge_foreground_style, tertiaryObj.gauge_background_style);
+      return html`
+      <modern-circular-gauge-element
+        class="tertiary"
+        .min=${min}
+        .max=${max}
+        .value=${numberState}
+        .radius=${TERTIARY_RADIUS}
+        .maxAngle=${MAX_ANGLE}
+        .segments=${segments}
+        .smoothSegments=${this._config?.smooth_segments}
+        .foregroundStyle=${tertiaryObj?.gauge_foreground_style}
+        .backgroundStyle=${tertiaryObj?.gauge_background_style}
+        .needle=${tertiaryObj?.needle}
+        .startFromZero=${tertiaryObj?.start_from_zero}
+      ></modern-circular-gauge-element>
+      `;
     } else {
       if (!stateObj && templatedState === undefined) {
-        return svg``;
+        return html``;
       }
 
       const numberState = Number(templatedState ?? stateObj.state);
 
       if (stateObj?.state === "unavailable" && templatedState) {
-        return svg``;
+        return html``;
       }
   
       if (isNaN(numberState)) {
-        return svg``;
+        return html``;
       }
   
       const min = Number(this._templateResults?.min?.result ?? this._config?.min) || DEFAULT_MIN; 
       const max = Number(this._templateResults?.max?.result ?? this._config?.max) || DEFAULT_MAX;
   
-      const current = strokeDashArc(numberState, numberState, min, max, RADIUS);
-  
-      return svg`
-      ${!tertiaryObj.gauge_foreground_style?.color ? renderPath("dot border tertiary", path, current, styleMap({ "opacity": tertiaryObj.gauge_foreground_style?.opacity ?? 1, "stroke": tertiaryObj.gauge_foreground_style?.color, "stroke-width": tertiaryObj.gauge_foreground_style?.width })) : nothing}
-      ${renderPath("dot", path, current, styleMap({ "opacity": tertiaryObj.gauge_foreground_style?.opacity ?? 1, "stroke": tertiaryObj.gauge_foreground_style?.color, "stroke-width": tertiaryObj.gauge_foreground_style?.width }))}
+      return html`
+      <modern-circular-gauge-element
+        class="tertiary"
+        .min=${min}
+        .max=${max}
+        .value=${numberState}
+        .radius=${RADIUS}
+        .maxAngle=${MAX_ANGLE}
+        .foregroundStyle=${tertiaryObj?.gauge_foreground_style}
+        .backgroundStyle=${tertiaryObj?.gauge_background_style}
+        .outter=${true}
+      ></modern-circular-gauge-element>
       `;
     }
   }
 
-  private _renderInnerGauge(): TemplateResult {
+  private _renderSecondaryGauge(): TemplateResult {
     const secondaryObj = this._config?.secondary as SecondaryEntity;
     const stateObj = this.hass.states[secondaryObj.entity || ""];
     const templatedState = this._templateResults?.secondaryEntity?.result;
 
+    if (!secondaryObj) {
+      return html``;
+    }
     
-    if ((!stateObj || !secondaryObj) && templatedState === undefined) {
-      return svg`
-      <g class="inner">
-        ${renderPath("arc clear", innerPath)}
-      </g>
+    if (secondaryObj.show_gauge == "inner") {
+      if (!stateObj && templatedState === undefined) {
+        return html`
+        <modern-circular-gauge-element
+          class="secondary"
+          .radius=${INNER_RADIUS}
+          .maxAngle=${MAX_ANGLE}
+        ></modern-circular-gauge-element>
+        `;
+      }
+
+      const min = Number(this._templateResults?.secondaryMin?.result ?? secondaryObj.min) || DEFAULT_MIN; 
+      const max = Number(this._templateResults?.secondaryMax?.result ?? secondaryObj.max) || DEFAULT_MAX;
+      const segments = (this._templateResults?.secondarySegments as unknown) as SegmentsConfig[] ?? secondaryObj.segments;
+      const numberState = Number(templatedState ?? stateObj.state);
+
+      return html`
+      <modern-circular-gauge-element
+        class="secondary"
+        .min=${min}
+        .max=${max}
+        .value=${numberState}
+        .radius=${INNER_RADIUS}
+        .maxAngle=${MAX_ANGLE}
+        .segments=${segments}
+        .smoothSegments=${this._config?.smooth_segments}
+        .foregroundStyle=${secondaryObj?.gauge_foreground_style}
+        .backgroundStyle=${secondaryObj?.gauge_background_style}
+        .needle=${secondaryObj?.needle}
+        .startFromZero=${secondaryObj.start_from_zero}
+      ></modern-circular-gauge-element>
+      `;
+    } else {
+      if (!stateObj && templatedState === undefined) {
+        return html``;
+      }
+
+      const numberState = Number(templatedState ?? stateObj.state);
+
+      if (stateObj?.state === "unavailable" && templatedState) {
+        return html``;
+      }
+  
+      if (isNaN(numberState)) {
+        return html``;
+      }
+  
+      const min = Number(this._templateResults?.min?.result ?? this._config?.min) || DEFAULT_MIN; 
+      const max = Number(this._templateResults?.max?.result ?? this._config?.max) || DEFAULT_MAX;
+  
+      return html`
+      <modern-circular-gauge-element
+        class="secondary"
+        .min=${min}
+        .max=${max}
+        .value=${numberState}
+        .radius=${RADIUS}
+        .maxAngle=${MAX_ANGLE}
+        .foregroundStyle=${secondaryObj?.gauge_foreground_style}
+        .backgroundStyle=${secondaryObj?.gauge_background_style}
+        .outter=${true}
+      ></modern-circular-gauge-element>
       `;
     }
-
-    const min = Number(this._templateResults?.secondaryMin?.result ?? secondaryObj.min) || DEFAULT_MIN; 
-    const max = Number(this._templateResults?.secondaryMax?.result ?? secondaryObj.max) || DEFAULT_MAX;
-    const segments = (this._templateResults?.secondarySegments as unknown) as SegmentsConfig[] ?? secondaryObj.segments;
-
-    return this._renderGaugeRing("inner", templatedState ?? stateObj.state, min, max, innerPath, INNER_RADIUS, secondaryObj.needle, segments, secondaryObj.gauge_foreground_style, secondaryObj.gauge_background_style);
-  }
-
-  private _renderOutterSecondary(): TemplateResult {
-    const secondaryObj = this._config?.secondary as SecondaryEntity;
-    const stateObj = this.hass.states[secondaryObj.entity || ""];
-    const templatedState = this._templateResults?.secondaryEntity?.result;
-
-    if (!stateObj && templatedState === undefined) {
-      return svg``;
-    }
-
-    const numberState = Number(templatedState ?? stateObj.state);
-
-    if (stateObj?.state === "unavailable" && templatedState) {
-      return svg``;
-    }
-
-    if (isNaN(numberState)) {
-      return svg``;
-    }
-
-    const min = Number(this._templateResults?.min?.result ?? this._config?.min) || DEFAULT_MIN; 
-    const max = Number(this._templateResults?.max?.result ?? this._config?.max) || DEFAULT_MAX;
-
-    const current = strokeDashArc(numberState, numberState, min, max, RADIUS);
-
-    return svg`
-    ${!secondaryObj.gauge_foreground_style?.color ? renderPath("dot border secondary", path, current, styleMap({ "opacity": secondaryObj.gauge_foreground_style?.opacity ?? 1, "stroke-width": secondaryObj.gauge_foreground_style?.width })) : nothing}
-    ${renderPath("dot", path, current, styleMap({ "opacity": secondaryObj.gauge_foreground_style?.opacity ?? 1, "stroke": secondaryObj.gauge_foreground_style?.color, "stroke-width": secondaryObj.gauge_foreground_style?.width }))}
-    `;
   }
 
   private _renderTertiary(): TemplateResult {
@@ -1149,6 +1117,20 @@ export class ModernCircularGauge extends LitElement {
       opacity: 0.6;
     }
 
+    .gauge-container {
+      height: 100%;
+      width: 100%;
+      display: block;
+    }
+
+    modern-circular-gauge-element.secondary, modern-circular-gauge-element.tertiary {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+    }
+
     svg {
       width: 100%;
       height: 100%;
@@ -1207,7 +1189,7 @@ export class ModernCircularGauge extends LitElement {
       --gauge-color: var(--gauge-tertiary-color);
     }
 
-    .dual-gauge {
+    .dual-gauge modern-circular-gauge-element {
       --gauge-stroke-width: 4px;
     }
 
