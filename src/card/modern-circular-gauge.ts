@@ -352,7 +352,7 @@ export class ModernCircularGauge extends LitElement {
       }
     }
 
-    gauges.push({ radius: RADIUS, width: this._config?.gauge_foreground_style?.width ?? gauges.length > 1 ? 4 : 6 });
+    gauges.push({ radius: RADIUS, width: this._config?.gauge_foreground_style?.width ?? (gauges.length > 1 ? 4 : 6) });
     const gauge = gauges.reduce((r, e) => r.radius < e.radius ? r : e);
 
     return (gauge.radius - gauge.width) * 2;
