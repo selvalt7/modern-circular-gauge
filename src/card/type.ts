@@ -68,8 +68,6 @@ export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     gauge_width?: number;
     gauge_background_style?: GaugeElementConfig;
     gauge_foreground_style?: GaugeElementConfig;
-    state_scaling_limit?: number;
-    state_scaling_multiplier?: number;
     segments?: SegmentsConfig[];
     secondary?: SecondaryEntity | string;
     tertiary?: TertiaryEntity | string;
