@@ -164,11 +164,10 @@ export class ModernCircularGaugeElement extends LitElement {
     .segment {
       fill: none;
       stroke-width: var(--gauge-stroke-width);
-      filter: brightness(100%);
     }
 
     .segments {
-      opacity: 0.35;
+      opacity: 0.45;
     }
 
     .needle {
