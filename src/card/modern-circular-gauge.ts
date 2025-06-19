@@ -1,4 +1,4 @@
-import { html, LitElement, TemplateResult, css, svg, nothing, PropertyValues } from "lit";
+import { html, LitElement, TemplateResult, css, nothing, PropertyValues } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { ActionHandlerEvent } from "../ha/data/lovelace";
 import { hasAction } from "../ha/panels/lovelace/common/has-action";
@@ -9,7 +9,6 @@ import { LovelaceLayoutOptions, LovelaceGridOptions } from "../ha/data/lovelace"
 import { handleAction } from "../ha/handle-action";
 import { HomeAssistant } from "../ha/types";
 import { HassEntity, UnsubscribeFunc } from "home-assistant-js-websocket";
-import { getNumberFormatOptions, formatNumber } from "../utils/format_number";
 import { classMap } from "lit/directives/class-map.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { ifDefined } from "lit/directives/if-defined.js";
@@ -18,7 +17,8 @@ import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS, MAX_ANGLE } from "../c
 import { RenderTemplateResult, subscribeRenderTemplate } from "../ha/data/ws-templates";
 import { isTemplate } from "../utils/template";
 import { mdiHelp } from "@mdi/js";
-import "../components/modern-circular-gauge-element"
+import "../components/modern-circular-gauge-element";
+import "../components/modern-circular-gauge-state";
 
 const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
 const RADIUS = 47;
@@ -65,6 +65,8 @@ export class ModernCircularGauge extends LitElement {
   @state() private _templateResults?: Partial<Record<string, RenderTemplateResult | undefined>> = {};
 
   @state() private _unsubRenderTemplates?: Map<string, Promise<UnsubscribeFunc>> = new Map();
+
+  @state() private _stateMargin?: number;
 
   public static async getConfigElement(): Promise<HTMLElement> {
     await import("./mcg-editor");
@@ -130,6 +132,10 @@ export class ModernCircularGauge extends LitElement {
     this._tryDisconnect();
   }
 
+  protected firstUpdated(_changedProperties: PropertyValues): void {
+    this._stateMargin = this._calcStateMargin();
+  }
+
   protected updated(changedProps: PropertyValues): void {
     super.updated(changedProps);
     if (!this._config || !this.hass) {
@@ -181,12 +187,11 @@ export class ModernCircularGauge extends LitElement {
     const min = Number(this._templateResults?.min?.result ?? this._config.min) || DEFAULT_MIN;
     const max = Number(this._templateResults?.max?.result ?? this._config.max) || DEFAULT_MAX;
 
-    const state = templatedState ?? stateObj.state;
     const stateOverride = this._templateResults?.stateText?.result ?? (isTemplate(String(this._config.state_text)) ? "" : this._config.state_text);
-    const entityState = stateOverride ?? formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj?.entity_id])) ?? templatedState;
 
     const iconCenter = !(this._config.show_state ?? false) && (this._config.show_icon ?? true);
     const segments = (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config.segments;
+    const segmentsLabel = this._getSegmentLabel(numberState, segments);
 
     return html`
     <ha-card
@@ -243,32 +248,22 @@ export class ModernCircularGauge extends LitElement {
           : nothing
           : nothing}
         </div>
-        <svg class="state" overflow="visible" viewBox="-50 -50 100 100">
-          ${this._config.show_state ? svg`
-          <text
-            x="0" y="0" 
-            class="value ${classMap({"dual-state": typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big", "adaptive": !!this._config.adaptive_state_color})}" 
-            style=${styleMap({ "font-size": this._calcStateSize(entityState) })}
-            dy=${typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big" ? -14 : 0}
-          >
-            ${this._getSegmentLabel(numberState, segments) ? this._getSegmentLabel(numberState, segments) : svg`
-              ${entityState}
-              ${(this._config.show_unit ?? true) ? svg`<tspan class="unit" dx="-4" dy="-6">${unit}</tspan>` : nothing}
-            `}
-          </text>
-          ${typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big"
-            ? svg`
-          <text
-            class="state-label"
-            dy="1"
-          >
-            ${this._config.label}
-          </text>`
-            : nothing}
+        <div class="gauge-state">
+          ${this._config.show_state ? html`
+          <modern-circular-gauge-state
+            style=${styleMap({ "--state-text-color": this._config.adaptive_state_color ? "var(--gauge-color)" : undefined , "--state-font-size": this._config.state_font_size ? `${this._config.state_font_size}px` : undefined })}
+            .hass=${this.hass}
+            .stateObj=${stateObj}
+            .stateOverride=${(segmentsLabel || stateOverride) ?? templatedState}
+            .unit=${unit}
+            .verticalOffset=${typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big" ? -14 : 0}
+            .label=${typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big" ? this._config?.label : ""}
+            .stateMargin=${this._stateMargin}
+          ></modern-circular-gauge-state>
           ` : nothing}
-          ${this._renderSecondary()}
-          ${this._renderTertiary()}
-        </svg>
+          ${this._renderSecondaryState()}
+          ${this._renderTertiaryState()}
+        </div>
         ${this._config.show_icon ?? true ? html`
         <div class="icon-container">
           <div class="icon-wrapper">
@@ -319,15 +314,10 @@ export class ModernCircularGauge extends LitElement {
             ${renderPath("arc clear", path)}
           </g>
         </svg>
-        <svg class="state" overflow="visible" viewBox="-50 ${iconCenter ? -55 : -50} 100 100">
-          <text
-            x="0" y="0" 
-            class="value" 
-            style=${styleMap({ "font-size": this._calcStateSize(stateText ?? "") })}
-          >
-            ${stateText}
-          </text>
-        </svg>
+        <modern-circular-gauge-state
+          .hass=${this.hass}
+          .stateOverride=${stateText}
+        ></modern-circular-gauge-state>
         <div class="icon-container">
           <div class="icon-wrapper">
             ${stateObj ? html`
@@ -345,21 +335,27 @@ export class ModernCircularGauge extends LitElement {
       `;
   }
 
-  private _calcStateSize(state: string, initialStateSize?: number): string {
-    let initialSize = initialStateSize ?? this._config?.state_font_size ?? 24;
+  private _calcStateMargin(): number {
+    let gauges: any[] = [];
+
     if (typeof this._config?.secondary != "string") {
-      initialSize -= this._config?.secondary?.show_gauge == "inner" ? 2 : 0;
-      initialSize -= this._config?.secondary?.state_size == "big" ? 3 : 0;
+      if (this._config?.secondary?.show_gauge == "inner") {
+        const gauge = { radius: INNER_RADIUS, width: this._config.secondary.gauge_foreground_style?.width ?? 4 };
+        gauges.push(gauge)
+      }
     }
 
     if (typeof this._config?.tertiary != "string") {
-      initialSize -= this._config?.tertiary?.show_gauge == "inner" ? 2 : 0;
+      if (this._config?.tertiary?.show_gauge == "inner") {
+        const gauge = { radius: TERTIARY_RADIUS, width: this._config.tertiary.gauge_foreground_style?.width ?? 4 };
+        gauges.push(gauge)
+      }
     }
 
-    if (state.length >= (this._config?.state_scaling_limit ?? 7)) {
-      return `${initialSize - (state.length - 4) * (this._config?.state_scaling_multiplier ?? 1)}px`
-    }
-    return `${initialSize}px`;
+    gauges.push({ radius: RADIUS, width: this._config?.gauge_foreground_style?.width ?? (gauges.length > 1 ? 4 : 6) });
+    const gauge = gauges.reduce((r, e) => r.radius < e.radius ? r : e);
+
+    return (gauge.radius - gauge.width) * 2;
   }
 
   private _renderTertiaryRing(): TemplateResult {
@@ -512,112 +508,36 @@ export class ModernCircularGauge extends LitElement {
     }
   }
 
-  private _renderTertiary(): TemplateResult {
-    const tertiary = this._config?.tertiary;
-    if (!tertiary) {
-      return svg``;
-    }
-
-    const iconCenter = !(this._config?.show_state ?? false) && (this._config?.show_icon ?? true);
-
-    if (typeof tertiary === "string") {
-      return svg`
-      <text
-        x="0" y="0"
-        class="tertiary-state"
-        dy=${iconCenter ? -19 : -16}
-      >
-        ${this._templateResults?.tertiary?.result ?? this._config?.tertiary}
-      </text>
-      `;
-    }
-
-    const bigState = typeof this._config?.secondary == "object" ? this._config?.secondary?.state_size == "big" : false;
-
-    if (!(tertiary.show_state ?? true) || bigState) {
-      return svg``;
-    }
-
-    const stateObj = this.hass.states[tertiary.entity || ""];
-    const templatedState = this._templateResults?.tertiaryEntity?.result;
-
-    if (!stateObj && templatedState === undefined) {
-      return svg``;
-    }
-
-    const attributes = stateObj?.attributes ?? undefined;
-    const unit = tertiary.unit ?? attributes?.unit_of_measurement;
-    const state = templatedState ?? stateObj.state;
-    const stateOverride = this._templateResults?.tertiaryStateText?.result ?? (isTemplate(String(tertiary.state_text)) ? "" : tertiary.state_text);
-    const entityState = stateOverride ?? formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj?.entity_id])) ?? templatedState;
-
-    let adaptiveColor;
-
-    if (tertiary.adaptive_state_color) {
-      if (tertiary.show_gauge == "outter") {
-        adaptiveColor = computeSegments(Number(state), (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config?.segments, this._config?.smooth_segments, this);
-      } else if (tertiary.show_gauge == "inner") {
-        adaptiveColor = computeSegments(Number(state), tertiary.segments, this._config?.smooth_segments, this);
-      }
-
-      if (tertiary.gauge_foreground_style?.color && tertiary.gauge_foreground_style?.color != "adaptive") {
-        adaptiveColor = tertiary.gauge_foreground_style?.color;
-      }
-    }
-
-    return svg`
-    <text
-      @action=${this._handleTertiaryAction}
-      .actionHandler=${actionHandler({
-        hasHold: hasAction(tertiary.hold_action),
-        hasDoubleClick: hasAction(tertiary.double_tap_action),
-      })}
-      class="tertiary-state ${classMap({ "adaptive": !!tertiary.adaptive_state_color })}"
-      style=${styleMap({ "fill": adaptiveColor ?? undefined, "font-size": tertiary.state_font_size ? `${tertiary.state_font_size}px` : undefined })}
-      dy=${iconCenter ? -19 : -16}
-    >
-      ${entityState}
-      ${(tertiary.show_unit ?? true) ? svg`
-      <tspan
-        dx=0
-        dy=0
-      >
-        ${unit}
-      </tspan>
-      ` : nothing}
-    </text>
-    `;
-  }
-
-  private _renderSecondary(): TemplateResult {
+  private _renderSecondaryState(): TemplateResult {
     const secondary = this._config?.secondary;
     if (!secondary) {
-      return svg``;
+      return html``;
     }
 
     const iconCenter = !(this._config?.show_state ?? false) && (this._config?.show_icon ?? true);
 
     if (typeof secondary === "string") {
       this._hasSecondary = true;
-      return svg`
-      <text
-        x="0" y="0"
-        class="secondary"
-        dy=${iconCenter ? 25 : 20}
-      >
-        ${this._templateResults?.secondary?.result ?? this._config?.secondary}
-      </text>`;
+      return html`
+      <modern-circular-gauge-state
+        .hass=${this.hass}
+        .stateOverride=${this._templateResults?.secondary?.result ?? secondary}
+        .verticalOffset=${17}
+        .stateMargin=${this._stateMargin}
+        small
+      ></modern-circular-gauge-state>
+      `;
     }
 
     if (!(secondary.show_state ?? true)) {
-      return svg``;
+      return html``;
     }
 
     const stateObj = this.hass.states[secondary.entity || ""];
     const templatedState = this._templateResults?.secondaryEntity?.result;
 
     if (!stateObj && templatedState === undefined) {
-      return svg``;
+      return html``;
     }
 
     this._hasSecondary = true;
@@ -626,17 +546,18 @@ export class ModernCircularGauge extends LitElement {
 
     const unit = secondary.unit ?? attributes?.unit_of_measurement;
 
-    const state = templatedState ?? stateObj.state;
+    const state = Number(templatedState ?? stateObj.state);
     const stateOverride = this._templateResults?.secondaryStateText?.result ?? (isTemplate(String(secondary.state_text)) ? "" : secondary.state_text);
-    const entityState = stateOverride ?? formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj?.entity_id])) ?? templatedState;
+    const segments = (this._templateResults?.secondarySegments?.result as unknown) as SegmentsConfig[] ?? secondary.segments;
+    const segmentsLabel = this._getSegmentLabel(state, segments);
 
     let secondaryColor;
 
     if (secondary.adaptive_state_color) {
       if (secondary.show_gauge == "outter") {
-        secondaryColor = computeSegments(Number(state), (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config?.segments, this._config?.smooth_segments, this);
+        secondaryColor = computeSegments(state, (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config?.segments, this._config?.smooth_segments, this);
       } else if (secondary.show_gauge == "inner") {
-        secondaryColor = computeSegments(Number(state), secondary.segments, this._config?.smooth_segments, this);
+        secondaryColor = computeSegments(state, segments, this._config?.smooth_segments, this);
       }
 
       if (secondary.gauge_foreground_style?.color && secondary.gauge_foreground_style?.color != "adaptive") {
@@ -644,39 +565,94 @@ export class ModernCircularGauge extends LitElement {
       }
     }
 
-    return svg`
-    <text
+    return html`
+    <modern-circular-gauge-state
       @action=${this._handleSecondaryAction}
       .actionHandler=${actionHandler({
         hasHold: hasAction(secondary.hold_action),
         hasDoubleClick: hasAction(secondary.double_tap_action),
       })}
-      class="secondary ${classMap({ "dual-state": secondary.state_size == "big", "adaptive": !!secondary.adaptive_state_color })}"
-      style=${styleMap({ "font-size": secondary.state_size == "big" ? this._calcStateSize(entityState, secondary.state_font_size) : secondary.state_font_size ? `${secondary.state_font_size}px` : undefined,
-        "fill": secondaryColor ?? undefined
-       })}
-      dy=${secondary.state_size == "big" ? 14 : iconCenter ? 25 : 20}
-    >
-      ${entityState}
-      ${(secondary.show_unit ?? true) ? svg`
-      <tspan
-        class=${classMap({"unit": secondary.state_size == "big"})}
-        dx=${secondary.state_size == "big" ? -4 : 0}
-        dy=${secondary.state_size == "big" ? -6 : 0}
-      >
-        ${unit}
-      </tspan>
-      ` : nothing}
-    </text>
-    ${secondary.state_size == "big"
-      ? svg`
-    <text
-      class="state-label"
-      dy="29"
-    >
-      ${secondary.label}
-    </text>`
-      : nothing}
+      style=${styleMap({ "--state-text-color-override": secondaryColor ?? (secondary.state_size == "big" ? "var(--secondary-text-color)" : undefined), "--state-font-size": secondary.state_font_size ? `${secondary.state_font_size}px` : undefined })}
+      .hass=${this.hass}
+      .stateObj=${stateObj}
+      .stateOverride=${(segmentsLabel || stateOverride) ?? templatedState}
+      .unit=${unit}
+      .verticalOffset=${secondary.state_size == "big" ? 14 : iconCenter ? 22 : 17}
+      .small=${secondary.state_size != "big"}
+      .label=${secondary.state_size == "big" ? secondary.label : ""}
+      .stateMargin=${this._stateMargin}
+    ></modern-circular-gauge-state>
+    `;
+  }
+
+  private _renderTertiaryState(): TemplateResult {
+    const tertiary = this._config?.tertiary;
+    if (!tertiary) {
+      return html``;
+    }
+
+    if (typeof tertiary === "string") {
+      return html`
+      <modern-circular-gauge-state
+        .hass=${this.hass}
+        .stateOverride=${this._templateResults?.tertiary?.result ?? tertiary}
+        .verticalOffset=${-19}
+        .stateMargin=${this._stateMargin}
+        small
+      ></modern-circular-gauge-state>
+      `;
+    }
+
+    const bigState = typeof this._config?.secondary == "object" ? this._config?.secondary?.state_size == "big" : false;
+
+    if (!(tertiary.show_state ?? true) || bigState) {
+      return html``;
+    }
+
+    const stateObj = this.hass.states[tertiary.entity || ""];
+    const templatedState = this._templateResults?.tertiaryEntity?.result;
+
+    if (!stateObj && templatedState === undefined) {
+      return html``;
+    }
+
+    const attributes = stateObj?.attributes ?? undefined;
+    const unit = tertiary.unit ?? attributes?.unit_of_measurement;
+    const state = Number(templatedState ?? stateObj.state);
+    const stateOverride = this._templateResults?.tertiaryStateText?.result ?? (isTemplate(String(tertiary.state_text)) ? "" : tertiary.state_text);
+    const segments = (this._templateResults?.tertiarySegments?.result as unknown) as SegmentsConfig[] ?? tertiary.segments;
+    const segmentsLabel = this._getSegmentLabel(state, segments);
+
+    let adaptiveColor;
+
+    if (tertiary.adaptive_state_color) {
+      if (tertiary.show_gauge == "outter") {
+        adaptiveColor = computeSegments(state, (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config?.segments, this._config?.smooth_segments, this);
+      } else if (tertiary.show_gauge == "inner") {
+        adaptiveColor = computeSegments(state, segments, this._config?.smooth_segments, this);
+      }
+
+      if (tertiary.gauge_foreground_style?.color && tertiary.gauge_foreground_style?.color != "adaptive") {
+        adaptiveColor = tertiary.gauge_foreground_style?.color;
+      }
+    }
+
+    return html`
+    <modern-circular-gauge-state
+      @action=${this._handleTertiaryAction}
+      .actionHandler=${actionHandler({
+        hasHold: hasAction(tertiary.hold_action),
+        hasDoubleClick: hasAction(tertiary.double_tap_action),
+      })}
+      style=${styleMap({ "--state-text-color-override": adaptiveColor ?? undefined , "--state-font-size": tertiary.state_font_size ? `${tertiary.state_font_size}px` : undefined })}
+      .hass=${this.hass}
+      .stateObj=${stateObj}
+      .stateOverride=${(segmentsLabel || stateOverride) ?? templatedState}
+      .unit=${unit}
+      .verticalOffset=${-19}
+      .stateMargin=${this._stateMargin}
+      small
+    ></modern-circular-gauge-state>
     `;
   }
 
@@ -973,14 +949,21 @@ export class ModernCircularGauge extends LitElement {
       position: relative;
     }
     
-    .state {
+    .gauge-state {
       position: absolute;
       top: 0;
       bottom: 0;
       left: 0;
       right: 0;
-      text-anchor: middle;
       z-index: 2;
+    }
+
+    modern-circular-gauge-state {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
     }
 
     .container {
