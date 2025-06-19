@@ -265,16 +265,18 @@ export class ModernCircularGauge extends LitElement {
           ${this._renderTertiaryState()}
         </div>
         ${this._config.show_icon ?? true ? html`
-        <div class="icon-container">
-          <div class="icon-wrapper">
-            <ha-state-icon
-              class=${classMap({ "adaptive": !!this._config.adaptive_icon_color, "big": !this._hasSecondary })}
-              .hass=${this.hass}
-              .stateObj=${stateObj}
-              .icon=${this._templateResults?.icon?.result ?? this._config.icon}
-            ></ha-state-icon>
-          </div>
-        </div>
+        <svg class="icon-container" viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid">
+          <foreignObject x="-50" y="-50" width="100%" height="100%">
+            <div class="icon-wrapper" style="width: 100px; height: 100px;">
+              <ha-state-icon
+                class=${classMap({ "adaptive": !!this._config.adaptive_icon_color, "big": !this._hasSecondary })}
+                .hass=${this.hass}
+                .stateObj=${stateObj}
+                .icon=${this._templateResults?.icon?.result ?? this._config.icon}
+              ></ha-state-icon>
+            </div>
+          </foreignObject>
+        </svg>
         ` : nothing}
       </div> 
     </ha-card>
@@ -318,9 +320,10 @@ export class ModernCircularGauge extends LitElement {
           .hass=${this.hass}
           .stateOverride=${stateText}
         ></modern-circular-gauge-state>
-        <div class="icon-container">
-          <div class="icon-wrapper">
-            ${stateObj ? html`
+        <svg class="icon-container" viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid">
+          <foreignObject x="-50" y="-50" width="100%" height="100%">
+            <div class="icon-wrapper" style="width: 100px; height: 100px;">
+              ${stateObj ? html`
               <ha-state-icon
                 class="big warning-icon"
                 .hass=${this.hass}
@@ -328,8 +331,9 @@ export class ModernCircularGauge extends LitElement {
                 .icon=${icon}
               ></ha-state-icon>
               ` : html`<ha-svg-icon class="warning-icon" .path=${icon}></ha-svg-icon>`}
-          </div>
-        </div>
+            </div>
+          </foreignObject>
+        </svg>
       </div>
       </ha-card>
       `;
@@ -1008,37 +1012,24 @@ export class ModernCircularGauge extends LitElement {
     }
 
     .icon-container {
-      display: flex;
       position: absolute;
       top: 0;
       left: 0;
       right: 0;
       bottom: 0;
-      justify-content: center;
-      align-items: center;
       z-index: 1;
     }
 
     .icon-wrapper {
-      position: relative;
       display: flex;
-      width: 100%;
-      height: auto;
-      max-height: 100%;
-      padding: 0;
-      margin: 0;
+      justify-content: center;
+      align-items: center;
       overflow: hidden;
     }
 
     .icon-center .icon-wrapper {
       justify-content: center;
       align-items: center;
-    }
-
-    .icon-wrapper:before {
-      display: block;
-      content: "";
-      padding-top: 100%;
     }
 
     ha-state-icon, .warning-icon {
