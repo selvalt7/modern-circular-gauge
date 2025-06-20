@@ -86,6 +86,18 @@ export class ModernCircularGaugeElement extends LitElement {
         >
           <g transform="rotate(${this._rotateAngle})">
             <defs>
+              <mask id="needle-border-mask">
+                <rect x="-60" y="-60" width="120" height="120" fill="white"/>
+                ${needle ? svg`
+                <path
+                  class="needle-border"
+                  d=${this._path}
+                  stroke-dasharray="${needle[0]}"
+                  stroke-dashoffset="${needle[1]}"
+                  stroke="black"
+                />
+                ` : nothing}
+              </mask>
               <mask id="gradient-path">
                 ${renderPath("arc", this._path, undefined, styleMap({ "stroke": "white", "stroke-width": this.backgroundStyle?.width ? `${this.backgroundStyle?.width}px` : undefined }))}
               </mask>
@@ -93,7 +105,7 @@ export class ModernCircularGaugeElement extends LitElement {
                 ${current ? renderPath("arc current", this._path, current, styleMap({ "stroke": "white", "visibility": this.value <= this.min && this.min >= 0 ? "hidden" : "visible" })) : nothing}
               </mask>
             </defs>
-            <g class="background" style=${styleMap({ "opacity": this.backgroundStyle?.opacity,
+            <g class="background" mask=${ifDefined(needle ? "url(#needle-border-mask)" : undefined)} style=${styleMap({ "opacity": this.backgroundStyle?.opacity,
               "--gauge-stroke-width": this.backgroundStyle?.width ? `${this.backgroundStyle?.width}px` : undefined })}>
               ${renderPath("arc clear", this._path, undefined, styleMap({ "stroke": this.backgroundStyle?.color && this.backgroundStyle.color != "adaptive" ? this.backgroundStyle.color : undefined }))}
               ${this.segments && (needle || this.backgroundStyle?.color == "adaptive") ? svg`
@@ -110,7 +122,6 @@ export class ModernCircularGaugeElement extends LitElement {
             ` : renderPath("arc current", this._path, current, styleMap({ "visibility": this.value <= this.min && this.min >= 0 ? "hidden" : "visible", "opacity": this.foregroundStyle?.opacity }))
             : nothing}
             ${needle ? svg`
-            ${renderPath("needle-border", this._path, needle)}
             ${renderPath("needle", this._path, needle)}
             ` : nothing}
           </g>
@@ -153,11 +164,10 @@ export class ModernCircularGaugeElement extends LitElement {
     .segment {
       fill: none;
       stroke-width: var(--gauge-stroke-width);
-      filter: brightness(100%);
     }
 
     .segments {
-      opacity: 0.35;
+      opacity: 0.45;
     }
 
     .needle {
@@ -171,8 +181,7 @@ export class ModernCircularGaugeElement extends LitElement {
     .needle-border {
       fill: none;
       stroke-linecap: round;
-      stroke-width: calc(var(--gauge-stroke-width) + 2px);
-      stroke: var(--card-background-color);
+      stroke-width: calc(var(--gauge-stroke-width) + 4px);
       transition: all 1s ease 0s, stroke 0.3s ease-out;
     }
     

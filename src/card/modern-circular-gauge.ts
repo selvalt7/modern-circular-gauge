@@ -1158,7 +1158,7 @@ export class ModernCircularGauge extends LitElement {
     .needle-border {
       fill: none;
       stroke-linecap: round;
-      stroke-width: calc(var(--gauge-stroke-width) + 2px);
+      stroke-width: calc(var(--gauge-stroke-width) + 4px);
       stroke: var(--card-background-color);
       transition: all 1s ease 0s, stroke 0.3s ease-out;
     }
