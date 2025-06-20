@@ -47,6 +47,7 @@ export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     entity: string;
     name?: string;
     icon?: string;
+    icon_entity?: "primary" | "secondary" | "tertiary";
     min?: number | string;
     max?: number | string;
     unit?: string;
@@ -59,7 +60,6 @@ export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     needle?: boolean;
     state_text?: string;
     adaptive_icon_color?: boolean;
-    adaptive_icon_color_entity?: "primary" | "secondary" | "tertiary";
     adaptive_state_color?: boolean;
     smooth_segments?: boolean;
     state_font_size?: number;

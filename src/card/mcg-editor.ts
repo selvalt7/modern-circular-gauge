@@ -133,8 +133,8 @@ export class ModernCircularGaugeEditor extends LitElement {
             selector: { boolean: {} },
           },
           {
-            name: "adaptive_icon_color_entity",
-            label: "Adaptive icon color entity",
+            name: "icon_entity",
+            label: "Icon entity",
             default: "primary",
             selector: {
               select: {
