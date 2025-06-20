@@ -133,6 +133,21 @@ export class ModernCircularGaugeEditor extends LitElement {
             selector: { boolean: {} },
           },
           {
+            name: "adaptive_icon_color_entity",
+            label: "Adaptive icon color entity",
+            default: "primary",
+            selector: {
+              select: {
+                options: [
+                  { value: "primary", label: "Primary" },
+                  { value: "secondary", label: "Secondary" },
+                  { value: "tertiary", label: "Tertiary" },
+                ],
+                mode: "dropdown",
+              },
+            },
+          },
+          {
             name: "adaptive_state_color",
             label: "Adaptive state color",
             default: false,

@@ -221,7 +221,7 @@ export class ModernCircularGauge extends LitElement {
       ` : nothing}
       <div
         class="container${classMap({ "dual-gauge": typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner" })}"
-        style=${styleMap({"--gauge-color": this._config.gauge_foreground_style?.color && this._config.gauge_foreground_style?.color != "adaptive" ? this._config.gauge_foreground_style?.color : computeSegments(numberState, this._config.segments, this._config.smoothSegments, this)})}
+        style=${styleMap({"--gauge-color": this._config.gauge_foreground_style?.color && this._config.gauge_foreground_style?.color != "adaptive" ? this._config.gauge_foreground_style?.color : computeSegments(numberState, this._config.segments, this._config.smooth_segments, this)})}
       >
         <div class="gauge-container">
           <modern-circular-gauge-element
@@ -269,6 +269,7 @@ export class ModernCircularGauge extends LitElement {
           <div class="icon-wrapper">
             <ha-state-icon
               class=${classMap({ "adaptive": !!this._config.adaptive_icon_color, "big": !this._hasSecondary })}
+              style=${styleMap({ "color": this._config.adaptive_icon_color ? this._computeIconColor() : undefined })}
               .hass=${this.hass}
               .stateObj=${stateObj}
               .icon=${this._templateResults?.icon?.result ?? this._config.icon}
@@ -333,6 +334,50 @@ export class ModernCircularGauge extends LitElement {
       </div>
       </ha-card>
       `;
+  }
+
+  private _computeIconColor(): string | undefined {
+    const selectedEntity = this._config?.adaptive_icon_color_entity;
+
+    let entityId: string | undefined;
+    let templatedState: string | undefined;
+    let segments: SegmentsConfig[] | undefined;
+
+    if (!selectedEntity || selectedEntity === "primary") {
+      return undefined;
+    } else if (
+      typeof this._config?.secondary === "object" &&
+      selectedEntity === "secondary"
+    ) {
+      if (this._config?.secondary?.gauge_foreground_style?.color && this._config?.secondary?.gauge_foreground_style?.color != "adaptive") {
+        return this._config.secondary.gauge_foreground_style.color;
+      }
+      entityId = this._config.secondary.entity;
+      templatedState = this._templateResults?.secondaryEntity?.result;
+      segments = this._config.secondary.segments;
+    } else if (
+      typeof this._config?.tertiary === "object" &&
+      (selectedEntity === "tertiary")
+    ) {
+      if (this._config?.tertiary?.gauge_foreground_style?.color && this._config?.tertiary?.gauge_foreground_style?.color != "adaptive") {
+        return this._config.tertiary.gauge_foreground_style.color;
+      }
+      entityId = this._config.tertiary.entity;
+      templatedState = this._templateResults?.tertiaryEntity?.result;
+      segments = this._config.tertiary.segments;
+    }
+
+    const stateObj = this.hass.states[entityId || ""];
+    if (!stateObj && templatedState === undefined) {
+      return undefined;
+    }
+
+    const value = Number(templatedState ?? stateObj.state);
+    if (isNaN(value)) {
+      return undefined;
+    }
+
+    return computeSegments(value, segments, this._config?.smooth_segments, this);
   }
 
   private _calcStateMargin(): number {
@@ -556,7 +601,7 @@ export class ModernCircularGauge extends LitElement {
     if (secondary.adaptive_state_color) {
       if (secondary.show_gauge == "outter") {
         secondaryColor = computeSegments(state, (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config?.segments, this._config?.smooth_segments, this);
-      } else if (secondary.show_gauge == "inner") {
+      } else {
         secondaryColor = computeSegments(state, segments, this._config?.smooth_segments, this);
       }
 
@@ -628,7 +673,7 @@ export class ModernCircularGauge extends LitElement {
     if (tertiary.adaptive_state_color) {
       if (tertiary.show_gauge == "outter") {
         adaptiveColor = computeSegments(state, (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config?.segments, this._config?.smooth_segments, this);
-      } else if (tertiary.show_gauge == "inner") {
+      } else {
         adaptiveColor = computeSegments(state, segments, this._config?.smooth_segments, this);
       }
 

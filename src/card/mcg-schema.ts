@@ -44,7 +44,6 @@ export const getSecondaryGaugeSchema = (showGaugeOptions: boolean) => {
       type: "mcg-list",
       title: "Color segments",
       iconPath: mdiSegment,
-      disabled: !showGaugeOptions,
       schema: [
         {
           name: "",
