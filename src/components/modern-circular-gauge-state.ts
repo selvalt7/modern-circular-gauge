@@ -1,4 +1,4 @@
-import { html, LitElement, css, PropertyValues } from "lit";
+import { html, LitElement, css, PropertyValues, svg, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { HomeAssistant } from "../ha/types";
 import { getNumberFormatOptions, formatNumber } from "../utils/format_number";
@@ -12,6 +12,8 @@ export class ModernCircularGaugeState extends LitElement {
   @property({ type: Object }) public stateObj?: HassEntity;
 
   @property() public unit?: string;
+
+  @property({ type: Boolean }) public showUnit = true;
 
   @property() public label?: string;
 
@@ -86,7 +88,9 @@ export class ModernCircularGaugeState extends LitElement {
     <svg class="state ${classMap({ "small": this.small })}" overflow="visible" viewBox="-50 -50 100 100">
       <text x="0" y=${this.verticalOffset} class="value">
         ${state}
+        ${this.showUnit ? svg`
         <tspan class="unit" dx=${this.small ? 0 : -4} dy=${this.small ? 0 : -6}>${this.unit}</tspan>
+        ` : nothing}
       </text>
       <text class="state-label" dy=${(this.verticalOffset ?? 0) + 15}>
         ${this.label}
