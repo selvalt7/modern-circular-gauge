@@ -259,6 +259,7 @@ export class ModernCircularGauge extends LitElement {
             .verticalOffset=${typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big" ? -14 : 0}
             .label=${typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big" ? this._config?.label : ""}
             .stateMargin=${this._stateMargin}
+            .showUnit=${this._config.show_unit ?? true}
           ></modern-circular-gauge-state>
           ` : nothing}
           ${this._renderSecondaryState()}
@@ -585,6 +586,7 @@ export class ModernCircularGauge extends LitElement {
       .small=${secondary.state_size != "big"}
       .label=${secondary.state_size == "big" ? secondary.label : ""}
       .stateMargin=${this._stateMargin}
+      .showUnit=${secondary.show_unit ?? true}
     ></modern-circular-gauge-state>
     `;
   }
@@ -655,6 +657,7 @@ export class ModernCircularGauge extends LitElement {
       .unit=${unit}
       .verticalOffset=${-19}
       .stateMargin=${this._stateMargin}
+      .showUnit=${tertiary.show_unit ?? true}
       small
     ></modern-circular-gauge-state>
     `;
