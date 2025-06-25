@@ -4,7 +4,7 @@ import { ActionHandlerEvent } from "../ha/data/lovelace";
 import { hasAction } from "../ha/panels/lovelace/common/has-action";
 import { svgArc, computeSegments, renderPath } from "../utils/gauge";
 import { registerCustomCard } from "../utils/custom-cards";
-import type { ModernCircularGaugeConfig, SecondaryEntity, SegmentsConfig, TertiaryEntity } from "./type";
+import type { GaugeElementConfig, ModernCircularGaugeConfig, SecondaryEntity, SegmentsConfig, TertiaryEntity } from "./type";
 import { LovelaceLayoutOptions, LovelaceGridOptions } from "../ha/data/lovelace";
 import { handleAction } from "../ha/handle-action";
 import { HomeAssistant } from "../ha/types";
@@ -221,7 +221,7 @@ export class ModernCircularGauge extends LitElement {
       ` : nothing}
       <div
         class="container${classMap({ "dual-gauge": typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner" })}"
-        style=${styleMap({"--gauge-color": this._config.gauge_foreground_style?.color && this._config.gauge_foreground_style?.color != "adaptive" ? this._config.gauge_foreground_style?.color : computeSegments(numberState, this._config.segments, this._config.smoothSegments, this)})}
+        style=${styleMap({"--gauge-color": this._config.gauge_foreground_style?.color && this._config.gauge_foreground_style?.color != "adaptive" ? this._config.gauge_foreground_style?.color : computeSegments(numberState, this._config.segments, this._config.smooth_segments, this)})}
       >
         <div class="gauge-container">
           <modern-circular-gauge-element
@@ -265,20 +265,7 @@ export class ModernCircularGauge extends LitElement {
           ${this._renderSecondaryState()}
           ${this._renderTertiaryState()}
         </div>
-        ${this._config.show_icon ?? true ? html`
-        <svg class="icon-container" viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid">
-          <foreignObject x="-50" y="-50" width="100%" height="100%">
-            <div class="icon-wrapper" style="width: 100px; height: 100px;">
-              <ha-state-icon
-                class=${classMap({ "adaptive": !!this._config.adaptive_icon_color, "big": !this._hasSecondary })}
-                .hass=${this.hass}
-                .stateObj=${stateObj}
-                .icon=${this._templateResults?.icon?.result ?? this._config.icon}
-              ></ha-state-icon>
-            </div>
-          </foreignObject>
-        </svg>
-        ` : nothing}
+        ${this._config.show_icon ?? true ? this._renderIcon(icon) : nothing}
       </div> 
     </ha-card>
     `;
@@ -338,6 +325,61 @@ export class ModernCircularGauge extends LitElement {
       </div>
       </ha-card>
       `;
+  }
+
+  private _renderIcon(iconOverride?: string): TemplateResult {
+    const iconEntity = this._config?.icon_entity;
+
+    let entityId: string | undefined;
+    let templatedState: string | undefined;
+    let segments: SegmentsConfig[] | undefined;
+    let gaugeForegroundStyle: GaugeElementConfig | undefined;
+
+    if (!iconEntity || iconEntity === "primary") {
+      entityId = this._config?.entity;
+      templatedState = this._templateResults?.entity?.result;
+      segments = this._config?.segments;
+      gaugeForegroundStyle = this._config?.gauge_foreground_style;
+    } else if (
+      typeof this._config?.secondary === "object" &&
+      iconEntity === "secondary"
+    ) {
+      entityId = this._config.secondary.entity;
+      templatedState = this._templateResults?.secondaryEntity?.result;
+      segments = this._config.secondary.segments;
+      gaugeForegroundStyle = this._config.secondary.gauge_foreground_style;
+    } else if (
+      typeof this._config?.tertiary === "object" &&
+      (iconEntity === "tertiary")
+    ) {
+      entityId = this._config.tertiary.entity;
+      templatedState = this._templateResults?.tertiaryEntity?.result;
+      segments = this._config.tertiary.segments;
+      gaugeForegroundStyle = this._config.tertiary.gauge_foreground_style;
+    }
+
+    const stateObj = this.hass.states[entityId || ""];
+    if (!stateObj && templatedState === undefined) {
+      return html``;
+    }
+
+    const value = Number(templatedState ?? stateObj.state);
+
+    return html`
+    <svg class="icon-container" viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid">
+      <foreignObject x="-50" y="-50" width="100%" height="100%">
+        <div class="icon-wrapper" style="width: 100px; height: 100px;">
+          <ha-state-icon
+            class=${classMap({ "adaptive": !!this._config?.adaptive_icon_color, "big": !this._hasSecondary })}
+            style=${styleMap({ "color": gaugeForegroundStyle?.color && gaugeForegroundStyle.color != "adaptive" ? gaugeForegroundStyle.color : computeSegments(value, segments, this._config?.smooth_segments, this) })}
+            .hass=${this.hass}
+            .stateObj=${stateObj}
+            .icon=${iconOverride}
+          ></ha-state-icon>
+        </div>
+      </foreignObject>
+    </svg>
+    `;
   }
 
   private _calcStateMargin(): number {
@@ -561,7 +603,7 @@ export class ModernCircularGauge extends LitElement {
     if (secondary.adaptive_state_color) {
       if (secondary.show_gauge == "outter") {
         secondaryColor = computeSegments(state, (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config?.segments, this._config?.smooth_segments, this);
-      } else if (secondary.show_gauge == "inner") {
+      } else {
         secondaryColor = computeSegments(state, segments, this._config?.smooth_segments, this);
       }
 
@@ -634,7 +676,7 @@ export class ModernCircularGauge extends LitElement {
     if (tertiary.adaptive_state_color) {
       if (tertiary.show_gauge == "outter") {
         adaptiveColor = computeSegments(state, (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config?.segments, this._config?.smooth_segments, this);
-      } else if (tertiary.show_gauge == "inner") {
+      } else {
         adaptiveColor = computeSegments(state, segments, this._config?.smooth_segments, this);
       }
 
