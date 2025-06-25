@@ -4,6 +4,7 @@ import { HomeAssistant } from "../ha/types";
 import { getNumberFormatOptions, formatNumber } from "../utils/format_number";
 import { HassEntity } from "home-assistant-js-websocket";
 import { classMap } from "lit/directives/class-map.js";
+import { styleMap } from "lit/directives/style-map.js";
 
 @customElement("modern-circular-gauge-state")
 export class ModernCircularGaugeState extends LitElement {
@@ -16,6 +17,8 @@ export class ModernCircularGaugeState extends LitElement {
   @property({ type: Boolean }) public showUnit = true;
 
   @property() public label?: string;
+
+  @property({ type: Number }) public labelFontSize?: number;
 
   @property({ type: Boolean }) public small = false;
 
@@ -92,7 +95,7 @@ export class ModernCircularGaugeState extends LitElement {
         <tspan class="unit" dx=${this.small ? 0 : -4} dy=${this.small ? 0 : -6}>${this.unit}</tspan>
         ` : nothing}
       </text>
-      <text class="state-label" dy=${(this.verticalOffset ?? 0) + 15}>
+      <text class="state-label" style=${styleMap({ "font-size": this.labelFontSize ? `${this.labelFontSize}px` : undefined })} dy=${(this.verticalOffset ?? 0) + 15}>
         ${this.label}
       </text>
     </svg>
