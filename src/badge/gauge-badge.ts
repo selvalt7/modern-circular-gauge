@@ -210,37 +210,21 @@ export class ModernCircularGaugeBadge extends LitElement {
 
     if (!stateObj && templatedState === undefined) {
       if (isTemplate(this._config.entity)) {
-        return html`
-        <ha-badge
-          .type=${this.hasAction ? "button" : "badge"}
-          @action=${this._handleAction}
-          .actionHandler=${actionHandler({
-            hasHold: hasAction(this._config.hold_action),
-            hasDoubleClick: hasAction(this._config.double_tap_action),
-          })}
-          .iconOnly=${!this._config.show_name}
-        >
-          <div class=${classMap({ "container": true, "icon-only": !this._config.show_name })} slot="icon">
-            <svg class="gauge" viewBox="-50 -50 100 100">
-              <g transform="rotate(${ROTATE_ANGLE})">
-                ${renderPath("arc clear", path)}
-              </g>
-            </svg>
-          </div>
-        </ha-badge>
-        `;
+        return this._renderWarning();
       } else {
-        return html`
-        <ha-badge .label=${this._config.entity} class="error">
-          <ha-svg-icon
-            slot="icon"
-            .hass=${this.hass}
-            .path=${mdiAlertCircle}
-          ></ha-svg-icon>
-          ${this.hass.localize("ui.badge.entity.not_found")}
-        </ha-badge>
-        `;
+        return this._renderWarning(this._config.entity, this.hass.localize("ui.badge.entity.not_found"), undefined, "error", mdiAlertCircle);
       }
+    }
+
+    const numberState = Number(templatedState ?? stateObj.state);
+    const icon = this._templateResults?.icon?.result ?? this._config.icon;
+
+    if (stateObj?.state === "unavailable") {
+      return this._renderWarning(this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? stateObj.attributes.friendly_name ?? '', this.hass.localize("state.default.unavailable"), stateObj, "warning", icon);
+    }
+
+    if (isNaN(numberState)) {
+      return this._renderWarning(this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? stateObj.attributes.friendly_name ?? '', "NaN", stateObj, "warning", icon);
     }
 
     const min = Number(this._templateResults?.min?.result ?? this._config.min) ?? DEFAULT_MIN;
@@ -248,9 +232,6 @@ export class ModernCircularGaugeBadge extends LitElement {
 
     const attributes = stateObj?.attributes ?? undefined;
 
-    const numberState = Number(templatedState ?? stateObj.state);
-
-    
     const current = this._config.needle ? undefined : currentDashArc(numberState, min, max, RADIUS, this._config.start_from_zero);
     const state = templatedState ?? stateObj.state;
 
@@ -324,7 +305,7 @@ export class ModernCircularGaugeBadge extends LitElement {
           <ha-state-icon
             .hass=${this.hass}
             .stateObj=${stateObj}
-            .icon=${this._templateResults?.icon?.result ?? this._config.icon}
+            .icon=${icon}
           ></ha-state-icon>`
           : nothing}
         ${this._config.show_state && !this._config.show_icon
@@ -338,6 +319,43 @@ export class ModernCircularGaugeBadge extends LitElement {
             </text>
           </svg>
           ` : nothing}
+      </div>
+      ${content}
+    </ha-badge>
+    `;
+  }
+
+  private _renderWarning(label?: string, content?: string, stateObj?: HassEntity, badgeClass?: string, icon?: string): TemplateResult {
+    return html`
+    <ha-badge
+      .type=${this.hasAction ?? stateObj != undefined ? "button" : "badge"}
+      @action=${ifDefined(stateObj ? this._handleAction : undefined)}
+      .actionHandler=${actionHandler({
+        hasHold: hasAction(this._config?.hold_action),
+        hasDoubleClick: hasAction(this._config?.double_tap_action),
+      })}
+      class="${ifDefined(badgeClass)}"
+      .label=${label} 
+      >
+      <div class=${classMap({ "container": true, "icon-only": content === undefined })} slot="icon">
+        <svg class="gauge" viewBox="-50 -50 100 100">
+          <g transform="rotate(${ROTATE_ANGLE})">
+            ${renderPath("arc clear", path)}
+          </g>
+        </svg>
+        ${stateObj ? html`
+        <ha-state-icon
+          slot="icon"
+          .hass=${this.hass}
+          .stateObj=${stateObj}
+          .icon=${icon}
+        ></ha-state-icon>
+        ` : html`
+        <ha-svg-icon
+          slot="icon"
+          .path=${icon}
+        ></ha-svg-icon>
+        `}
       </div>
       ${content}
     </ha-badge>
@@ -439,6 +457,10 @@ export class ModernCircularGaugeBadge extends LitElement {
 
     ha-badge.error {
       --badge-color: var(--red-color);
+    }
+
+    ha-badge.warning {
+      --badge-color: var(--state-unavailable-color);
     }
 
     svg {
