@@ -71,7 +71,7 @@ const FORM = [
       {
         name: "show_icon",
         label: "Show icon",
-        default: false,
+        default: true,
         selector: { boolean: {} },
       },
       {

@@ -101,7 +101,7 @@ Templates are supported on selected options, configurable only via `yaml`.
 | unit | `string` | Optional | Custom unit
 | show_name | `bool` | `false` | Show badge name
 | show_state | `bool` | `true` | Show entity state
-| show_icon | `bool` | `false` | Show icon
+| show_icon | `bool` | `true` | Show icon
 | show_unit | `bool` | `true` | Show unit
 | needle | `bool` | `false` | 
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min

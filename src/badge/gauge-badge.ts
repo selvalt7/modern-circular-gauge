@@ -259,9 +259,11 @@ export class ModernCircularGaugeBadge extends LitElement {
 
     const entityState = stateOverride ?? formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj?.entity_id])) ?? templatedState;
 
+    const showIcon = this._config.show_icon ?? true;
+
     const name = this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? stateObj?.attributes.friendly_name ?? "";
-    const label = this._config.show_name && this._config.show_icon && this._config.show_state ? name : undefined;
-    const content = this._config.show_icon && this._config.show_state ? `${entityState} ${unit}` : this._config.show_name ? name : undefined;
+    const label = this._config.show_name && showIcon && this._config.show_state ? name : undefined;
+    const content = showIcon && this._config.show_state ? `${entityState} ${unit}` : this._config.show_name ? name : undefined;
 
     const segments = (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config.segments;
 
@@ -319,7 +321,7 @@ export class ModernCircularGaugeBadge extends LitElement {
             ` : renderPath("arc current", path, current, styleMap({ "visibility": numberState <= min && min >= 0 ? "hidden" : "visible", "opacity": gaugeForegroundStyle?.opacity })) : nothing}
           </g>
         </svg>
-        ${this._config.show_icon
+        ${showIcon
           ? html`
           <ha-state-icon
             .hass=${this.hass}
@@ -327,7 +329,7 @@ export class ModernCircularGaugeBadge extends LitElement {
             .icon=${this._templateResults?.icon?.result ?? this._config.icon}
           ></ha-state-icon>`
           : nothing}
-        ${this._config.show_state && !this._config.show_icon
+        ${this._config.show_state && !showIcon
           ? html`
           <svg class="state" viewBox="-50 -50 100 100">
             <text x="0" y="0" class="value" style=${styleMap({ "font-size": this._calcStateSize(entityState) })}>
