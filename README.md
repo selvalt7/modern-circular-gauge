@@ -126,7 +126,7 @@ Templates are supported on selected options, configurable only via `yaml`.
 | show_gauge | `none`, `inner`, `outter` | `none` | Display secondary info as dot on main gauge or on inner gauge
 | min | `number` | Optional | Minimum inner gauge value. May contain templates
 | max | `number` | Optional | Maximum inner gauge value. May contain templates
-| label | `string` | Optional | Label under the state, only used when `state_size` is set to `big`
+| label | `string` | Optional | Label under the state
 | label_font_size | `number` | `0.49em` | Label font size in px
 | state_size | `small` or `big` | `small` | Secondary state size 
 | show_state | `boolean` | `true` | Show secondary state
@@ -147,6 +147,8 @@ Templates are supported on selected options, configurable only via `yaml`.
 | show_gauge | `none`, `inner`, `outter` | `none` | Display secondary info as dot on main gauge or on inner gauge
 | min | `number` | Optional | Minimum inner gauge value. May contain templates
 | max | `number` | Optional | Maximum inner gauge value. May contain templates
+| label | `string` | Optional | Label above the state
+| label_font_size | `number` | `0.49em` | Label font size in px
 | show_state | `boolean` | `true` | Show secondary state
 | show_unit | `boolean` | `true` | Show secondary unit
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min
