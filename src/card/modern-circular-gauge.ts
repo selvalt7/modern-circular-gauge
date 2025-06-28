@@ -706,6 +706,7 @@ export class ModernCircularGauge extends LitElement {
       .stateMargin=${this._stateMargin}
       .showUnit=${tertiary.show_unit ?? true}
       .label=${tertiary.label}
+      .labelFontSize=${tertiary.label_font_size}
       small
     ></modern-circular-gauge-state>
     `;

@@ -10,6 +10,7 @@ export interface BaseEntityConfig {
     entity?: string;
     unit?: string;
     label?: string;
+    label_font_size?: number;
     min?: number | string;
     max?: number | string;
     needle?: boolean;
@@ -29,7 +30,6 @@ export interface SecondaryEntity extends BaseEntityConfig {
     show_gauge?: "none" | "inner" | "outter";
     state_size?: "small" | "big";
     gauge_width?: number;
-    label_font_size?: number;
     [key: string]: any;
 };
 
