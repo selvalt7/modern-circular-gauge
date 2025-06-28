@@ -136,8 +136,8 @@ export function renderSegmentsGradient(segments: SegmentsConfig[], min: number, 
       gradient += `${color} ${angle}deg${index != sortedSegments.length - 1 ? "," : ""}`;
     });
     return [svg`
-      <foreignObject x="-50" y="-50" width="100%" height="100%" transform="rotate(45)">
-        <div style="width: 100px; height: 100px; background-image: conic-gradient(${gradient})">
+      <foreignObject x="-50" y="-50" width="100%" height="100%" overflow="visible" transform="rotate(45)">
+        <div style="width: 110px; height: 110px; margin-left: -5px; margin-top: -5px; background-image: conic-gradient(${gradient})">
         </div>
       </foreignObject>
     `];

@@ -228,7 +228,7 @@ export class ModernCircularGauge extends LitElement {
             .min=${min}
             .max=${max}
             .value=${numberState}
-            .radius=${RADIUS}
+            .radius=${this._config.gauge_radius ?? RADIUS}
             .maxAngle=${MAX_ANGLE}
             .segments=${segments}
             .smoothSegments=${this._config.smooth_segments}
@@ -388,19 +388,19 @@ export class ModernCircularGauge extends LitElement {
 
     if (typeof this._config?.secondary != "string") {
       if (this._config?.secondary?.show_gauge == "inner") {
-        const gauge = { radius: INNER_RADIUS, width: this._config.secondary.gauge_foreground_style?.width ?? 4 };
+        const gauge = { radius: this._config.secondary.gauge_radius ?? INNER_RADIUS, width: this._config.secondary.gauge_foreground_style?.width ?? 4 };
         gauges.push(gauge)
       }
     }
 
     if (typeof this._config?.tertiary != "string") {
       if (this._config?.tertiary?.show_gauge == "inner") {
-        const gauge = { radius: TERTIARY_RADIUS, width: this._config.tertiary.gauge_foreground_style?.width ?? 4 };
+        const gauge = { radius: this._config.tertiary.gauge_radius ?? TERTIARY_RADIUS, width: this._config.tertiary.gauge_foreground_style?.width ?? 4 };
         gauges.push(gauge)
       }
     }
 
-    gauges.push({ radius: RADIUS, width: this._config?.gauge_foreground_style?.width ?? (gauges.length > 1 ? 4 : 6) });
+    gauges.push({ radius: this._config?.gauge_radius ?? RADIUS, width: this._config?.gauge_foreground_style?.width ?? (gauges.length > 1 ? 4 : 6) });
     const gauge = gauges.reduce((r, e) => r.radius < e.radius ? r : e);
 
     return (gauge.radius - gauge.width) * 2;
@@ -437,7 +437,7 @@ export class ModernCircularGauge extends LitElement {
         .min=${min}
         .max=${max}
         .value=${numberState}
-        .radius=${TERTIARY_RADIUS}
+        .radius=${tertiaryObj.gauge_radius ?? TERTIARY_RADIUS}
         .maxAngle=${MAX_ANGLE}
         .segments=${segments}
         .smoothSegments=${this._config?.smooth_segments}
@@ -471,7 +471,7 @@ export class ModernCircularGauge extends LitElement {
         .min=${min}
         .max=${max}
         .value=${numberState}
-        .radius=${RADIUS}
+        .radius=${this._config?.gauge_radius ?? RADIUS}
         .maxAngle=${MAX_ANGLE}
         .foregroundStyle=${tertiaryObj?.gauge_foreground_style}
         .backgroundStyle=${tertiaryObj?.gauge_background_style}
@@ -512,7 +512,7 @@ export class ModernCircularGauge extends LitElement {
         .min=${min}
         .max=${max}
         .value=${numberState}
-        .radius=${INNER_RADIUS}
+        .radius=${secondaryObj.gauge_radius ?? INNER_RADIUS}
         .maxAngle=${MAX_ANGLE}
         .segments=${segments}
         .smoothSegments=${this._config?.smooth_segments}
@@ -546,7 +546,7 @@ export class ModernCircularGauge extends LitElement {
         .min=${min}
         .max=${max}
         .value=${numberState}
-        .radius=${RADIUS}
+        .radius=${this._config?.gauge_radius ?? RADIUS}
         .maxAngle=${MAX_ANGLE}
         .foregroundStyle=${secondaryObj?.gauge_foreground_style}
         .backgroundStyle=${secondaryObj?.gauge_background_style}

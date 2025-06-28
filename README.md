@@ -82,6 +82,7 @@ Templates are supported on selected options, configurable only via `yaml`.
 | state_font_size | `number` | `24` | Initial state size in px
 | header_font_size | `number` | `14` | Gauge header font size in px
 | header_offset | `number` | `0` | Gauge header vertical offset in px
+| gauge_radius | `number` | `47` | Gauge radius
 | gauge_background_style | `object` | Optional | Gauge background style, see [gauge element style object](#gauge-element-style-object)
 | gauge_foreground_style | `object` | Optional | Gauge foreground style, see [gauge element style object](#gauge-element-style-object)
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
@@ -133,6 +134,7 @@ Templates are supported on selected options, configurable only via `yaml`.
 | show_unit | `boolean` | `true` | Show secondary unit
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min
 | state_font_size | `number` | `10` or `24` | State size in px
+| gauge_radius | `number` | `42` | Gauge radius
 | gauge_background_style | `object` | Optional | Gauge background style, see [gauge element style object](#gauge-element-style-object)
 | gauge_foreground_style | `object` | Optional | Gauge foreground style, see [gauge element style object](#gauge-element-style-object)
 | needle | `boolean` | `false` |
@@ -151,6 +153,7 @@ Templates are supported on selected options, configurable only via `yaml`.
 | show_unit | `boolean` | `true` | Show secondary unit
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min
 | state_font_size | `number` | `10` | State size in px
+| gauge_radius | `number` | `37` | Gauge radius
 | gauge_background_style | `object` | Optional | Gauge background style, see [gauge element style object](#gauge-element-style-object)
 | gauge_foreground_style | `object` | Optional | Gauge foreground style, see [gauge element style object](#gauge-element-style-object)
 | needle | `boolean` | `false` |

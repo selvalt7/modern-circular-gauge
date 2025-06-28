@@ -87,7 +87,7 @@ export class ModernCircularGaugeElement extends LitElement {
           <g transform="rotate(${this._rotateAngle})">
             <defs>
               <mask id="needle-border-mask">
-                <rect x="-60" y="-60" width="120" height="120" fill="white"/>
+                <rect x="-70" y="-70" width="140" height="140" fill="white"/>
                 ${needle ? svg`
                 <path
                   class="needle-border"
