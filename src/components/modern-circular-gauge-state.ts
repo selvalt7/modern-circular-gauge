@@ -86,16 +86,17 @@ export class ModernCircularGaugeState extends LitElement {
     }
 
     const state = this._computeState();
+    const verticalOffset = this.verticalOffset ?? 0;
 
     return html`
     <svg class="state ${classMap({ "small": this.small })}" overflow="visible" viewBox="-50 -50 100 100">
-      <text x="0" y=${this.verticalOffset} class="value">
+      <text x="0" y=${verticalOffset} class="value">
         ${state}
         ${this.showUnit ? svg`
         <tspan class="unit" dx=${this.small ? 0 : -4} dy=${this.small ? 0 : -6}>${this.unit}</tspan>
         ` : nothing}
       </text>
-      <text class="state-label" style=${styleMap({ "font-size": this.labelFontSize ? `${this.labelFontSize}px` : undefined })} dy=${(this.verticalOffset ?? 0) + 15}>
+      <text class="state-label" style=${styleMap({ "font-size": this.labelFontSize ? `${this.labelFontSize}px` : undefined })} y=${verticalOffset + (this.small ? (9 * Math.sign(verticalOffset)) : 13)}>
         ${this.label}
       </text>
     </svg>
@@ -151,6 +152,7 @@ export class ModernCircularGaugeState extends LitElement {
     .state-label {
       font-size: 0.49em;
       fill: var(--secondary-text-color);
+      dominant-baseline: middle;
     }
     `;
   }
