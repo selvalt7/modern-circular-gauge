@@ -277,7 +277,7 @@ export class ModernCircularGauge extends LitElement {
     return html`
       <ha-card
       class="${classMap({
-        "flex-column-reverse": this._config?.header_position == "bottom",
+        "flex-column-reverse": this._config?.header_position == "top",
         "action": this._hasCardAction() && stateObj !== undefined
       })}"
       @action=${ifDefined(stateObj ? this._handleAction : undefined)}
