@@ -50,6 +50,8 @@ export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     name?: string;
     icon?: string;
     icon_entity?: "primary" | "secondary" | "tertiary";
+    icon_size?: number;
+    icon_vertical_position?: number;
     min?: number | string;
     max?: number | string;
     unit?: string;
