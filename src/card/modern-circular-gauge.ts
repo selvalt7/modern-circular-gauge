@@ -309,20 +309,18 @@ export class ModernCircularGauge extends LitElement {
           .hass=${this.hass}
           .stateOverride=${stateText}
         ></modern-circular-gauge-state>
-        <svg class="icon-container" viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid">
-          <foreignObject x="-50" y="-50" width="100%" height="100%">
-            <div class="icon-wrapper" style="width: 100px; height: 100px;">
-              ${stateObj ? html`
-              <ha-state-icon
-                class="big warning-icon"
-                .hass=${this.hass}
-                .stateObj=${stateObj}
-                .icon=${icon}
-              ></ha-state-icon>
-              ` : html`<ha-svg-icon class="warning-icon" .path=${icon}></ha-svg-icon>`}
-            </div>
-          </foreignObject>
-        </svg>
+        <div class="icon-container">
+          <div class="icon-wrapper">
+            ${stateObj ? html`
+            <ha-state-icon
+              class="big warning-icon"
+              .hass=${this.hass}
+              .stateObj=${stateObj}
+              .icon=${icon}
+            ></ha-state-icon>
+            ` : html`<ha-svg-icon class="warning-icon" .path=${icon}></ha-svg-icon>`}
+          </div>
+        </div>
       </div>
       </ha-card>
       `;
@@ -369,19 +367,17 @@ export class ModernCircularGauge extends LitElement {
     const secondaryHasLabel = typeof this._config?.secondary != "string" && this._config?.secondary?.label;
 
     return html`
-    <svg class="icon-container" viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid">
-      <foreignObject x="-50" y="-50" width="100%" height="100%">
-        <div class="icon-wrapper" style="width: 100px; height: 100px;${styleMap({ "--gauge-color": gaugeForegroundStyle?.color && gaugeForegroundStyle.color != "adaptive" ? gaugeForegroundStyle.color : computeSegments(value, segments, this._config?.smooth_segments, this) })}">
-          <ha-state-icon
-            class=${classMap({ "adaptive": !!this._config?.adaptive_icon_color, "big": !this._hasSecondary })}
-            style=${styleMap({ "bottom": this._config?.icon_vertical_position ? `${this._config.icon_vertical_position}%` : secondaryHasLabel && !iconCenter ? "15%" : undefined, "--gauge-icon-size": this._config?.icon_size ? `${this._config.icon_size}%` : undefined })}
-            .hass=${this.hass}
-            .stateObj=${stateObj}
-            .icon=${iconOverride}
-          ></ha-state-icon>
-        </div>
-      </foreignObject>
-    </svg>
+    <div class="icon-container">
+      <div class="icon-wrapper" style=${styleMap({ "--gauge-color": gaugeForegroundStyle?.color && gaugeForegroundStyle.color != "adaptive" ? gaugeForegroundStyle.color : computeSegments(value, segments, this._config?.smooth_segments, this) })}>
+        <ha-state-icon
+          class=${classMap({ "adaptive": !!this._config?.adaptive_icon_color, "big": !this._hasSecondary })}
+          style=${styleMap({ "bottom": this._config?.icon_vertical_position ? `${this._config.icon_vertical_position}%` : secondaryHasLabel && !iconCenter ? "16%" : undefined, "--gauge-icon-size": this._config?.icon_size ? `${this._config.icon_size}%` : undefined })}
+          .hass=${this.hass}
+          .stateObj=${stateObj}
+          .icon=${iconOverride}
+        ></ha-state-icon>
+      </div>
+    </div>
     `;
   }
 
@@ -1063,19 +1059,32 @@ export class ModernCircularGauge extends LitElement {
     }
 
     .icon-container {
+      display: flex;
       position: absolute;
       top: 0;
       left: 0;
       right: 0;
       bottom: 0;
+      justify-content: center;
+      align-items: center;
       z-index: 1;
     }
 
     .icon-wrapper {
+      position: relative;
       display: flex;
-      justify-content: center;
-      align-items: center;
+      width: 100%;
+      height: auto;
+      max-height: 100%;
+      padding: 0;
+      margin: 0;
       overflow: hidden;
+    }
+
+    .icon-wrapper:before {
+      display: block;
+      content: "";
+      padding-top: 100%;
     }
 
     .icon-center .icon-wrapper {
@@ -1085,7 +1094,7 @@ export class ModernCircularGauge extends LitElement {
 
     ha-state-icon, .warning-icon {
       position: absolute;
-      bottom: 20%;
+      bottom: 21%;
       left: 50%;
       transform: translate(-50%, 50%);
       --mdc-icon-size: auto;
@@ -1101,7 +1110,7 @@ export class ModernCircularGauge extends LitElement {
     }
 
     ha-state-icon.big, .warning-icon {
-      bottom: 23%;
+      bottom: 24%;
       --gauge-icon-size: 18%;
     }
 
