@@ -92,8 +92,8 @@ export class ModernCircularGaugeState extends LitElement {
     <svg class="state ${classMap({ "small": this.small })}" overflow="visible" viewBox="-50 -50 100 100">
       <text x="0" y=${verticalOffset} class="value">
         ${state}
-        ${this.showUnit ? svg`
-        <tspan class="unit" dx=${this.small ? 0 : -4} dy=${this.small ? 0 : -6}>${this.unit}</tspan>
+        ${this.showUnit ? this.small ? this.unit : svg`
+        <tspan class="unit" dx=${-4} dy=${-6}>${this.unit}</tspan>
         ` : nothing}
       </text>
       <text class="state-label" style=${styleMap({ "font-size": this.labelFontSize ? `${this.labelFontSize}px` : undefined })} y=${verticalOffset + (this.small ? (9 * Math.sign(verticalOffset)) : 13)}>
