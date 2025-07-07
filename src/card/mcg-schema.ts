@@ -10,7 +10,7 @@ export const getSecondaryGaugeSchema = (showGaugeOptions: boolean) => {
         options: [
           { value: "none", label: "None" },
           { value: "inner", label: "Inner gauge" },
-          { value: "outter", label: "Outter gauge" },
+          { value: "outer", label: "Outer gauge" },
         ],
         mode: "dropdown",
       }},

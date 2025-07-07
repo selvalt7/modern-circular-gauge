@@ -126,7 +126,7 @@ Templates are supported on selected options, configurable only via `yaml`.
 |------|:----:|:-------:|:------------|
 | entity | `string` | Optional | Secondary entity. May contain templates
 | unit | `string` | Optional | Custom unit
-| show_gauge | `none`, `inner`, `outter` | `none` | Display secondary info as dot on main gauge or on inner gauge
+| show_gauge | `none`, `inner`, `outer` | `none` | Display secondary info as dot on main gauge or on inner gauge
 | min | `number` | Optional | Minimum inner gauge value. May contain templates
 | max | `number` | Optional | Maximum inner gauge value. May contain templates
 | label | `string` | Optional | Label under the state
@@ -148,7 +148,7 @@ Templates are supported on selected options, configurable only via `yaml`.
 |------|:----:|:-------:|:------------|
 | entity | `string` | Optional | Secondary entity. May contain templates
 | unit | `string` | Optional | Custom unit
-| show_gauge | `none`, `inner`, `outter` | `none` | Display secondary info as dot on main gauge or on inner gauge
+| show_gauge | `none`, `inner`, `outer` | `none` | Display secondary info as dot on main gauge or on inner gauge
 | min | `number` | Optional | Minimum inner gauge value. May contain templates
 | max | `number` | Optional | Maximum inner gauge value. May contain templates
 | label | `string` | Optional | Label above the state

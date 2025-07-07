@@ -14,6 +14,7 @@ export interface BaseEntityConfig {
     min?: number | string;
     max?: number | string;
     needle?: boolean;
+    show_gauge?: "none" | "inner" | "outter" | "outer";
     show_state?: boolean;
     show_unit?: boolean;
     state_text?: string;
@@ -28,14 +29,12 @@ export interface BaseEntityConfig {
 
 export interface SecondaryEntity extends BaseEntityConfig {
     template?: string;
-    show_gauge?: "none" | "inner" | "outter";
     state_size?: "small" | "big";
     gauge_width?: number;
     [key: string]: any;
 };
 
 export interface TertiaryEntity extends BaseEntityConfig {
-    show_gauge?: "none" | "inner" | "outter";
     [key: string]: any;
 }
 

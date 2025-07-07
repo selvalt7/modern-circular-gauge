@@ -51,7 +51,7 @@ const TERTIARY_PATH = svgArc({
 
 registerCustomCard({
   type: "modern-circular-gauge",
-  name: "Modern Cicular Gauge",
+  name: "Modern Circular Gauge",
   description: "Modern circular gauge",
 });
 
@@ -238,12 +238,12 @@ export class ModernCircularGauge extends LitElement {
             .startFromZero=${this._config.start_from_zero}
           ></modern-circular-gauge-element>
           ${typeof this._config.secondary != "string" ? 
-          this._config.secondary?.show_gauge == "outter" || this._config.secondary?.show_gauge == "inner" ?
+          this._config.secondary?.show_gauge && this._config.secondary?.show_gauge != "none" ?
           this._renderSecondaryGauge()
           : nothing
           : nothing}
           ${typeof this._config.tertiary != "string" ? 
-          this._config.tertiary?.show_gauge == "outter" || this._config.tertiary?.show_gauge == "inner" ?
+          this._config.tertiary?.show_gauge && this._config.tertiary?.show_gauge != "none" ?
           this._renderTertiaryRing()
           : nothing
           : nothing}
