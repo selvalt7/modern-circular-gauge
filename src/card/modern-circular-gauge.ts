@@ -19,6 +19,7 @@ import { isTemplate } from "../utils/template";
 import { mdiHelp } from "@mdi/js";
 import "../components/modern-circular-gauge-element";
 import "../components/modern-circular-gauge-state";
+import "../components/modern-circular-gauge-icon";
 
 const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
 const RADIUS = 47;
@@ -367,17 +368,11 @@ export class ModernCircularGauge extends LitElement {
     const secondaryHasLabel = typeof this._config?.secondary != "string" && this._config?.secondary?.label;
 
     return html`
-    <div class="icon-container">
-      <div class="icon-wrapper" style=${styleMap({ "--gauge-color": gaugeForegroundStyle?.color && gaugeForegroundStyle.color != "adaptive" ? gaugeForegroundStyle.color : computeSegments(value, segments, this._config?.smooth_segments, this) })}>
-        <ha-state-icon
-          class=${classMap({ "adaptive": !!this._config?.adaptive_icon_color, "big": !this._hasSecondary })}
-          style=${styleMap({ "bottom": this._config?.icon_vertical_position ? `${this._config.icon_vertical_position}%` : secondaryHasLabel && !iconCenter ? "15%" : undefined, "--gauge-icon-size": this._config?.icon_size ? `${this._config.icon_size}%` : undefined })}
-          .hass=${this.hass}
-          .stateObj=${stateObj}
-          .icon=${iconOverride}
-        ></ha-state-icon>
-      </div>
-    </div>
+    <modern-circular-gauge-icon
+      .hass=${this.hass}
+      .stateObj=${stateObj}
+      .icon=${iconOverride}
+    ></modern-circular-gauge-icon>
     `;
   }
 
@@ -1059,32 +1054,19 @@ export class ModernCircularGauge extends LitElement {
     }
 
     .icon-container {
-      display: flex;
       position: absolute;
       top: 0;
       left: 0;
       right: 0;
       bottom: 0;
-      justify-content: center;
-      align-items: center;
       z-index: 1;
     }
 
     .icon-wrapper {
-      position: relative;
       display: flex;
-      width: 100%;
-      height: auto;
-      max-height: 100%;
-      padding: 0;
-      margin: 0;
+      justify-content: center;
+      align-items: center;
       overflow: hidden;
-    }
-
-    .icon-wrapper:before {
-      display: block;
-      content: "";
-      padding-top: 100%;
     }
 
     .icon-center .icon-wrapper {
@@ -1094,13 +1076,21 @@ export class ModernCircularGauge extends LitElement {
 
     ha-state-icon, .warning-icon {
       position: absolute;
-      bottom: 21%;
-      left: 50%;
-      transform: translate(-50%, 50%);
-      --mdc-icon-size: auto;
+      /* bottom: 20%; */
+      /* left: 50%; */
+      /* transform: translate(-50%, 50%); */
+      --mdc-icon-size: 100%;
       color: var(--primary-color);
       --gauge-icon-size: 12%;
       --ha-icon-display: flex;
+    }
+
+    modern-circular-gauge-icon {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
     }
 
     .icon-center ha-state-icon, .icon-center ha-state-icon.big, .icon-center .warning-icon {
@@ -1110,13 +1100,15 @@ export class ModernCircularGauge extends LitElement {
     }
 
     ha-state-icon.big, .warning-icon {
-      bottom: 24%;
+      /* bottom: 23%; */
       --gauge-icon-size: 18%;
     }
 
     ha-state-icon, ha-svg-icon {
-      width: var(--gauge-icon-size);
-      height: var(--gauge-icon-size);
+      /* width: var(--gauge-icon-size); */
+      /* height: var(--gauge-icon-size); */
+      width: 100%;
+      height: 100%;
     }
 
     .warning-icon {
