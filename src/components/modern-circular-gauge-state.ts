@@ -124,7 +124,7 @@ export class ModernCircularGaugeState extends LitElement {
     }
 
     .value {
-      font-size: var(--state-font-size);
+      font-size: var(--state-font-size-override, var(--state-font-size));
       fill: var(--state-text-color-override, var(--state-text-color));
       dominant-baseline: middle;
       pointer-events: auto;
@@ -145,7 +145,7 @@ export class ModernCircularGaugeState extends LitElement {
     }
 
     .small .value {
-      font-size: 10px;
+      --state-font-size: 10px;
       fill: var(--state-text-color);
     }
 

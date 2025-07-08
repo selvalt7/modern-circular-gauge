@@ -251,7 +251,7 @@ export class ModernCircularGauge extends LitElement {
         <div class="gauge-state">
           ${this._config.show_state ? html`
           <modern-circular-gauge-state
-            style=${styleMap({ "--state-text-color": this._config.adaptive_state_color ? "var(--gauge-color)" : undefined , "--state-font-size": this._config.state_font_size ? `${this._config.state_font_size}px` : undefined })}
+            style=${styleMap({ "--state-text-color": this._config.adaptive_state_color ? "var(--gauge-color)" : undefined , "--state-font-size-override": this._config.state_font_size ? `${this._config.state_font_size}px` : undefined })}
             .hass=${this.hass}
             .stateObj=${stateObj}
             .stateOverride=${(segmentsLabel || stateOverride) ?? templatedState}
@@ -618,7 +618,7 @@ export class ModernCircularGauge extends LitElement {
         hasHold: hasAction(secondary.hold_action),
         hasDoubleClick: hasAction(secondary.double_tap_action),
       })}
-      style=${styleMap({ "--state-text-color-override": secondaryColor ?? (secondary.state_size == "big" ? "var(--secondary-text-color)" : undefined), "--state-font-size": secondary.state_font_size ? `${secondary.state_font_size}px` : undefined })}
+      style=${styleMap({ "--state-text-color-override": secondaryColor ?? (secondary.state_size == "big" ? "var(--secondary-text-color)" : undefined), "--state-font-size-override": secondary.state_font_size ? `${secondary.state_font_size}px` : undefined })}
       .hass=${this.hass}
       .stateObj=${stateObj}
       .stateOverride=${(segmentsLabel || stateOverride) ?? templatedState}
@@ -692,7 +692,7 @@ export class ModernCircularGauge extends LitElement {
         hasHold: hasAction(tertiary.hold_action),
         hasDoubleClick: hasAction(tertiary.double_tap_action),
       })}
-      style=${styleMap({ "--state-text-color-override": adaptiveColor ?? undefined , "--state-font-size": tertiary.state_font_size ? `${tertiary.state_font_size}px` : undefined })}
+      style=${styleMap({ "--state-text-color-override": adaptiveColor ?? undefined , "--state-font-size-override": tertiary.state_font_size ? `${tertiary.state_font_size}px` : undefined })}
       .hass=${this.hass}
       .stateObj=${stateObj}
       .stateOverride=${(segmentsLabel || stateOverride) ?? templatedState}
