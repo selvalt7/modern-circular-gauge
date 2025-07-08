@@ -1,4 +1,4 @@
-import { html, LitElement, css, PropertyValues, svg, nothing } from "lit";
+import { html, LitElement, css, PropertyValues } from "lit";
 import { customElement, property, queryAsync, state } from "lit/decorators.js";
 import { HomeAssistant } from "../ha/types";
 import { HassEntity } from "home-assistant-js-websocket";

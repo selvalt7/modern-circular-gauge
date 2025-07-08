@@ -16,7 +16,6 @@ import { actionHandler } from "../utils/action-handler-directive";
 import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS, MAX_ANGLE } from "../const";
 import { RenderTemplateResult, subscribeRenderTemplate } from "../ha/data/ws-templates";
 import { isTemplate } from "../utils/template";
-import { mdiHelp } from "@mdi/js";
 import "../components/modern-circular-gauge-element";
 import "../components/modern-circular-gauge-state";
 import "../components/modern-circular-gauge-icon";
