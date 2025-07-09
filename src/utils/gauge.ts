@@ -1,8 +1,7 @@
 import { TemplateResult, svg } from "lit";
 import { MAX_ANGLE } from "../const";
 import type { SegmentsConfig } from "../card/type";
-import { rgbToHex } from "./color";
-import { interpolateRgb } from "d3-interpolate";
+import { interpolateColor, rgbToHex } from "./color";
 import { DirectiveResult } from "lit/directive";
 import { styleMap, StyleMapDirective } from "lit/directives/style-map.js";
 import { ClassMapDirective } from "lit/directives/class-map";
@@ -204,7 +203,7 @@ export function computeSegments(numberState: number, segments: SegmentsConfig[] 
               nextColor = getComputedStyle(element).getPropertyValue(nextColor.replace(/(var\()|(\))/g, "").trim());
             }
 
-            return interpolateRgb(color, nextColor)(valueToPercentage(numberState, Number(segment.from), Number(nextSegment.from)));
+            return interpolateColor(color, nextColor, valueToPercentage(numberState, Number(segment.from), Number(nextSegment.from)));
           } else {
             const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
             return color;
