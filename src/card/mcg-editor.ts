@@ -8,6 +8,7 @@ import { getSecondarySchema, getTertiarySchema } from "./mcg-schema";
 import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS } from "../const";
 import memoizeOne from "memoize-one";
 import "../components/ha-form-mcg-list";
+import "../components/ha-form-mcg-template";
 
 @customElement("modern-circular-gauge-editor")
 export class ModernCircularGaugeEditor extends LitElement {
@@ -36,14 +37,16 @@ export class ModernCircularGaugeEditor extends LitElement {
     [
       {
         name: "entity",
+        type: "mcg-template",
         required: true,
-        selector: { entity: {
+        schema: { entity: {
           domain: NUMBER_ENTITY_DOMAINS,
         }},
       },
       {
         name: "name",
-        selector: { text: {} },
+        type: "mcg-template",
+        schema: { text: {} },
       },
       {
         name: "",
@@ -51,7 +54,8 @@ export class ModernCircularGaugeEditor extends LitElement {
         schema: [
           {
             name: "icon",
-            selector: { icon: {} },
+            type: "mcg-template",
+            schema: { icon: {} },
             context: {
               icon_entity: "entity",
             },
@@ -62,15 +66,17 @@ export class ModernCircularGaugeEditor extends LitElement {
           },
           {
             name: "min",
+            type: "mcg-template",
             default: DEFAULT_MIN,
             label: "generic.minimum",
-            selector: { number: { step: 0.1 } },
+            schema: { number: { step: 0.1 } },
           },
           {
             name: "max",
+            type: "mcg-template",
             default: DEFAULT_MAX,
             label: "generic.maximum",
-            selector: { number: { step: 0.1 } },
+            schema: { number: { step: 0.1 } },
           },
         ],
       },
@@ -168,23 +174,26 @@ export class ModernCircularGaugeEditor extends LitElement {
             schema: [
               {
                 name: "from",
+                type: "mcg-template",
                 label: "From",
                 required: true,
-                selector: { number: { step: 0.1 } },
+                schema: { number: { step: 0.1 } },
               },
               {
                 name: "color",
+                type: "mcg-template",
                 label: "heading.entity_config.color",
                 required: true,
-                selector: { color_rgb: {} },
+                schema: { color_rgb: {} },
               },
             ],
           },
           {
-              name: "label",
-              label: "Label",
-              selector: { text: {} },
-          }
+            name: "label",
+            type: "mcg-template",
+            label: "Label",
+            schema: { text: {} },
+          },
         ]
       },
       {
