@@ -5,7 +5,6 @@ export const getSecondaryGaugeSchema = (showGaugeOptions: boolean) => {
   return [
     {
       name: "show_gauge",
-      label: "Gauge visibility",
       selector: { select: {
         options: [
           { value: "none", label: "None" },
@@ -24,18 +23,15 @@ export const getSecondaryGaugeSchema = (showGaugeOptions: boolean) => {
         {
           name: "min",
           default: DEFAULT_MIN,
-          label: "generic.minimum",
           selector: { number: { step: 0.1 } },
         },
         {
           name: "max",
           default: DEFAULT_MAX,
-          label: "generic.maximum",
           selector: { number: { step: 0.1 } },
         },
         {
           name: "needle",
-          label: "gauge.needle_gauge",
           selector: { boolean: {} },
         },
       ],
@@ -43,7 +39,6 @@ export const getSecondaryGaugeSchema = (showGaugeOptions: boolean) => {
     {
       name: "segments",
       type: "mcg-list",
-      title: "Color segments",
       iconPath: mdiSegment,
       schema: [
         {
@@ -53,13 +48,11 @@ export const getSecondaryGaugeSchema = (showGaugeOptions: boolean) => {
           schema: [
             {
               name: "from",
-              label: "From",
               required: true,
               selector: { number: { step: 0.1 } },
             },
             {
               name: "color",
-              label: "heading.entity_config.color",
               required: true,
               selector: { color_rgb: {} },
             },
@@ -93,7 +86,6 @@ export function getSecondarySchema(showGaugeOptions: boolean) {
           },
           {
             name: "state_size",
-            label: "State size",
             selector: { select: {
               options: [
                 { value: "small", label: "Small"},
@@ -105,19 +97,16 @@ export function getSecondarySchema(showGaugeOptions: boolean) {
           },
           {
             name: "show_state",
-            label: "Show state",
             default: true,
             selector: { boolean: {} },
           },
           {
             name: "show_unit",
-            label: "Show unit",
             default: true,
             selector: { boolean: {} },
           },
           {
             name: "adaptive_state_color",
-            label: "Adaptive state color",
             default: false,
             selector: { boolean: {} },
           },
@@ -136,7 +125,6 @@ export function getTertiarySchema(showGaugeOptions: boolean) {
   return {
     name: "tertiary",
     type: "expandable",
-    label: "Tertiary info",
     iconPath: mdiNumeric3BoxOutline,
     schema: [
       {
@@ -155,19 +143,16 @@ export function getTertiarySchema(showGaugeOptions: boolean) {
         schema: [
           {
             name: "show_state",
-            label: "Show state",
             default: true,
             selector: { boolean: {} },
           },
           {
             name: "show_unit",
-            label: "Show unit",
             default: true,
             selector: { boolean: {} },
           },
           {
             name: "adaptive_state_color",
-            label: "Adaptive state color",
             default: false,
             selector: { boolean: {} },
           },

@@ -86,13 +86,11 @@ const FORM = [
         schema: [
           {
             name: "from",
-            label: "From",
             required: true,
             selector: { number: { step: 0.1 } },
           },
           {
             name: "color",
-            label: "heading.entity_config.color",
             required: true,
             selector: { color_rgb: {} },
           },
