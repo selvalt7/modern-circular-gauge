@@ -5,6 +5,7 @@ import { HaFormMCGListSchema } from "./type";
 import { HaFormBaseSchema, HaFormDataContainer } from "../ha/components/ha-form-types";
 import { mdiClose, mdiPlus } from "@mdi/js";
 import { fireEvent } from "../ha/common/dom/fire_event";
+import localize from "../localize/localize";
 
 @customElement("ha-form-mcg-list")
 export class MCG_List extends LitElement {
@@ -43,7 +44,7 @@ export class MCG_List extends LitElement {
         role="heading"
       >
         <ha-svg-icon .path=${this.schema.iconPath}></ha-svg-icon>
-        ${this.schema.title}
+        ${localize(this.hass, `editor.${this.schema.name}`)}
       </div>
       <div class="content">
         ${this.data ? this.data.map((row, index) => html`

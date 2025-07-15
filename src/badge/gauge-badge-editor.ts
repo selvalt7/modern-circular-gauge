@@ -7,6 +7,7 @@ import { fireEvent } from "../ha/common/dom/fire_event";
 import { mdiSegment } from "@mdi/js";
 import { hexToRgb } from "../utils/color";
 import "../components/ha-form-mcg-list";
+import localize from "../localize/localize";
 
 const FORM = [
   {
@@ -35,48 +36,40 @@ const FORM = [
       },
       {
         name: "needle",
-        label: "gauge.needle_gauge",
         selector: { boolean: {} },
       },
       {
         name: "min",
         default: DEFAULT_MIN,
-        label: "generic.minimum",
         selector: { number: { step: 0.1 } },
       },
       {
         name: "max",
         default: DEFAULT_MAX,
-        label: "generic.maximum",
         selector: { number: { step: 0.1 } },
       },
       {
         name: "show_name",
-        label: "Show name",
         default: false,
         selector: { boolean: {} },
       },
       {
         name: "show_state",
-        label: "Show state",
         default: true,
         selector: { boolean: {} },
       },
       {
         name: "show_unit",
-        label: "Show unit",
         default: true,
         selector: { boolean: {} },
       },
       {
         name: "show_icon",
-        label: "Show icon",
         default: true,
         selector: { boolean: {} },
       },
       {
         name: "smooth_segments",
-        label: "Smooth color segments",
         selector: { boolean: {} },
       },
     ]
@@ -84,7 +77,6 @@ const FORM = [
   {
     name: "segments",
     type: "mcg-list",
-    title: "Color segments",
     iconPath: mdiSegment,
     schema: [
       {
@@ -154,11 +146,7 @@ export class ModernCircularGaugeBadgeEditor extends LitElement {
   }
 
   private _computeLabel = (schema: any) => {
-    let label = this.hass?.localize(`ui.panel.lovelace.editor.card.generic.${schema.name}`);
-    if (label) return label;
-    label = this.hass?.localize(`ui.panel.lovelace.editor.card.${schema.label}`);
-    if (label) return label;
-    return schema.label;
+    return this.hass?.localize(`ui.panel.lovelace.editor.card.generic.${schema.name}`) || localize(this.hass, `editor.${schema.name}`);
   };
 
   private _valueChanged(ev: CustomEvent): void {

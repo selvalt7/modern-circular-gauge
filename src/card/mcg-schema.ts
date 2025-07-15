@@ -13,6 +13,7 @@ export const getSecondaryGaugeSchema = (showGaugeOptions: boolean) => {
           { value: "outer", label: "Outer gauge" },
         ],
         mode: "dropdown",
+        translation_key: "show_gauge_options",
       }},
     },
     {
@@ -99,6 +100,7 @@ export function getSecondarySchema(showGaugeOptions: boolean) {
                 { value: "big", label: "Big"},
               ],
               mode: "dropdown",
+              translation_key: "state_size_options",
             }},
           },
           {

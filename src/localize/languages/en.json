@@ -1,0 +1,48 @@
+{
+  "editor": {
+    "min": "Minimum",
+    "max": "Maximum",
+    "needle": "Display as needle gauge",
+    "secondary": "Secondary info",
+    "tertiary": "Tertiary info",
+    "state_size": "State size",
+    "show_gauge": "Show gauge",
+    "header_position": "Header position",
+    "show_header": "Show header",
+    "adaptive_icon_color": "Adaptive icon color",
+    "icon_entity": "Icon entity",
+    "adaptive_state_color": "Adaptive state color",
+    "show_unit": "Show unit",
+    "smooth_segments": "Smooth segments",
+    "segments": "Color segments",
+    "from": "From",
+    "color": "Color",
+    "label": "Label",
+    "header_position_options": {
+      "options": {
+        "top": "Top",
+        "bottom": "Bottom"
+      }
+    },
+    "icon_entity_options": {
+      "options": {
+        "primary": "Primary",
+        "secondary": "Secondary",
+        "tertiary": "Tertiary"
+      }
+    },
+    "show_gauge_options": {
+      "options": {
+        "none": "None",
+        "inner": "Inner gauge",
+        "outer": "Outer gauge"
+      }
+    },
+    "state_size_options": {
+      "options": {
+        "small": "Small",
+        "big": "Big"
+      }
+    }
+  }
+}

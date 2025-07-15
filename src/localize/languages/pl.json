@@ -1,0 +1,48 @@
+{
+  "editor": {
+    "min": "Minimum",
+    "max": "Maksimum",
+    "needle": "Wyświetl jako wskaźnik igłowy",
+    "secondary": "Informacja drugorzędna",
+    "tertiary": "Informacja trzeciorzędna",
+    "state_size": "Rozmiar stanu",
+    "show_gauge": "Pokaż wskaźnik",
+    "header_position": "Pozycja nagłówka",
+    "show_header": "Pokaż nagłówek",
+    "adaptive_icon_color": "Adaptywny kolor ikony",
+    "icon_entity": "Encja ikony",
+    "adaptive_state_color": "Adaptywny kolor stanu",
+    "show_unit": "Pokaż jednostkę",
+    "smooth_segments": "Wygładzone segmenty",
+    "segments": "Segmenty kolorów",
+    "from": "Od",
+    "color": "Kolor",
+    "label": "Etykieta",
+    "header_position_options": {
+      "options": {
+        "top": "Na górze",
+        "bottom": "Na dole"
+      }
+    },
+    "icon_entity_options": {
+      "options": {
+        "primary": "Pierwszorzędna",
+        "secondary": "Drugorzędna",
+        "tertiary": "Trzeciorzędna"
+      }
+    },
+    "show_gauge_options": {
+      "options": {
+        "none": "Brak",
+        "inner": "Wewnętrzny wskaźnik",
+        "outer": "Zewnętrzny wskaźnik"
+      }
+    },
+    "state_size_options": {
+      "options": {
+        "small": "Mały",
+        "big": "Duży"
+      }
+    }
+  }
+}
