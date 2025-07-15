@@ -11,44 +11,52 @@ import "../components/ha-form-mcg-list";
 const FORM = [
   {
     name: "entity",
+    type: "mcg-template",
     required: true,
-    selector: { entity: {
-        domain: NUMBER_ENTITY_DOMAINS,
+    schema: { entity: {
+      domain: NUMBER_ENTITY_DOMAINS,
     }},
+  },
+  {
+    name: "name",
+    type: "mcg-template",
+    schema: { text: {} },
   },
   {
     name: "",
     type: "grid",
     schema: [
       {
-        name: "name",
-        selector: { text: {} },
+        name: "icon",
+        type: "mcg-template",
+        flatten: true,
+        schema: { icon: {} },
+        context: {
+          icon_entity: "entity",
+        },
       },
       {
         name: "unit",
         selector: { text: {} },
       },
       {
-        name: "icon",
-        selector: { icon: {} },
-        context: { icon_entity: "entity" },
+        name: "min",
+        type: "mcg-template",
+        default: DEFAULT_MIN,
+        label: "generic.minimum",
+        schema: { number: { step: 0.1 } },
+      },
+      {
+        name: "max",
+        type: "mcg-template",
+        default: DEFAULT_MAX,
+        label: "generic.maximum",
+        schema: { number: { step: 0.1 } },
       },
       {
         name: "needle",
         label: "gauge.needle_gauge",
         selector: { boolean: {} },
-      },
-      {
-        name: "min",
-        default: DEFAULT_MIN,
-        label: "generic.minimum",
-        selector: { number: { step: 0.1 } },
-      },
-      {
-        name: "max",
-        default: DEFAULT_MAX,
-        label: "generic.maximum",
-        selector: { number: { step: 0.1 } },
       },
       {
         name: "show_name",
@@ -94,15 +102,17 @@ const FORM = [
         schema: [
           {
             name: "from",
+            type: "mcg-template",
             label: "From",
             required: true,
-            selector: { number: { step: 0.1 } },
+            schema: { number: { step: 0.1 } },
           },
           {
             name: "color",
+            type: "mcg-template",
             label: "heading.entity_config.color",
             required: true,
-            selector: { color_rgb: {} },
+            schema: { color_rgb: {} },
           },
         ],
       },
