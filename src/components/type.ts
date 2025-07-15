@@ -13,5 +13,6 @@ export interface HaFormMCGListSchema extends HaFormBaseSchema {
 export interface HaFormMCGTemplateSchema extends HaFormBaseSchema {
   type: "mcg-template";
   label?: string;
+  flatten?: boolean;
   schema?: readonly any[] | any;
 }

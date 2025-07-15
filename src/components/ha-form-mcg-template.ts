@@ -15,7 +15,7 @@ export class HaFormMCGTemplate extends LitElement {
 
   @property({ attribute: false }) public schema!: HaFormMCGTemplateSchema;
 
-  @property({ type: String }) public template = "";
+  @property({ type: Boolean }) public disabled = false;
 
   @property({ attribute: false }) public computeLabel?: (
     schema: HaFormBaseSchema,
@@ -26,7 +26,9 @@ export class HaFormMCGTemplate extends LitElement {
 
   connectedCallback(): void {
     super.connectedCallback();
-    this._templateMode = isTemplate(this.data as unknown as string);
+
+    const DATA = this.schema.flatten ? this.data : { [this.schema.name]: this.data };
+    this._templateMode = isTemplate(DATA[this.schema.name] as unknown as string);
   }
 
   private _computeSelector(): any[] {
@@ -35,14 +37,15 @@ export class HaFormMCGTemplate extends LitElement {
         name: this.schema.name,
         label: this.schema.label,
         selector: this.schema.schema,
+        context: this.schema.context || undefined,
       }
     ];
   }
 
   protected render() {
-    const DATA = { [this.schema.name]: this.data };
-
-    const dataIsTemplate = this._templateMode ?? isTemplate((DATA[this.schema.name] as unknown) as string);
+    const DATA = this.schema.flatten ? this.data : { [this.schema.name]: this.data };
+    
+    const dataIsTemplate = this._templateMode ?? isTemplate(DATA[this.schema.name] as unknown as string);
     
     let schema = Array.isArray(this.schema.schema) ? this.schema.schema : this._computeSelector();
     
@@ -63,23 +66,20 @@ export class HaFormMCGTemplate extends LitElement {
           .data=${DATA}
           .schema=${schema}
           .computeLabel=${this.computeLabel}
+          .disabled=${this.disabled}
           @value-changed=${this._valueChanged}
         >
         </ha-form>
-        <ha-icon-button
-          .path=${this._templateMode ? mdiListBoxOutline : mdiCodeBraces}
-          @click=${this._toggleTemplateMode}
-        ></ha-icon-button>
+        <ha-button .disabled=${this.disabled} @click=${this._toggleTemplateMode}>
+          ${this._templateMode ? "Switch to Form" : "Switch to Template"}
+          <ha-svg-icon slot="icon" .path=${this._templateMode ? mdiListBoxOutline : mdiCodeBraces}></ha-svg-icon>
+        </ha-button>
       </div>
     `;
   }
 
   private _toggleTemplateMode(): void {
     this._templateMode = !this._templateMode;
-    if (this._templateMode) {
-      const value = this.data != undefined ? String(this.data) : "";
-      fireEvent(this, "value-changed", { value: value });
-    }
   }
 
   private _valueChanged(ev: CustomEvent): void {
@@ -88,7 +88,10 @@ export class HaFormMCGTemplate extends LitElement {
     if (value === undefined) {
       return;
     }
-    fireEvent(this, "value-changed", { value: value });
+
+    const data = this.schema.flatten ? { value: ev.detail.value } : { value: value };
+
+    fireEvent(this, "value-changed", data);
   }
 
   static styles = css`
@@ -97,11 +100,13 @@ export class HaFormMCGTemplate extends LitElement {
     }
     .selector-container {
       display: flex;
-      align-items: center;
+      flex-direction: column;
+      align-items: flex-start;
       gap: 8px;
     }
     ha-form {
       flex: 1;
+      width: 100%;
     }
   `;
 }

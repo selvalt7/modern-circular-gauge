@@ -55,6 +55,7 @@ export class ModernCircularGaugeEditor extends LitElement {
           {
             name: "icon",
             type: "mcg-template",
+            flatten: true,
             schema: { icon: {} },
             context: {
               icon_entity: "entity",
