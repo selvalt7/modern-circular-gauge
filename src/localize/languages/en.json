@@ -6,7 +6,7 @@
     "secondary": "Secondary info",
     "tertiary": "Tertiary info",
     "state_size": "State size",
-    "show_gauge": "Show gauge",
+    "show_gauge": "Gauge visibility",
     "header_position": "Header position",
     "show_header": "Show header",
     "adaptive_icon_color": "Adaptive icon color",
