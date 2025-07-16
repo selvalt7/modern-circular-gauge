@@ -70,14 +70,12 @@ export class ModernCircularGaugeEditor extends LitElement {
             name: "min",
             type: "mcg-template",
             default: DEFAULT_MIN,
-            label: "generic.minimum",
             schema: { number: { step: 0.1 } },
           },
           {
             name: "max",
             type: "mcg-template",
             default: DEFAULT_MAX,
-            label: "generic.maximum",
             schema: { number: { step: 0.1 } },
           },
         ],
@@ -86,7 +84,6 @@ export class ModernCircularGaugeEditor extends LitElement {
         getTertiarySchema(showTertiaryGaugeOptions),
       {
         name: "header_position",
-        label: "Header position",
         selector: {
           select: {
             options: [
@@ -103,47 +100,39 @@ export class ModernCircularGaugeEditor extends LitElement {
         schema: [
           {
             name: "needle",
-            label: "gauge.needle_gauge",
             selector: { boolean: {} },
           },
           {
             name: "smooth_segments",
-            label: "Smooth color segments",
             selector: { boolean: {} },
           },
           {
             name: "show_header",
-            label: "Show header",
             default: true,
             selector: { boolean: {} },
           },
           {
             name: "show_state",
-            label: "Show state",
             default: true,
             selector: { boolean: {} },
           },
           {
             name: "show_unit",
-            label: "Show unit",
             default: true,
             selector: { boolean: {} },
           },
           {
             name: "show_icon",
-            label: "Show icon",
             default: true,
             selector: { boolean: {} },
           },
           {
             name: "adaptive_icon_color",
-            label: "Adaptive icon color",
             default: false,
             selector: { boolean: {} },
           },
           {
             name: "icon_entity",
-            label: "Icon entity",
             default: "primary",
             selector: {
               select: {
@@ -159,7 +148,6 @@ export class ModernCircularGaugeEditor extends LitElement {
           },
           {
             name: "adaptive_state_color",
-            label: "Adaptive state color",
             default: false,
             selector: { boolean: {} },
           },
@@ -178,14 +166,12 @@ export class ModernCircularGaugeEditor extends LitElement {
               {
                 name: "from",
                 type: "mcg-template",
-                label: "From",
                 required: true,
                 schema: { number: { step: 0.1 } },
               },
               {
                 name: "color",
                 type: "mcg-template",
-                label: "heading.entity_config.color",
                 required: true,
                 schema: { color_rgb: {} },
               },
@@ -194,7 +180,6 @@ export class ModernCircularGaugeEditor extends LitElement {
           {
             name: "label",
             type: "mcg-template",
-            label: "Label",
             schema: { text: {} },
           },
         ]
