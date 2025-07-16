@@ -19,9 +19,6 @@ jobs:
             - name: Install
               run: npm ci
 
-            - name: Build
-              run: npm run build
-
             - name: Release
               run: npx semantic-release
               env:
