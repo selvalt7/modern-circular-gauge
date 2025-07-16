@@ -6,6 +6,7 @@ import { HaFormBaseSchema, HaFormDataContainer } from "../ha/components/ha-form-
 import { fireEvent } from "../ha/common/dom/fire_event";
 import { isTemplate } from "../utils/template";
 import { mdiCodeBraces, mdiListBoxOutline } from "@mdi/js";
+import localize from "../localize/localize";
 
 @customElement("ha-form-mcg-template")
 export class HaFormMCGTemplate extends LitElement {
@@ -73,7 +74,7 @@ export class HaFormMCGTemplate extends LitElement {
         >
         </ha-form>
         <ha-button .disabled=${this.disabled} @click=${this._toggleTemplateMode}>
-          ${this._templateMode ? "Switch to Form" : "Switch to Template"}
+          ${this._templateMode ? localize(this.hass, "editor.switch_to_form") : localize(this.hass, "editor.switch_to_template")}
           <ha-svg-icon slot="icon" .path=${this._templateMode ? mdiListBoxOutline : mdiCodeBraces}></ha-svg-icon>
         </ha-button>
       </div>

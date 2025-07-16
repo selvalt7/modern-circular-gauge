@@ -18,6 +18,8 @@
     "from": "Od",
     "color": "Kolor",
     "label": "Etykieta",
+    "switch_to_form": "Przełącz na Selektor",
+    "switch_to_template": "Przełącz na Template",
     "header_position_options": {
       "options": {
         "top": "Na górze",
