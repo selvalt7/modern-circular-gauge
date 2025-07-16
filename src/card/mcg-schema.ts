@@ -22,13 +22,15 @@ export const getSecondaryGaugeSchema = (showGaugeOptions: boolean) => {
       schema: [
         {
           name: "min",
+          type: "mcg-template",
           default: DEFAULT_MIN,
-          selector: { number: { step: 0.1 } },
+          schema: { number: { step: 0.1 } },
         },
         {
           name: "max",
+          type: "mcg-template",
           default: DEFAULT_MAX,
-          selector: { number: { step: 0.1 } },
+          schema: { number: { step: 0.1 } },
         },
         {
           name: "needle",
@@ -48,13 +50,15 @@ export const getSecondaryGaugeSchema = (showGaugeOptions: boolean) => {
           schema: [
             {
               name: "from",
+              type: "mcg-template",
               required: true,
-              selector: { number: { step: 0.1 } },
+              schema: { number: { step: 0.1 } },
             },
             {
               name: "color",
+              type: "mcg-template",
               required: true,
-              selector: { color_rgb: {} },
+              schema: { color_rgb: {} },
             },
           ],
         },
@@ -72,7 +76,8 @@ export function getSecondarySchema(showGaugeOptions: boolean) {
     schema: [
       {
         name: "entity",
-        selector: { entity: { 
+        type: "mcg-template",
+        schema: { entity: {
           domain: NUMBER_ENTITY_DOMAINS,
         }},
       },
@@ -129,7 +134,8 @@ export function getTertiarySchema(showGaugeOptions: boolean) {
     schema: [
       {
         name: "entity",
-        selector: { entity: { 
+        type: "mcg-template",
+        schema: { entity: {
           domain: NUMBER_ENTITY_DOMAINS,
         }},
       },

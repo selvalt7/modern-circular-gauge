@@ -18,6 +18,8 @@
     "from": "From",
     "color": "Color",
     "label": "Label",
+    "switch_to_form": "Switch To Form",
+    "switch_to_template": "Switch To Template",
     "header_position_options": {
       "options": {
         "top": "Top",
