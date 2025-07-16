@@ -37,6 +37,7 @@ export class HaFormMCGTemplate extends LitElement {
         name: this.schema.name,
         label: this.schema.label,
         selector: this.schema.schema,
+        required: this.schema.required,
         context: this.schema.context || undefined,
       }
     ];
@@ -54,6 +55,7 @@ export class HaFormMCGTemplate extends LitElement {
         {
           name: this.schema.name,
           label: this.schema.label,
+          required: this.schema.required,
           selector: { template: {} },
         }
       ]
