@@ -9,6 +9,7 @@ import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS } from "../const";
 import memoizeOne from "memoize-one";
 import "../components/ha-form-mcg-list";
 import "../components/ha-form-mcg-template";
+import localize from "../localize/localize";
 
 @customElement("modern-circular-gauge-editor")
 export class ModernCircularGaugeEditor extends LitElement {
@@ -92,6 +93,7 @@ export class ModernCircularGaugeEditor extends LitElement {
               { label: "Top", value: "top" },
               { label: "Bottom", value: "bottom" },
             ],
+            translation_key: "header_position_options",
           },
         },
       },
@@ -151,6 +153,7 @@ export class ModernCircularGaugeEditor extends LitElement {
                   { value: "tertiary", label: "Tertiary" },
                 ],
                 mode: "dropdown",
+                translation_key: "icon_entity_options",
               },
             },
           },
@@ -165,7 +168,6 @@ export class ModernCircularGaugeEditor extends LitElement {
       {
         name: "segments",
         type: "mcg-list",
-        title: "Color segments",
         iconPath: mdiSegment,
         schema: [
           {
@@ -224,17 +226,18 @@ export class ModernCircularGaugeEditor extends LitElement {
         .data=${DATA}
         .schema=${schema}
         .computeLabel=${this._computeLabel}
+        .localizeValue=${this._localizeValue}
         @value-changed=${this._valueChanged}
     ></ha-form>
     `;
   }
 
+  private _localizeValue = (key: string) => {
+    return localize(this.hass, `editor.${key}`);
+  };
+
   private _computeLabel = (schema: any) => {
-    let label = this.hass?.localize(`ui.panel.lovelace.editor.card.generic.${schema.name}`);
-    if (label) return label;
-    label = this.hass?.localize(`ui.panel.lovelace.editor.card.${schema.label}`);
-    if (label) return label;
-    return schema.label;
+    return this.hass?.localize(`ui.panel.lovelace.editor.card.generic.${schema.name}`) || localize(this.hass, `editor.${schema.name}`);
   };
 
   private _valueChanged(ev: CustomEvent): void {
