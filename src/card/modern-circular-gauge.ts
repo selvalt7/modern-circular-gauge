@@ -13,7 +13,7 @@ import { classMap } from "lit/directives/class-map.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { actionHandler } from "../utils/action-handler-directive";
-import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS, MAX_ANGLE } from "../const";
+import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS, MAX_ANGLE, RADIUS, INNER_RADIUS, TERTIARY_RADIUS } from "../const";
 import { RenderTemplateResult, subscribeRenderTemplate } from "../ha/data/ws-templates";
 import { isTemplate } from "../utils/template";
 import "../components/modern-circular-gauge-element";
@@ -21,9 +21,6 @@ import "../components/modern-circular-gauge-state";
 import "../components/modern-circular-gauge-icon";
 
 const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
-const RADIUS = 47;
-const INNER_RADIUS = 42;
-const TERTIARY_RADIUS = 37;
 
 const path = svgArc({
   x: 0,
