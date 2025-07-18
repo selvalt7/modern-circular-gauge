@@ -4,7 +4,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import { ModernCircularGaugeBadgeConfig } from "./gauge-badge-config";
 import { NUMBER_ENTITY_DOMAINS, DEFAULT_MAX, DEFAULT_MIN } from "../const";
 import { fireEvent } from "../ha/common/dom/fire_event";
-import { mdiPalette, mdiSegment } from "@mdi/js";
+import { mdiFlipToBack, mdiFlipToFront, mdiPalette, mdiSegment } from "@mdi/js";
 import { hexToRgb } from "../utils/color";
 import "../components/ha-form-mcg-list";
 import { getGaugeStyleSchema } from "../card/mcg-schema";
@@ -108,11 +108,13 @@ const FORM = [
       {
         name: "gauge_foreground_style",
         type: "expandable",
+        iconPath: mdiFlipToFront,
         schema: getGaugeStyleSchema(14)
       },
       {
         name: "gauge_background_style",
         type: "expandable",
+        iconPath: mdiFlipToBack,
         schema: getGaugeStyleSchema(14)
       }
     ]
