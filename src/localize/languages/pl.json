@@ -20,6 +20,26 @@
     "label": "Etykieta",
     "switch_to_form": "Przełącz na Selektor",
     "switch_to_template": "Przełącz na Template",
+    "start_from_zero": "Rozpocznij od zera",
+    "gauge_radius": "Promień wskaźnika",
+    "width": "Szerokość",
+    "opacity": "Nieprzezroczystość",
+    "gauge_foreground_style": "Styl wskaźnika",
+    "gauge_background_style": "Styl tła wskaźnika",
+    "appearance": "Wygląd karty",
+    "badge_appearance": "Wygląd odznaki",
+    "state_text": "Tekst stanu",
+    "primary_entity_style": "Styl encji",
+    "secondary_entity_style": "Styl encji",
+    "tertiary_entity_style": "Styl encji",
+    "helper": {
+      "start_from_zero": "Wskaźnik rozpoczyna się od zera zamiast od minimum",
+      "primary_label": "Tekst wyświetlony pod głównym stanem, gdy rozmiar stanu informacji drugorzędnej jest duży",
+      "label": "Tekst wyświetlony pod stanem",
+      "gauge_color": "Przyjmuje wartości hex, rgb, zmienne CSS lub \"adaptive\" dla stylu segmentów kolorów",
+      "icon_entity": "Wybierz encję, której chcesz użyć do wyboru ikon i ich kolorowania",
+      "state_text": "Nadpisuje wyświetlany stan bez nadpisywania danych wskaźnika, akceptuje template"
+    },
     "header_position_options": {
       "options": {
         "top": "Na górze",

@@ -20,6 +20,26 @@
     "label": "Label",
     "switch_to_form": "Switch To Form",
     "switch_to_template": "Switch To Template",
+    "start_from_zero": "Start from zero",
+    "gauge_radius": "Gauge radius",
+    "width": "Width",
+    "opacity": "Opacity",
+    "gauge_foreground_style": "Gauge foreground style",
+    "gauge_background_style": "Gauge background style",
+    "appearance": "Card appearance",
+    "badge_appearance": "Badge appearance",
+    "state_text": "State text",
+    "primary_entity_style": "Entity style",
+    "secondary_entity_style": "Entity style",
+    "tertiary_entity_style": "Entity style",
+    "helper": {
+      "start_from_zero": "Gauge starts from zero instead of min",
+      "primary_label": "Text displayed under the main state when secondary state size is set to big",
+      "label": "Text displayed under the state",
+      "gauge_color": "Accepts hex, rgb, CSS variables or \"adaptive\" for segmented style",
+      "icon_entity": "Select which entity to use for icon selection and coloring",
+      "state_text": "Overrides displayed state without overriding gauge data, accepts template"
+    },
     "header_position_options": {
       "options": {
         "top": "Top",

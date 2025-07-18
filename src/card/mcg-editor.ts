@@ -3,9 +3,9 @@ import { HomeAssistant } from "../ha/types";
 import { html, LitElement, nothing, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { ModernCircularGaugeConfig } from "./type";
-import { mdiSegment, mdiInformationOutline, mdiNumeric3BoxOutline } from "@mdi/js";
-import { getSecondarySchema, getTertiarySchema } from "./mcg-schema";
-import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS } from "../const";
+import { mdiSegment, mdiPalette, mdiGauge } from "@mdi/js";
+import { getEntityStyleSchema, getSecondarySchema, getTertiarySchema } from "./mcg-schema";
+import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS, RADIUS } from "../const";
 import memoizeOne from "memoize-one";
 import "../components/ha-form-mcg-list";
 import "../components/ha-form-mcg-template";
@@ -80,78 +80,77 @@ export class ModernCircularGaugeEditor extends LitElement {
           },
         ],
       },
+      {
+        name: "primary_entity_style",
+        type: "expandable",
+        flatten: true,
+        iconPath: mdiGauge,
+        schema: getEntityStyleSchema(true, RADIUS, "primary_label")
+      },
         getSecondarySchema(showInnerGaugeOptions),
         getTertiarySchema(showTertiaryGaugeOptions),
       {
-        name: "header_position",
-        selector: {
-          select: {
-            options: [
-              { label: "Top", value: "top" },
-              { label: "Bottom", value: "bottom" },
-            ],
-            translation_key: "header_position_options",
-          },
-        },
-      },
-      {
-        name: "",
-        type: "grid",
+        name: "appearance",
+        type: "expandable",
+        flatten: true,
+        iconPath: mdiPalette,
         schema: [
           {
-            name: "needle",
-            selector: { boolean: {} },
-          },
-          {
-            name: "smooth_segments",
-            selector: { boolean: {} },
-          },
-          {
-            name: "show_header",
-            default: true,
-            selector: { boolean: {} },
-          },
-          {
-            name: "show_state",
-            default: true,
-            selector: { boolean: {} },
-          },
-          {
-            name: "show_unit",
-            default: true,
-            selector: { boolean: {} },
-          },
-          {
-            name: "show_icon",
-            default: true,
-            selector: { boolean: {} },
-          },
-          {
-            name: "adaptive_icon_color",
-            default: false,
-            selector: { boolean: {} },
-          },
-          {
-            name: "icon_entity",
-            default: "primary",
+            name: "header_position",
+            default: "bottom",
             selector: {
               select: {
                 options: [
-                  { value: "primary", label: "Primary" },
-                  { value: "secondary", label: "Secondary" },
-                  { value: "tertiary", label: "Tertiary" },
+                  { label: "Bottom", value: "bottom" },
+                  { label: "Top", value: "top" },
                 ],
-                mode: "dropdown",
-                translation_key: "icon_entity_options",
+                translation_key: "header_position_options",
+                mode: "box"
               },
             },
           },
           {
-            name: "adaptive_state_color",
-            default: false,
-            selector: { boolean: {} },
+            name: "",
+            type: "grid",
+            schema: [
+              {
+                name: "smooth_segments",
+                selector: { boolean: {} },
+              },
+              {
+                name: "show_header",
+                default: true,
+                selector: { boolean: {} },
+              },
+              {
+                name: "show_icon",
+                default: true,
+                selector: { boolean: {} },
+              },
+              {
+                name: "adaptive_icon_color",
+                default: false,
+                selector: { boolean: {} },
+              },
+              {
+                name: "icon_entity",
+                default: "primary",
+                helper: "icon_entity",
+                selector: {
+                  select: {
+                    options: [
+                      { value: "primary", label: "Primary" },
+                      { value: "secondary", label: "Secondary" },
+                      { value: "tertiary", label: "Tertiary" },
+                    ],
+                    mode: "dropdown",
+                    translation_key: "icon_entity_options",
+                  },
+                },
+              }
+            ],
           },
-        ],
+        ]
       },
       {
         name: "segments",
@@ -212,6 +211,7 @@ export class ModernCircularGaugeEditor extends LitElement {
         .schema=${schema}
         .computeLabel=${this._computeLabel}
         .localizeValue=${this._localizeValue}
+        .computeHelper=${this._computeHelper}
         @value-changed=${this._valueChanged}
     ></ha-form>
     `;
@@ -223,6 +223,13 @@ export class ModernCircularGaugeEditor extends LitElement {
 
   private _computeLabel = (schema: any) => {
     return this.hass?.localize(`ui.panel.lovelace.editor.card.generic.${schema.name}`) || localize(this.hass, `editor.${schema.name}`);
+  };
+
+  private _computeHelper = (schema: any) => {
+    if ("helper" in schema) {
+      return localize(this.hass, `editor.helper.${schema.helper}`);
+    }
+    return undefined
   };
 
   private _valueChanged(ev: CustomEvent): void {
