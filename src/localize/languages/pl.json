@@ -38,7 +38,7 @@
       "label": "Tekst wyświetlony pod stanem",
       "gauge_color": "Przyjmuje wartości hex, rgb, zmienne CSS lub \"adaptive\" dla stylu segmentów kolorów",
       "icon_entity": "Wybierz encję, której chcesz użyć do wyboru ikon i ich kolorowania",
-      "state_text": "Nadpisuje wyświetlany stan bez nadpisywania danych wskaźnika"
+      "state_text": "Nadpisuje wyświetlany stan bez nadpisywania danych wskaźnika, akceptuje template"
     },
     "header_position_options": {
       "options": {
