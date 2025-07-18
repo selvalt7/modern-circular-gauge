@@ -39,6 +39,7 @@ export class HaFormMCGTemplate extends LitElement {
         label: this.schema.label,
         selector: this.schema.schema,
         required: this.schema.required,
+        default: this.schema.default,
         context: this.schema.context || undefined,
       }
     ];
@@ -83,16 +84,31 @@ export class HaFormMCGTemplate extends LitElement {
 
   private _toggleTemplateMode(): void {
     this._templateMode = !this._templateMode;
+    const value = this.schema.flatten ? this.data[this.schema.name] : this.data;
+    if (this._templateMode) {
+      const newValue = this.schema.flatten ? { ...this.data, [this.schema.name]: String(value ?? "") } : String(value ?? "");
+      fireEvent(this, "value-changed", { value: newValue });
+    } else {
+      if (value === "") {
+        const newValue = this.schema.flatten ? { ...this.data, [this.schema.name]: undefined } : undefined;
+        fireEvent(this, "value-changed", { value: newValue });
+      }
+    }
   }
 
   private _valueChanged(ev: CustomEvent): void {
     ev.stopPropagation();
-    const value = ev.detail.value[this.schema.name];
-    if (value === undefined) {
+    let value = ev.detail.value[this.schema.name];
+    const oldValue = this.schema.flatten ? this.data[this.schema.name] : this.data;
+    if (value === oldValue) {
       return;
     }
 
-    const data = this.schema.flatten ? { value: ev.detail.value } : { value: value };
+    if (value === "") {
+      value = undefined;
+    }
+
+    const data = this.schema.flatten ? { value: { ...this.data, [this.schema.name]: value } } : { value: value };
 
     fireEvent(this, "value-changed", data);
   }
