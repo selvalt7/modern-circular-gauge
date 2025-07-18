@@ -1,4 +1,4 @@
-import { mdiNumeric2BoxOutline, mdiSegment, mdiNumeric3BoxOutline } from "@mdi/js";
+import { mdiNumeric2BoxOutline, mdiSegment, mdiNumeric3BoxOutline, mdiFlipToFront, mdiFlipToBack, mdiGauge } from "@mdi/js";
 import { NUMBER_ENTITY_DOMAINS, DEFAULT_MIN, DEFAULT_MAX, RADIUS, INNER_RADIUS, TERTIARY_RADIUS } from "../const";
 
 export const getSecondaryGaugeSchema = (showGaugeOptions: boolean) => [
@@ -141,12 +141,14 @@ export const getEntityStyleSchema = (showGaugeOptions: boolean, gaugeDefaultRadi
     name: "gauge_foreground_style",
     type: "expandable",
     disabled: !showGaugeOptions,
+    iconPath: mdiFlipToFront,
     schema: getGaugeStyleSchema(gaugeDefaultRadius == RADIUS ? 6 : 4)
   },
   {
     name: "gauge_background_style",
     type: "expandable",
     disabled: !showGaugeOptions,
+    iconPath: mdiFlipToBack,
     schema: getGaugeStyleSchema(gaugeDefaultRadius == RADIUS ? 6 : 4)
   }
 ];
@@ -190,6 +192,7 @@ export function getSecondarySchema(showGaugeOptions: boolean) {
         name: "secondary_entity_style",
         type: "expandable",
         flatten: true,
+        iconPath: mdiGauge,
         schema: getEntityStyleSchema(showGaugeOptions, INNER_RADIUS)
       },
       ...getSegmentsSchema(),
@@ -223,6 +226,7 @@ export function getTertiarySchema(showGaugeOptions: boolean) {
         name: "tertiary_entity_style",
         type: "expandable",
         flatten: true,
+        iconPath: mdiGauge,
         schema: getEntityStyleSchema(showGaugeOptions, TERTIARY_RADIUS)
       },
       ...getSegmentsSchema(),

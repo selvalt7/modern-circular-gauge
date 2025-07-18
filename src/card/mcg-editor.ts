@@ -3,7 +3,7 @@ import { HomeAssistant } from "../ha/types";
 import { html, LitElement, nothing, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { ModernCircularGaugeConfig } from "./type";
-import { mdiSegment, mdiPalette } from "@mdi/js";
+import { mdiSegment, mdiPalette, mdiGauge } from "@mdi/js";
 import { getEntityStyleSchema, getSecondarySchema, getTertiarySchema } from "./mcg-schema";
 import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS, RADIUS } from "../const";
 import memoizeOne from "memoize-one";
@@ -84,6 +84,7 @@ export class ModernCircularGaugeEditor extends LitElement {
         name: "primary_entity_style",
         type: "expandable",
         flatten: true,
+        iconPath: mdiGauge,
         schema: getEntityStyleSchema(true, RADIUS, "primary_label")
       },
         getSecondarySchema(showInnerGaugeOptions),
