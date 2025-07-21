@@ -2,6 +2,7 @@
 ![downloads-latest][github-latest-downloads]
 ![downloads-total][github-downloads]
 ![stars][github-stars]
+[![forum][hass-forum]](https://community.home-assistant.io/t/modern-circular-gauge/786296)
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/B0B016VT8K)
 # Modern Circular Gauge
@@ -16,11 +17,11 @@ Modern look at the default Home Assistant gauge card
 - Tertiary info above the state
 - Sections support
 - Needle
-- Template support for `min`, `max`, `entity`, `name`, `icon`, `secondary` and `tertiary` (YAML only)
+- Template support for `min`, `max`, `entity`, `name`, `icon`, `secondary`, `tertiary` and `state_text`
 - Color segments with gradient
-- Dual gauge
+- Dual gauge or triple gauge
 - Dual value representing as a dot on the same gauge
-- Visual editor
+- Visual editor with template support
 
 ## Install
 
@@ -52,21 +53,21 @@ Simply click on the button to open the repository in HACS or just search for "Mo
 ## Options
 
 Card and badge can be configured through visual editor or by `yaml`.
-Templates are supported on selected options, configurable only via `yaml`.
+Templates are supported on selected options, configurable via `yaml` or visual editor.
 
 ### Card options
 
-| Name | Type | Default | Description |
-|------|:----:|:-------:|:------------|
+| Name | Type | Default | Description | Supports template |
+|------|:----:|:-------:|:------------|:-----------------:|
 | type | `string` | 'custom:modern-circular-gauge' |
-| entity | `string` | Required | Entity. May contain templates
-| name | `string` | Optional | Custom title. May contain templates
-| icon | `string` | Optional | Custom icon. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
+| entity | `string` | Required | Entity. May contain templates|✅
+| name | `string` | Optional | Custom title. May contain templates|✅
+| icon | `string` | Optional | Custom icon. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)|✅
 | icon_entity | `primary` or `secondary` or `tertiary` | `primary` | Selects which entity to use for icon selection and color segments
 | icon_size | `number` | Optional | Icon size in %
 | icon_vertical_position | `number` | Optional | Icon vertical position in % (50% indicates center)
-| min | `number` or `string` | `0` | Minimum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
-| max | `number` or `string` | `100` | Maximum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/) see [example](#gauge-with-templated-additional-info-and-segments)
+| min | `number` or `string` | `0` | Minimum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)|✅
+| max | `number` or `string` | `100` | Maximum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/) see [example](#gauge-with-templated-additional-info-and-segments)|✅
 | unit | `string` | Optional | Custom unit
 | label | `string` | Optional | Label under the state, only used when `state_size` is set to `big`, see [secondary](#secondary-entity-object)
 | label_font_size | `number` | `0.49em` | Label font size in px
@@ -76,7 +77,7 @@ Templates are supported on selected options, configurable only via `yaml`.
 | show_header | `boolean` | `true` | Show card header
 | show_icon | `boolean` | `true` | Show card icon
 | needle | `boolean` | `false` | 
-| state_text | `string` | Entity state | Displayed state override. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
+| state_text | `string` | Entity state | Displayed state override. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)|✅
 | adaptive_icon_color | `boolean` | `false` | Makes icon color adaptive to current color segment
 | adaptive_state_color | `boolean` | `false` | Makes state color adaptive to current color segment
 | smooth_segments | `boolean` | `false` | Smooth color segments
@@ -88,19 +89,19 @@ Templates are supported on selected options, configurable only via `yaml`.
 | gauge_background_style | `object` | Optional | Gauge background style, see [gauge element style object](#gauge-element-style-object)
 | gauge_foreground_style | `object` | Optional | Gauge foreground style, see [gauge element style object](#gauge-element-style-object)
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
-| secondary | `object` or `string` | Optional | Secondary info to display under the state, see [secondary entity object](#secondary-entity-object). May contain [templates](https://www.home-assistant.io/docs/configuration/templating/) see [example](#gauge-with-templated-additional-info-and-segments)
-| tertiary | `object` or `string` | Optional | Secondary info to display above the state, see [tertiary entity object](#Tertiary-entity-object). May contain [templates](https://www.home-assistant.io/docs/configuration/templating/) see [example](#gauge-with-templated-additional-info-and-segments)
+| secondary | `object` or `string` | Optional | Secondary info to display under the state, see [secondary entity object](#secondary-entity-object). May contain [templates](https://www.home-assistant.io/docs/configuration/templating/) see [example](#gauge-with-templated-additional-info-and-segments)|✅
+| tertiary | `object` or `string` | Optional | Secondary info to display above the state, see [tertiary entity object](#Tertiary-entity-object). May contain [templates](https://www.home-assistant.io/docs/configuration/templating/) see [example](#gauge-with-templated-additional-info-and-segments)|✅
 
 ### Badge options
 
-| Name | Type | Default | Description |
-|------|:----:|:-------:|:------------|
+| Name | Type | Default | Description | Supports template |
+|------|:----:|:-------:|:------------|:-----------------:|
 | type | `string` | 'custom:modern-circular-gauge-badge' |
-| entity | `string` | Required | Entity. May contain templates.
-| name | `string` | Optional | Custom title. May contain templates
-| icon | `string` | Entity icon | Custom icon. May contain templates
-| min | `number` or `string` | `0` | Minimum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
-| max | `number` or `string` | `100` | Maximum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
+| entity | `string` | Required | Entity. May contain templates.|✅
+| name | `string` | Optional | Custom title. May contain templates|✅
+| icon | `string` | Entity icon | Custom icon. May contain templates|✅
+| min | `number` or `string` | `0` | Minimum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)|✅
+| max | `number` or `string` | `100` | Maximum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)|✅
 | unit | `string` | Optional | Custom unit
 | show_name | `bool` | `false` | Show badge name
 | show_state | `bool` | `true` | Show entity state
@@ -110,25 +111,25 @@ Templates are supported on selected options, configurable only via `yaml`.
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min
 | gauge_background_style | `object` | Optional | Gauge background style, see [gauge element style object](#gauge-element-style-object)
 | gauge_foreground_style | `object` | Optional | Gauge foreground style, see [gauge element style object](#gauge-element-style-object)
-| state_text | `string` | Entity state | Displayed state override. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)
+| state_text | `string` | Entity state | Displayed state override. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)|✅
 | smooth_segments | `boolean` | `false` | Smooth color segments
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
 
 #### Color segment object
-| Name | Type | Default | Description |
-|------|:----:|:-------:|:------------|
-| from | `number` | Required | Starting value of color segment. May contain templates
-| color | `string` | Required | Color value of color segment. May contain templates
-| label | `string` | Optional | Color segment label to display instead of state. May contain templates
+| Name | Type | Default | Description | Supports template |
+|------|:----:|:-------:|:------------|:-----------------:|
+| from | `number` | Required | Starting value of color segment. May contain templates|✅
+| color | `string` | Required | Color value of color segment. May contain templates|✅
+| label | `string` | Optional | Color segment label to display instead of state. May contain templates|✅
 
 #### Secondary entity object
-| Name | Type | Default | Description |
-|------|:----:|:-------:|:------------|
-| entity | `string` | Optional | Secondary entity. May contain templates
+| Name | Type | Default | Description | Supports template |
+|------|:----:|:-------:|:------------|:-----------------:|
+| entity | `string` | Optional | Secondary entity. May contain templates|✅
 | unit | `string` | Optional | Custom unit
 | show_gauge | `none`, `inner`, `outer` | `none` | Display secondary info as dot on main gauge or on inner gauge
-| min | `number` | Optional | Minimum inner gauge value. May contain templates
-| max | `number` | Optional | Maximum inner gauge value. May contain templates
+| min | `number` | Optional | Minimum inner gauge value. May contain templates|✅
+| max | `number` | Optional | Maximum inner gauge value. May contain templates|✅
 | label | `string` | Optional | Label under the state
 | label_font_size | `number` | `0.49em` | Label font size in px
 | state_size | `small` or `big` | `small` | Secondary state size 
@@ -136,6 +137,7 @@ Templates are supported on selected options, configurable only via `yaml`.
 | show_unit | `boolean` | `true` | Show secondary unit
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min
 | state_font_size | `number` | `10` or `24` | State size in px
+| state_text | `string` | Entity state | Displayed state override. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)|✅
 | gauge_radius | `number` | `42` | Gauge radius
 | gauge_background_style | `object` | Optional | Gauge background style, see [gauge element style object](#gauge-element-style-object)
 | gauge_foreground_style | `object` | Optional | Gauge foreground style, see [gauge element style object](#gauge-element-style-object)
@@ -144,19 +146,20 @@ Templates are supported on selected options, configurable only via `yaml`.
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
 
 #### Tertiary entity object
-| Name | Type | Default | Description |
-|------|:----:|:-------:|:------------|
-| entity | `string` | Optional | Secondary entity. May contain templates
+| Name | Type | Default | Description | Supports template |
+|------|:----:|:-------:|:------------|:-----------------:|
+| entity | `string` | Optional | Secondary entity. May contain templates|✅
 | unit | `string` | Optional | Custom unit
 | show_gauge | `none`, `inner`, `outer` | `none` | Display secondary info as dot on main gauge or on inner gauge
-| min | `number` | Optional | Minimum inner gauge value. May contain templates
-| max | `number` | Optional | Maximum inner gauge value. May contain templates
+| min | `number` | Optional | Minimum inner gauge value. May contain templates|✅
+| max | `number` | Optional | Maximum inner gauge value. May contain templates|✅
 | label | `string` | Optional | Label above the state
 | label_font_size | `number` | `0.49em` | Label font size in px
 | show_state | `boolean` | `true` | Show secondary state
 | show_unit | `boolean` | `true` | Show secondary unit
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min
 | state_font_size | `number` | `10` | State size in px
+| state_text | `string` | Entity state | Displayed state override. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)|✅
 | gauge_radius | `number` | `37` | Gauge radius
 | gauge_background_style | `object` | Optional | Gauge background style, see [gauge element style object](#gauge-element-style-object)
 | gauge_foreground_style | `object` | Optional | Gauge foreground style, see [gauge element style object](#gauge-element-style-object)
@@ -402,3 +405,4 @@ The new `modern-circular-gauge.js` will be build in `dist` folder
 [github-downloads]: https://img.shields.io/github/downloads/selvalt7/modern-circular-gauge/total?style=flat
 [github-latest-downloads]: https://img.shields.io/github/downloads/selvalt7/modern-circular-gauge/latest/total?style=flat
 [github-stars]: https://img.shields.io/github/stars/selvalt7/modern-circular-gauge?style=flat
+[hass-forum]: https://img.shields.io/badge/Forum-Home_Assistant?style=flat&logo=homeassistant&logoColor=%2318BCF2&label=Home%20Assistant&color=%2318BCF2
