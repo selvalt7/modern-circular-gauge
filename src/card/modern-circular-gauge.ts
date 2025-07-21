@@ -357,7 +357,7 @@ export class ModernCircularGauge extends LitElement {
     const value = Number(templatedState ?? stateObj.state);
     const iconCenter = !(this._config?.show_state ?? false) && (this._config?.show_icon ?? true);
     const secondaryHasLabel = typeof this._config?.secondary != "string" && this._config?.secondary?.label;
-    const iconPosition = secondaryHasLabel ? 0 : this._hasSecondary ? 1 : iconCenter ? 3 : 2;
+    const iconPosition = iconCenter ? 3 : secondaryHasLabel && this._hasSecondary ? 0 : this._hasSecondary ? 1 : 2;
 
     return html`
     <modern-circular-gauge-icon
