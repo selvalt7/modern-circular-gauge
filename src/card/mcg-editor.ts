@@ -150,6 +150,20 @@ export class ModernCircularGaugeEditor extends LitElement {
               }
             ],
           },
+          {
+            name: "gauge_type",
+            default: "standard",
+            selector: {
+              select: {
+                options: [
+                  { label: "Standard", value: "standard" },
+                  { label: "Half", value: "half" },
+                ],
+                translation_key: "gauge_type_options",
+                mode: "box"
+              },
+            },
+          },
         ]
       },
       {

@@ -5,6 +5,7 @@ import { getNumberFormatOptions, formatNumber } from "../utils/format_number";
 import { HassEntity } from "home-assistant-js-websocket";
 import { classMap } from "lit/directives/class-map.js";
 import { styleMap } from "lit/directives/style-map.js";
+import { GaugeType } from "../card/type";
 
 @customElement("modern-circular-gauge-state")
 export class ModernCircularGaugeState extends LitElement {
@@ -19,6 +20,8 @@ export class ModernCircularGaugeState extends LitElement {
   @property() public label?: string;
 
   @property({ type: Number }) public labelFontSize?: number;
+
+  @property({ type: String }) public gaugeType: GaugeType = "standard";
 
   @property({ type: Boolean }) public small = false;
 
@@ -89,7 +92,7 @@ export class ModernCircularGaugeState extends LitElement {
     const verticalOffset = this.verticalOffset ?? 0;
 
     return html`
-    <svg class="state ${classMap({ "small": this.small })}" overflow="visible" viewBox="-50 -50 100 100">
+    <svg class="state ${classMap({ "small": this.small })}" overflow="visible" viewBox="-50 -50 100 ${this.gaugeType == "half" ? 50 : 100}">
       <text x="0" y=${verticalOffset} class="value">
         ${state}
         ${this.showUnit ? this.small ? this.unit : svg`
