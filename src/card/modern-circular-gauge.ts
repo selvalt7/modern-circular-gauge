@@ -184,7 +184,7 @@ export class ModernCircularGauge extends LitElement {
     const min = Number(this._templateResults?.min?.result ?? this._config.min) || DEFAULT_MIN;
     const max = Number(this._templateResults?.max?.result ?? this._config.max) || DEFAULT_MAX;
 
-    const stateOverride = this._templateResults?.stateText?.result ?? (isTemplate(String(this._config.state_text)) ? "" : this._config.state_text);
+    const stateOverride = this._templateResults?.stateText?.result ?? (isTemplate(String(this._config.state_text)) ? "" : (this._config.state_text || undefined));
 
     const iconCenter = !(this._config.show_state ?? false) && (this._config.show_icon ?? true);
     const segments = (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config.segments;
@@ -585,7 +585,7 @@ export class ModernCircularGauge extends LitElement {
     const unit = secondary.unit ?? attributes?.unit_of_measurement;
 
     const state = Number(templatedState ?? stateObj.state);
-    const stateOverride = this._templateResults?.secondaryStateText?.result ?? (isTemplate(String(secondary.state_text)) ? "" : secondary.state_text);
+    const stateOverride = this._templateResults?.secondaryStateText?.result ?? (isTemplate(String(secondary.state_text)) ? "" : (secondary.state_text || undefined));
     const segments = (this._templateResults?.secondarySegments?.result as unknown) as SegmentsConfig[] ?? secondary.segments;
     const segmentsLabel = this._getSegmentLabel(state, segments);
 
@@ -659,7 +659,7 @@ export class ModernCircularGauge extends LitElement {
     const attributes = stateObj?.attributes ?? undefined;
     const unit = tertiary.unit ?? attributes?.unit_of_measurement;
     const state = Number(templatedState ?? stateObj.state);
-    const stateOverride = this._templateResults?.tertiaryStateText?.result ?? (isTemplate(String(tertiary.state_text)) ? "" : tertiary.state_text);
+    const stateOverride = this._templateResults?.tertiaryStateText?.result ?? (isTemplate(String(tertiary.state_text)) ? "" : (tertiary.state_text || undefined));
     const segments = (this._templateResults?.tertiarySegments?.result as unknown) as SegmentsConfig[] ?? tertiary.segments;
     const segmentsLabel = this._getSegmentLabel(state, segments);
 
