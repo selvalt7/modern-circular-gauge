@@ -4,7 +4,7 @@ import { html, LitElement, nothing, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { ModernCircularGaugeConfig } from "./type";
 import { mdiSegment, mdiPalette, mdiGauge } from "@mdi/js";
-import { getEntityStyleSchema, getSecondarySchema, getTertiarySchema } from "./mcg-schema";
+import { getEntityStyleSchema, getSecondarySchema, getTertiarySchema, halfDarkGaugeIcon, halfGaugeIcon, standardDarkGaugeIcon, standardGaugeIcon } from "./mcg-schema";
 import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS, RADIUS } from "../const";
 import memoizeOne from "memoize-one";
 import "../components/ha-form-mcg-list";
@@ -156,8 +156,8 @@ export class ModernCircularGaugeEditor extends LitElement {
             selector: {
               select: {
                 options: [
-                  { label: "Standard", value: "standard" },
-                  { label: "Half", value: "half" },
+                  { label: "Standard", value: "standard", image: { src: standardGaugeIcon, src_dark: standardDarkGaugeIcon } },
+                  { label: "Half", value: "half", image: { src: halfGaugeIcon, src_dark: halfDarkGaugeIcon } },
                 ],
                 translation_key: "gauge_type_options",
                 mode: "box"
