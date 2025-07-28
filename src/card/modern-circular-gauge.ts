@@ -65,6 +65,8 @@ export class ModernCircularGauge extends LitElement {
 
   @state() private _stateMargin?: number;
 
+  @state() private _inCardPicker?: boolean;
+
   public static async getConfigElement(): Promise<HTMLElement> {
     await import("./mcg-editor");
     return document.createElement("modern-circular-gauge-editor");
@@ -121,6 +123,7 @@ export class ModernCircularGauge extends LitElement {
 
   public connectedCallback() {
     super.connectedCallback();
+    this._inCardPicker = this.parentElement?.classList.contains("preview");
     this._tryConnect();
   }
 
@@ -248,6 +251,7 @@ export class ModernCircularGauge extends LitElement {
         <div class="gauge-state">
           ${this._config.show_state ? html`
           <modern-circular-gauge-state
+            class=${classMap({ "preview": this._inCardPicker! })}
             style=${styleMap({ "--state-text-color": this._config.adaptive_state_color ? "var(--gauge-color)" : undefined , "--state-font-size-override": this._config.state_font_size ? `${this._config.state_font_size}px` : undefined })}
             .hass=${this.hass}
             .stateObj=${stateObj}
@@ -558,6 +562,7 @@ export class ModernCircularGauge extends LitElement {
       this._hasSecondary = true;
       return html`
       <modern-circular-gauge-state
+        class=${classMap({ "preview": this._inCardPicker! })}
         .hass=${this.hass}
         .stateOverride=${this._templateResults?.secondary?.result ?? secondary}
         .verticalOffset=${17}
@@ -610,6 +615,7 @@ export class ModernCircularGauge extends LitElement {
         hasHold: hasAction(secondary.hold_action),
         hasDoubleClick: hasAction(secondary.double_tap_action),
       })}
+      class=${classMap({ "preview": this._inCardPicker! })}
       style=${styleMap({ "--state-text-color-override": secondaryColor ?? (secondary.state_size == "big" ? "var(--secondary-text-color)" : undefined), "--state-font-size-override": secondary.state_font_size ? `${secondary.state_font_size}px` : undefined })}
       .hass=${this.hass}
       .stateObj=${stateObj}
@@ -634,6 +640,7 @@ export class ModernCircularGauge extends LitElement {
     if (typeof tertiary === "string") {
       return html`
       <modern-circular-gauge-state
+        class=${classMap({ "preview": this._inCardPicker! })}
         .hass=${this.hass}
         .stateOverride=${this._templateResults?.tertiary?.result ?? tertiary}
         .verticalOffset=${-19}
@@ -684,6 +691,7 @@ export class ModernCircularGauge extends LitElement {
         hasHold: hasAction(tertiary.hold_action),
         hasDoubleClick: hasAction(tertiary.double_tap_action),
       })}
+      class=${classMap({ "preview": this._inCardPicker! })}
       style=${styleMap({ "--state-text-color-override": adaptiveColor ?? undefined , "--state-font-size-override": tertiary.state_font_size ? `${tertiary.state_font_size}px` : undefined })}
       .hass=${this.hass}
       .stateObj=${stateObj}
