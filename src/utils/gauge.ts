@@ -138,8 +138,8 @@ export function renderSegmentsGradient(segments: SegmentsConfig[], min: number, 
       gradient += `${color} ${angle}deg${index != sortedSegments.length - 1 ? "," : ""}`;
     });
     return [svg`
-      <foreignObject x="-50" y="-50" width="100%" height="100%" overflow="visible" transform="rotate(${maxAngle == 180 ? 180 : 45})">
-        <div style=${styleMap({"width": "110px", "height": maxAngle == 180 ? "60px" : "110px", "margin-left": "-5px", "margin-top": "-5px", "background-image": `conic-gradient(${gradient})` })}>
+      <foreignObject x="-55" y="-55" width="110%" height=${maxAngle == 180 ? "120%" : "110%"} overflow="visible" transform="rotate(${maxAngle == 180 ? 180 : 45})">
+        <div style=${styleMap({ "width": "110px", "height": maxAngle == 180 ? "60px" : "110px", "background-image": `conic-gradient(${gradient})` })}>
         </div>
       </foreignObject>
     `];
