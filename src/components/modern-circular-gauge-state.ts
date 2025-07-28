@@ -69,7 +69,7 @@ export class ModernCircularGaugeState extends LitElement {
     }
     const svgText = svgRoot.querySelector("text")!;
     const bbox = svgText.getBBox();
-    const maxWidth = this.stateMargin - Math.abs((this.verticalOffset) ?? 0) * 0.5;
+    const maxWidth = Math.abs(this.stateMargin) - Math.abs((this.verticalOffset ?? 0) * 0.5);
 
     if (bbox.width > maxWidth) {
       const scale = maxWidth / bbox.width;
