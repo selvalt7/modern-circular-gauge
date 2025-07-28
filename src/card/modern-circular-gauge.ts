@@ -192,7 +192,7 @@ export class ModernCircularGauge extends LitElement {
       </div>
       ` : nothing}
       <div
-        class="container${classMap({ "dual-gauge": typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner", "half-gauge": this._config.gauge_type == "half" })}"
+        class="container${classMap({ "dual-gauge": (typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner") || ((this._config.tertiary as TertiaryEntity).show_gauge == "inner"), "half-gauge": this._config.gauge_type == "half" })}"
         style=${styleMap({"--gauge-color": this._config.gauge_foreground_style?.color && this._config.gauge_foreground_style?.color != "adaptive" ? this._config.gauge_foreground_style?.color : computeSegments(numberState, this._config.segments, this._config.smooth_segments, this)})}
       >
         <div class="gauge-container">
@@ -390,7 +390,8 @@ export class ModernCircularGauge extends LitElement {
     const tertiaryObj = this._config?.tertiary as TertiaryEntity;
     const stateObj = this.hass.states[tertiaryObj.entity || ""];
     const templatedState = this._templateResults?.tertiaryEntity?.result;
-    
+    const secondaryInner = (this._config?.secondary as SecondaryEntity).show_gauge == "inner";
+
     if (!tertiaryObj) {
       return html``;
     }
@@ -400,7 +401,7 @@ export class ModernCircularGauge extends LitElement {
         return html`
         <modern-circular-gauge-element
           class="tertiary"
-          .radius=${TERTIARY_RADIUS}
+          .radius=${secondaryInner ? TERTIARY_RADIUS : INNER_RADIUS}
           .gaugeType=${this._config?.gauge_type}
         ></modern-circular-gauge-element>
         `;
@@ -417,7 +418,7 @@ export class ModernCircularGauge extends LitElement {
         .min=${min}
         .max=${max}
         .value=${numberState}
-        .radius=${tertiaryObj.gauge_radius ?? TERTIARY_RADIUS}
+        .radius=${tertiaryObj.gauge_radius ?? (secondaryInner ? TERTIARY_RADIUS : INNER_RADIUS)}
         .gaugeType=${this._config?.gauge_type}
         .segments=${segments}
         .smoothSegments=${this._config?.smooth_segments}
@@ -1148,9 +1149,8 @@ export class ModernCircularGauge extends LitElement {
       transition: all 1s ease 0s, stroke 0.3s ease-out;
     }
 
-    .inner {
+    .secondary {
       --gauge-color: var(--gauge-secondary-color);
-      --gauge-stroke-width: var(--inner-gauge-stroke-width);
     }
 
     .tertiary {
