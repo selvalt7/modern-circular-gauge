@@ -1014,7 +1014,7 @@ export class ModernCircularGauge extends LitElement {
 
     .half-gauge modern-circular-gauge-state.secondary,
     .half-gauge modern-circular-gauge-state.tertiary {
-      --state-font-size-override: 9px;
+      --state-font-size-override: 8px;
     }
 
     .half-gauge modern-circular-gauge-state:not(.secondary):not(.tertiary) {
