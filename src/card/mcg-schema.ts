@@ -1,5 +1,5 @@
 import { mdiNumeric2BoxOutline, mdiSegment, mdiNumeric3BoxOutline, mdiFlipToFront, mdiFlipToBack, mdiGauge } from "@mdi/js";
-import { NUMBER_ENTITY_DOMAINS, DEFAULT_MIN, DEFAULT_MAX, RADIUS, INNER_RADIUS, TERTIARY_RADIUS } from "../const";
+import { NUMBER_ENTITY_DOMAINS, DEFAULT_MIN, DEFAULT_MAX, RADIUS, INNER_RADIUS, TERTIARY_RADIUS, NON_NUMERIC_ATTRIBUTES } from "../const";
 
 export const getSecondaryGaugeSchema = (showGaugeOptions: boolean) => [
   {
@@ -167,6 +167,17 @@ export function getSecondarySchema(showGaugeOptions: boolean) {
         }},
       },
       {
+        name: "attribute",
+        selector: { 
+          attribute: {
+            hide_attributes: NON_NUMERIC_ATTRIBUTES,
+          } 
+        },
+        context: {
+          filter_entity: "entity",
+        }
+      },
+      {
         name: "",
         type: "grid",
         schema: [
@@ -216,6 +227,17 @@ export function getTertiarySchema(showGaugeOptions: boolean) {
         schema: { entity: {
           domain: NUMBER_ENTITY_DOMAINS,
         }},
+      },
+      {
+        name: "attribute",
+        selector: { 
+          attribute: {
+            hide_attributes: NON_NUMERIC_ATTRIBUTES,
+          } 
+        },
+        context: {
+          filter_entity: "entity",
+        }
       },
       {
         name: "unit",

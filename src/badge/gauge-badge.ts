@@ -216,7 +216,7 @@ export class ModernCircularGaugeBadge extends LitElement {
       }
     }
 
-    const numberState = Number(templatedState ?? stateObj.state);
+    const numberState = Number(templatedState ?? stateObj.attributes[this._config.attribute!] ?? stateObj.state);
     const icon = this._templateResults?.icon?.result ?? this._config.icon;
 
     if (stateObj?.state === "unavailable") {
@@ -233,7 +233,7 @@ export class ModernCircularGaugeBadge extends LitElement {
     const attributes = stateObj?.attributes ?? undefined;
 
     const current = this._config.needle ? undefined : currentDashArc(numberState, min, max, RADIUS, this._config.start_from_zero);
-    const state = templatedState ?? stateObj.state;
+    const state = templatedState ?? stateObj.attributes[this._config.attribute!] ?? stateObj.state;
 
     const stateOverride = this._templateResults?.stateText?.result ?? (isTemplate(String(this._config.state_text)) ? "" : (this._config.state_text || undefined));
     const unit = this._config.show_unit ?? true ? (this._config.unit ?? stateObj?.attributes.unit_of_measurement) || "" : "";
