@@ -218,7 +218,7 @@ export class ModernCircularGauge extends LitElement {
       ` : nothing}
       <div
         class="container${classMap({ "dual-gauge": typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner" })}"
-        style=${styleMap({"--gauge-color": this._config.gauge_foreground_style?.color && this._config.gauge_foreground_style?.color != "adaptive" ? this._config.gauge_foreground_style?.color : computeSegments(numberState, this._config.segments, this._config.smooth_segments, this)})}
+        style=${styleMap({"--gauge-color": this._config.gauge_foreground_style?.color && this._config.gauge_foreground_style?.color != "adaptive" ? this._config.gauge_foreground_style?.color : computeSegments(numberState, segments, this._config.smooth_segments, this)})}
       >
         <div class="gauge-container">
           <modern-circular-gauge-element
@@ -329,7 +329,7 @@ export class ModernCircularGauge extends LitElement {
     if (!iconEntity || iconEntity === "primary") {
       entityId = this._config?.entity;
       templatedState = this._templateResults?.entity?.result;
-      segments = this._config?.segments;
+      segments = (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config?.segments;
       gaugeForegroundStyle = this._config?.gauge_foreground_style;
     } else if (
       typeof this._config?.secondary === "object" &&
@@ -337,7 +337,7 @@ export class ModernCircularGauge extends LitElement {
     ) {
       entityId = this._config.secondary.entity;
       templatedState = this._templateResults?.secondaryEntity?.result;
-      segments = this._config.secondary.segments;
+      segments = (this._templateResults?.secondarySegments?.result as unknown) as SegmentsConfig[] ?? this._config.secondary.segments;
       gaugeForegroundStyle = this._config.secondary.gauge_foreground_style;
     } else if (
       typeof this._config?.tertiary === "object" &&
@@ -345,7 +345,7 @@ export class ModernCircularGauge extends LitElement {
     ) {
       entityId = this._config.tertiary.entity;
       templatedState = this._templateResults?.tertiaryEntity?.result;
-      segments = this._config.tertiary.segments;
+      segments = (this._templateResults?.tertiarySegments?.result as unknown) as SegmentsConfig[] ?? this._config.tertiary.segments;
       gaugeForegroundStyle = this._config.tertiary.gauge_foreground_style;
     }
 
