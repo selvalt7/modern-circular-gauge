@@ -111,8 +111,13 @@ export class ModernCircularGaugeState extends LitElement {
     :host {
       --state-text-color: var(--primary-text-color);
       --state-font-size: 24px;
+      --state-pointer-events: auto;
 
       pointer-events: none;
+    }
+
+    :host(.preview) {
+      --state-pointer-events: none;
     }
 
     svg {
@@ -130,7 +135,7 @@ export class ModernCircularGaugeState extends LitElement {
       font-size: var(--state-font-size-override, var(--state-font-size));
       fill: var(--state-text-color-override, var(--state-text-color));
       dominant-baseline: middle;
-      pointer-events: auto;
+      pointer-events: var(--state-pointer-events);
     }
 
     .unit {
