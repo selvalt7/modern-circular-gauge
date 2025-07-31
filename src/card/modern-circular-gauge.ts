@@ -664,6 +664,8 @@ export class ModernCircularGauge extends LitElement {
     const segments = (this._templateResults?.tertiarySegments?.result as unknown) as SegmentsConfig[] ?? tertiary.segments;
     const segmentsLabel = this._getSegmentLabel(state, segments);
 
+    const threeGauges = (typeof this._config?.secondary != "string" && this._config?.secondary?.show_gauge == "inner") && (typeof this._config?.tertiary != "string" && this._config?.tertiary?.show_gauge == "inner");
+
     let adaptiveColor;
 
     if (tertiary.adaptive_state_color) {
@@ -686,12 +688,12 @@ export class ModernCircularGauge extends LitElement {
         hasDoubleClick: hasAction(tertiary.double_tap_action),
       })}
       class=${classMap({ "preview": this._inCardPicker!, "tertiary": true })}
-      style=${styleMap({ "--state-text-color-override": adaptiveColor ?? undefined , "--state-font-size-override": tertiary.state_font_size ? `${tertiary.state_font_size}px` : undefined })}
+      style=${styleMap({ "--state-text-color-override": adaptiveColor ?? undefined , "--state-font-size-override": tertiary.state_font_size ? `${tertiary.state_font_size}px` : (threeGauges ? "6px" : undefined) })}
       .hass=${this.hass}
       .stateObj=${stateObj}
       .stateOverride=${(segmentsLabel || stateOverride) ?? templatedState}
       .unit=${unit}
-      .verticalOffset=${this._config?.gauge_type == "half" ? (!this._hasSecondary ? -28 : -31) : -19}
+      .verticalOffset=${this._config?.gauge_type == "half" ? (!this._hasSecondary ? -28 : (threeGauges ? -29 : -31)) : -19}
       .stateMargin=${this._stateMargin}
       .showUnit=${tertiary.show_unit ?? true}
       .label=${tertiary.label}
