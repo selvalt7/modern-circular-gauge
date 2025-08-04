@@ -74,9 +74,9 @@ export class HaFormMCGTemplate extends LitElement {
           @value-changed=${this._valueChanged}
         >
         </ha-form>
-        <ha-button .disabled=${this.disabled} @click=${this._toggleTemplateMode}>
+        <ha-button appearance="plain" size="small" .disabled=${this.disabled} @click=${this._toggleTemplateMode}>
           ${this._templateMode ? localize(this.hass, "editor.switch_to_form") : localize(this.hass, "editor.switch_to_template")}
-          <ha-svg-icon slot="icon" .path=${this._templateMode ? mdiListBoxOutline : mdiCodeBraces}></ha-svg-icon>
+          <ha-svg-icon slot="start" .path=${this._templateMode ? mdiListBoxOutline : mdiCodeBraces}></ha-svg-icon>
         </ha-button>
       </div>
     `;
