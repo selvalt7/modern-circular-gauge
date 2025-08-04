@@ -27,6 +27,8 @@ export class ModernCircularGaugeState extends LitElement {
 
   @property({ type: Number}) public verticalOffset?: number;
 
+  @property({ type: Number }) public horizontalOffset?: number;
+
   @property() public stateOverride?: string;
 
   @property({ type: Number }) public stateMargin: number = 82;
@@ -69,7 +71,7 @@ export class ModernCircularGaugeState extends LitElement {
     }
     const svgText = svgRoot.querySelector("text")!;
     const bbox = svgText.getBBox();
-    const maxWidth = Math.abs(this.stateMargin) - Math.abs((this.verticalOffset ?? 0) * 0.5);
+    const maxWidth = (Math.abs(this.stateMargin) - Math.abs((this.verticalOffset ?? 0) * 0.5)) * (this.horizontalOffset != 0 ? 0.5 : 1);
 
     if (bbox.width > maxWidth) {
       const scale = maxWidth / bbox.width;
@@ -92,7 +94,7 @@ export class ModernCircularGaugeState extends LitElement {
     const verticalOffset = this.verticalOffset ?? 0;
 
     return html`
-    <svg class="state ${classMap({ "small": this.small })}" overflow="visible" viewBox="-50 -50 100 ${this.gaugeType == "half" ? 50 : 100}">
+    <svg class="state ${classMap({ "small": this.small })}" overflow="visible" viewBox="${-50 + (this.horizontalOffset ?? 0)} -50 100 ${this.gaugeType == "half" ? 50 : 100}">
       <text x="0" y=${verticalOffset} class="value">
         ${state}
         ${this.showUnit ? this.small ? this.unit : svg`

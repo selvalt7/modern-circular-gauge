@@ -168,6 +168,8 @@ export class ModernCircularGauge extends LitElement {
     const segments = (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config.segments;
     const segmentsLabel = this._getSegmentLabel(numberState, segments);
 
+    const halfStateBig = this._config?.gauge_type == "half" && typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big";
+
     return html`
     <ha-card
       class="${classMap({
@@ -227,13 +229,14 @@ export class ModernCircularGauge extends LitElement {
           ${this._config.show_state ? html`
           <modern-circular-gauge-state
             class=${classMap({ "preview": this._inCardPicker! })}
-            style=${styleMap({ "--state-text-color": this._config.adaptive_state_color ? "var(--gauge-color)" : undefined , "--state-font-size-override": this._config.state_font_size ? `${this._config.state_font_size}px` : undefined })}
+            style=${styleMap({ "--state-text-color": this._config.adaptive_state_color ? "var(--gauge-color)" : undefined , "--state-font-size-override": this._config.state_font_size ? `${this._config.state_font_size}px` : (halfStateBig ? `15px` : undefined) })}
             .hass=${this.hass}
             .stateObj=${stateObj}
             .stateOverride=${(segmentsLabel || stateOverride) ?? templatedState}
             .unit=${unit}
             .gaugeType=${this._config.gauge_type}
             .verticalOffset=${typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big" ? -14 : this._config.gauge_type == "half" ? (this._hasSecondary ? -15 : -10) : 0}
+            .horizontalOffset=${this._config?.gauge_type == "half" && typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big" ? 16 : 0}
             .label=${typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big" ? this._config?.label : ""}
             .stateMargin=${this._stateMargin}
             .labelFontSize=${this._config.label_font_size}
@@ -600,6 +603,8 @@ export class ModernCircularGauge extends LitElement {
       }
     }
 
+    const halfStateBig = this._config?.gauge_type == "half" && secondary.state_size == "big";
+
     return html`
     <modern-circular-gauge-state
       @action=${this._handleSecondaryAction}
@@ -608,12 +613,13 @@ export class ModernCircularGauge extends LitElement {
         hasDoubleClick: hasAction(secondary.double_tap_action),
       })}
       class=${classMap({ "preview": this._inCardPicker!, "secondary": true })}
-      style=${styleMap({ "--state-text-color-override": secondaryColor ?? (secondary.state_size == "big" ? "var(--secondary-text-color)" : undefined), "--state-font-size-override": secondary.state_font_size ? `${secondary.state_font_size}px` : undefined })}
+      style=${styleMap({ "--state-text-color-override": secondaryColor ?? (secondary.state_size == "big" ? "var(--secondary-text-color)" : undefined), "--state-font-size-override": secondary.state_font_size ? `${secondary.state_font_size}px` : (halfStateBig ? `15px` : undefined) })}
       .hass=${this.hass}
       .stateObj=${stateObj}
       .stateOverride=${(segmentsLabel || stateOverride) ?? templatedState}
       .unit=${unit}
-      .verticalOffset=${secondary.state_size == "big" ? 14 : iconCenter ? 22 : this._config?.gauge_type == "half" ? -1 : 17}
+      .verticalOffset=${secondary.state_size == "big" ? (this._config?.gauge_type == "half" ? -14 : 14) : iconCenter ? 22 : this._config?.gauge_type == "half" ? -1 : 17}
+      .horizontalOffset=${halfStateBig ? -16 : 0}
       .small=${secondary.state_size != "big"}
       .label=${secondary.label}
       .gaugeType=${this._config?.gauge_type}
