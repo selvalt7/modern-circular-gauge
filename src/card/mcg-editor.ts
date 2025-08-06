@@ -5,7 +5,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import type { ModernCircularGaugeConfig } from "./type";
 import { mdiSegment, mdiPalette, mdiGauge } from "@mdi/js";
 import { getEntityStyleSchema, getSecondarySchema, getTertiarySchema } from "./mcg-schema";
-import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS, RADIUS } from "../const";
+import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS, RADIUS, NON_NUMERIC_ATTRIBUTES } from "../const";
 import memoizeOne from "memoize-one";
 import "../components/ha-form-mcg-list";
 import "../components/ha-form-mcg-template";
@@ -43,6 +43,17 @@ export class ModernCircularGaugeEditor extends LitElement {
         schema: { entity: {
           domain: NUMBER_ENTITY_DOMAINS,
         }},
+      },
+      {
+        name: "attribute",
+        selector: { 
+          attribute: {
+            hide_attributes: NON_NUMERIC_ATTRIBUTES,
+          } 
+        },
+        context: {
+          filter_entity: "entity",
+        }
       },
       {
         name: "name",

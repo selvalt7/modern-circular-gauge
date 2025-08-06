@@ -61,6 +61,7 @@ Templates are supported on selected options, configurable via `yaml` or visual e
 |------|:----:|:-------:|:------------|:-----------------:|
 | type | `string` | 'custom:modern-circular-gauge' |
 | entity | `string` | Required | Entity. May contain templates|✅
+| attribute | `string` | Optional | Use entity attribute instead of state
 | name | `string` | Optional | Custom title. May contain templates|✅
 | icon | `string` | Optional | Custom icon. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)|✅
 | icon_entity | `primary` or `secondary` or `tertiary` | `primary` | Selects which entity to use for icon selection and color segments
@@ -98,6 +99,7 @@ Templates are supported on selected options, configurable via `yaml` or visual e
 |------|:----:|:-------:|:------------|:-----------------:|
 | type | `string` | 'custom:modern-circular-gauge-badge' |
 | entity | `string` | Required | Entity. May contain templates.|✅
+| attribute | `string` | Optional | Use entity attribute instead of state
 | name | `string` | Optional | Custom title. May contain templates|✅
 | icon | `string` | Entity icon | Custom icon. May contain templates|✅
 | min | `number` or `string` | `0` | Minimum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)|✅
@@ -126,6 +128,7 @@ Templates are supported on selected options, configurable via `yaml` or visual e
 | Name | Type | Default | Description | Supports template |
 |------|:----:|:-------:|:------------|:-----------------:|
 | entity | `string` | Optional | Secondary entity. May contain templates|✅
+| attribute | `string` | Optional | Use entity attribute instead of state
 | unit | `string` | Optional | Custom unit
 | show_gauge | `none`, `inner`, `outer` | `none` | Display secondary info as dot on main gauge or on inner gauge
 | min | `number` | Optional | Minimum inner gauge value. May contain templates|✅
@@ -149,6 +152,7 @@ Templates are supported on selected options, configurable via `yaml` or visual e
 | Name | Type | Default | Description | Supports template |
 |------|:----:|:-------:|:------------|:-----------------:|
 | entity | `string` | Optional | Secondary entity. May contain templates|✅
+| attribute | `string` | Optional | Use entity attribute instead of state
 | unit | `string` | Optional | Custom unit
 | show_gauge | `none`, `inner`, `outer` | `none` | Display secondary info as dot on main gauge or on inner gauge
 | min | `number` | Optional | Minimum inner gauge value. May contain templates|✅
