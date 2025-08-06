@@ -18,6 +18,8 @@ export class ModernCircularGaugeElement extends LitElement {
 
   @property({ type: String }) public gaugeType: GaugeType = "standard";
 
+  @property({ type: Boolean }) public rotateGauge = false;
+
   @property({ type: Array }) public segments?: SegmentsConfig[];
 
   @property({ type: Boolean }) public smoothSegments = false;
@@ -87,7 +89,7 @@ export class ModernCircularGaugeElement extends LitElement {
           style=${styleMap({ "--gauge-stroke-width": this.foregroundStyle?.width ? `${this.foregroundStyle?.width}px` : undefined,
           "--gauge-color": this.foregroundStyle?.color && this.foregroundStyle?.color != "adaptive" ? this.foregroundStyle?.color : computeSegments(this.value, this.segments, this.smoothSegments, this) })}
         >
-          <g transform="rotate(${this._rotateAngle})">
+          <g transform="rotate(${this._rotateAngle! + (this.gaugeType == "full" && this.rotateGauge ? 180 : 0)})">
             <defs>
               <mask id="needle-border-mask">
                 <rect x="-70" y="-70" width="140" height="140" fill="white"/>
