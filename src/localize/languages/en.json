@@ -32,6 +32,7 @@
     "primary_entity_style": "Entity style",
     "secondary_entity_style": "Entity style",
     "tertiary_entity_style": "Entity style",
+    "gauge_type": "Gauge type",
     "helper": {
       "start_from_zero": "Gauge starts from zero instead of min",
       "primary_label": "Text displayed under the main state when secondary state size is set to big",
@@ -64,6 +65,12 @@
       "options": {
         "small": "Small",
         "big": "Big"
+      }
+    },
+    "gauge_type_options": {
+      "options": {
+        "standard": "Standard",
+        "half": "Half"
       }
     }
   }
