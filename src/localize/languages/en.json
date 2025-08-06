@@ -70,7 +70,8 @@
     "gauge_type_options": {
       "options": {
         "standard": "Standard",
-        "half": "Half"
+        "half": "Half",
+        "full": "Full"
       }
     }
   }
