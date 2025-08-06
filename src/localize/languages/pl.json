@@ -32,6 +32,7 @@
     "primary_entity_style": "Styl encji",
     "secondary_entity_style": "Styl encji",
     "tertiary_entity_style": "Styl encji",
+    "gauge_type": "Typ wskaźnika",
     "helper": {
       "start_from_zero": "Wskaźnik rozpoczyna się od zera zamiast od minimum",
       "primary_label": "Tekst wyświetlony pod głównym stanem, gdy rozmiar stanu informacji drugorzędnej jest duży",
@@ -64,6 +65,12 @@
       "options": {
         "small": "Mały",
         "big": "Duży"
+      }
+    },
+    "gauge_type_options": {
+      "options": {
+        "standard": "Standard",
+        "half": "Połówka"
       }
     }
   }
