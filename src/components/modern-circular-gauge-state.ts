@@ -1,7 +1,7 @@
 import { html, LitElement, css, PropertyValues, svg, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { HomeAssistant } from "../ha/types";
-import { getNumberFormatOptions, formatNumber } from "../utils/format_number";
+import { getNumberFormatOptions, formatNumber, getDefaultFormatOptions } from "../utils/format_number";
 import { HassEntity } from "home-assistant-js-websocket";
 import { classMap } from "lit/directives/class-map.js";
 import { styleMap } from "lit/directives/style-map.js";
@@ -19,6 +19,8 @@ export class ModernCircularGaugeState extends LitElement {
   @property({ type: Boolean }) public showUnit = true;
 
   @property() public label?: string;
+
+  @property({ type: Number }) public decimals?: number;
 
   @property({ type: Number }) public labelFontSize?: number;
 
@@ -47,14 +49,23 @@ export class ModernCircularGaugeState extends LitElement {
 
   private _computeState(): string {
     if (!this.stateObj && this.stateOverride !== undefined) {
+      if (!Number.isNaN(this.stateOverride)) {
+        const formatOptions = getDefaultFormatOptions(this.stateOverride, { maximumFractionDigits: this.decimals, minimumFractionDigits: this.decimals });
+        return formatNumber(this.stateOverride, this.hass?.locale, formatOptions);
+      }
       return this.stateOverride;
     }
 
     if (this.stateObj) {
       const state = this.stateOverride ?? this.stateObj.attributes[this.entityAttribute!] ?? this.stateObj.state;
       const attributes = this.stateObj.attributes ?? undefined;
+      const formatOptions = { ...getNumberFormatOptions({ state, attributes } as HassEntity, this.hass?.entities[this.stateObj?.entity_id]) };
+      if (this.decimals !== undefined) {
+        formatOptions.maximumFractionDigits = this.decimals;
+        formatOptions.minimumFractionDigits = this.decimals;
+      }
       const entityState = Number.isNaN(state) ? state
-        : formatNumber(state, this.hass?.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass?.entities[this.stateObj?.entity_id]));
+        : formatNumber(state, this.hass?.locale, formatOptions);
       return entityState;
     }
 
