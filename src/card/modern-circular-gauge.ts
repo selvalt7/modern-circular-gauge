@@ -286,8 +286,10 @@ export class ModernCircularGauge extends LitElement {
         <modern-circular-gauge-state
           .hass=${this.hass}
           .stateOverride=${stateText}
+          .verticalOffset=${this._config?.gauge_type == "half" ? -10 : 0}
+          .gaugeType=${this._config?.gauge_type}
         ></modern-circular-gauge-state>
-        ${this._config?.gauge_type == "half" ? nothing : html`
+        ${this._config?.gauge_type == "half" && !iconCenter ? nothing : html`
         <div class="icon-container">
           <modern-circular-gauge-icon
             class="warning-icon"

@@ -18,6 +18,8 @@ export class ModernCircularGaugeElement extends LitElement {
 
   @property({ type: String }) public gaugeType: GaugeType = "standard";
 
+  @property({ type: Boolean }) public rotateGauge = false;
+
   @property({ type: Array }) public segments?: SegmentsConfig[];
 
   @property({ type: Boolean }) public smoothSegments = false;
