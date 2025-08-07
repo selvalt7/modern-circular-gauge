@@ -199,7 +199,8 @@ export class ModernCircularGauge extends LitElement {
       <div
         class="container${classMap({ "dual-gauge": (typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner") || (typeof this._config.tertiary != "string" && this._config.tertiary?.show_gauge == "inner"),
           "half-gauge": this._config.gauge_type == "half", "full-gauge": this._config.gauge_type == "full" })}"
-        style=${styleMap({"--gauge-color": this._config.gauge_foreground_style?.color && this._config.gauge_foreground_style?.color != "adaptive" ? this._config.gauge_foreground_style?.color : computeSegments(numberState, segments, this._config.smooth_segments, this)})}
+        style=${styleMap({ "--full-gauge-padding": this._config.show_header ? undefined : "0",
+          "--gauge-color": this._config.gauge_foreground_style?.color && this._config.gauge_foreground_style?.color != "adaptive" ? this._config.gauge_foreground_style?.color : computeSegments(numberState, segments, this._config.smooth_segments, this) })}
       >
         <div class="gauge-container">
           <modern-circular-gauge-element
