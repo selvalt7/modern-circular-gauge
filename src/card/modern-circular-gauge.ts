@@ -257,15 +257,6 @@ export class ModernCircularGauge extends LitElement {
 
   private _renderWarning(headerText?: string, stateText?: string, stateObj?: HassEntity, icon?: string): TemplateResult {
     const iconCenter = stateText?.length == 0;
-    const maxAngle = GAUGE_TYPE_ANGLES[this._config?.gauge_type!] ?? MAX_ANGLE;
-    const rotateAngle = 360 - maxAngle / 2 - 90;
-    const path = svgArc({
-        x: 0,
-        y: 0,
-        start: 0,
-        end: maxAngle,
-        r: this._config?.gauge_radius ?? RADIUS,
-      });
     return html`
       <ha-card
       class="${classMap({
@@ -289,25 +280,27 @@ export class ModernCircularGauge extends LitElement {
           ${headerText}
         </p>
       </div>
-      <div class=${classMap({ "icon-center": iconCenter, "container": true })}>
-        <svg viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid"
-          overflow="visible"
-        >
-          <g transform="rotate(${rotateAngle})">
-            ${renderPath("arc clear", path)}
-          </g>
-        </svg>
+      <div class=${classMap({ "icon-center": iconCenter, "container": true, "half-gauge": this._config?.gauge_type == "half", "full-gauge": this._config?.gauge_type == "full" })}>
+        <modern-circular-gauge-element 
+          .gaugeType=${this._config?.gauge_type}
+          .radius=${this._config?.gauge_radius ?? RADIUS}
+          error
+        ></modern-circular-gauge-element>
         <modern-circular-gauge-state
           .hass=${this.hass}
           .stateOverride=${stateText}
         ></modern-circular-gauge-state>
-        <modern-circular-gauge-icon
-          class="warning-icon"
-          .hass=${this.hass}
-          .stateObj=${stateObj}
-          .icon=${icon}
-          .position=${iconCenter ? 3 : 2}
-        ></modern-circular-gauge-icon>
+        ${this._config?.gauge_type == "half" ? nothing : html`
+        <div class="icon-container">
+          <modern-circular-gauge-icon
+            class="warning-icon"
+            .hass=${this.hass}
+            .stateObj=${stateObj}
+            .icon=${icon}
+            .position=${iconCenter ? 3 : 2}
+          ></modern-circular-gauge-icon>
+        </div>
+        `}
       </div>
       </ha-card>
       `;
