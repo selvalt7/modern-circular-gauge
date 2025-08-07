@@ -32,6 +32,8 @@ export class ModernCircularGaugeElement extends LitElement {
 
   @property({ type: Boolean }) public outter = false;
 
+  @property({ type: Boolean }) public error = false;
+
   @state() private _updated = false;
 
   @state() private _path?: string;
@@ -51,7 +53,7 @@ export class ModernCircularGaugeElement extends LitElement {
         end: this._maxAngle,
         r: this.radius,
       });
-      this._rotateAngle = 360 - this._maxAngle / 2 - 90;
+      this._rotateAngle = (360 - this._maxAngle / 2 - 90) + (this.gaugeType == "full" && this.rotateGauge ? 180 : 0);
       this._updated = true;
     }
   }
@@ -59,6 +61,17 @@ export class ModernCircularGaugeElement extends LitElement {
   protected render() {
     if (!this._path) {
       return nothing;
+    }
+
+    if (this.error) {
+      return html`
+      <svg viewBox="-50 -50 100 ${this.gaugeType == "half" ? 50 : 100}" preserveAspectRatio="xMidYMid"
+        overflow="visible"
+      >
+        <g transform="rotate(${this._rotateAngle})">
+          ${renderPath("arc clear", this._path)}
+        </g>
+      </svg>`;
     }
 
     if (this.outter)
