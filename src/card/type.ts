@@ -46,6 +46,8 @@ export interface GaugeElementConfig {
     opacity?: number;
 };
 
+export type GaugeType = "standard" | "half" | "full";
+
 export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     entity: string;
     attribute?: string;
@@ -56,6 +58,7 @@ export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     icon_vertical_position?: number;
     min?: number | string;
     max?: number | string;
+    gauge_type?: GaugeType;
     unit?: string;
     decimals?: number;
     label?: string;

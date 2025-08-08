@@ -2,9 +2,9 @@ import { fireEvent } from "../ha/common/dom/fire_event";
 import { HomeAssistant } from "../ha/types";
 import { html, LitElement, nothing, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import type { ModernCircularGaugeConfig } from "./type";
+import type { GaugeType, ModernCircularGaugeConfig } from "./type";
 import { mdiSegment, mdiPalette, mdiGauge } from "@mdi/js";
-import { getEntityStyleSchema, getSecondarySchema, getTertiarySchema } from "./mcg-schema";
+import { getEntityStyleSchema, getSecondarySchema, getTertiarySchema, halfDarkGaugeIcon, halfGaugeIcon, standardDarkGaugeIcon, standardGaugeIcon } from "./mcg-schema";
 import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS, RADIUS, NON_NUMERIC_ATTRIBUTES } from "../const";
 import memoizeOne from "memoize-one";
 import "../components/ha-form-mcg-list";
@@ -34,7 +34,7 @@ export class ModernCircularGaugeEditor extends LitElement {
   }
 
   private _schema = memoizeOne(
-    (showInnerGaugeOptions: boolean, showTertiaryGaugeOptions: boolean) =>
+    (showInnerGaugeOptions: boolean, showTertiaryGaugeOptions: boolean, gaugeType: GaugeType) =>
     [
       {
         name: "entity",
@@ -68,6 +68,8 @@ export class ModernCircularGaugeEditor extends LitElement {
             name: "icon",
             type: "mcg-template",
             flatten: true,
+            disabled: gaugeType === "half",
+            helper: gaugeType === "half" ? "half_gauge_icon_unavailable" : undefined,
             schema: { icon: {} },
             context: {
               icon_entity: "entity",
@@ -136,17 +138,22 @@ export class ModernCircularGaugeEditor extends LitElement {
               {
                 name: "show_icon",
                 default: true,
+                disabled: gaugeType === "half",
+                helper: gaugeType === "half" ? "half_gauge_icon_unavailable" : undefined,
                 selector: { boolean: {} },
               },
               {
                 name: "adaptive_icon_color",
                 default: false,
+                disabled: gaugeType === "half",
+                helper: gaugeType === "half" ? "half_gauge_icon_unavailable" : undefined,
                 selector: { boolean: {} },
               },
               {
                 name: "icon_entity",
                 default: "primary",
-                helper: "icon_entity",
+                disabled: gaugeType === "half",
+                helper: gaugeType === "half" ? "half_gauge_icon_unavailable" : "icon_entity",
                 selector: {
                   select: {
                     options: [
@@ -160,6 +167,20 @@ export class ModernCircularGaugeEditor extends LitElement {
                 },
               }
             ],
+          },
+          {
+            name: "gauge_type",
+            default: "standard",
+            selector: {
+              select: {
+                options: [
+                  { label: "Standard", value: "standard", image: { src: standardGaugeIcon, src_dark: standardDarkGaugeIcon } },
+                  { label: "Half", value: "half", image: { src: halfGaugeIcon, src_dark: halfDarkGaugeIcon } },
+                ],
+                translation_key: "gauge_type_options",
+                mode: "box"
+              },
+            },
           },
         ]
       },
@@ -209,7 +230,10 @@ export class ModernCircularGaugeEditor extends LitElement {
       return nothing;
     }
 
-    const schema = this._schema(typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner", typeof this._config.tertiary != "string" && this._config.tertiary?.show_gauge == "inner");
+    const schema = this._schema(typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner",
+      typeof this._config.tertiary != "string" && this._config.tertiary?.show_gauge == "inner",
+      this._config.gauge_type || "standard"
+    );
 
     const DATA = {
       ...this._config,
@@ -238,6 +262,9 @@ export class ModernCircularGaugeEditor extends LitElement {
 
   private _computeHelper = (schema: any) => {
     if ("helper" in schema) {
+      if (!schema.helper) {
+        return undefined;
+      }
       return localize(this.hass, `editor.helper.${schema.helper}`);
     }
     return undefined

@@ -86,6 +86,7 @@ Templates are supported on selected options, configurable via `yaml` or visual e
 | state_font_size | `number` | `24` | Initial state size in px
 | header_font_size | `number` | `14` | Gauge header font size in px
 | header_offset | `number` | `0` | Gauge header vertical offset in px
+| gauge_type | `standard`, `half` | `standard` | Gauge style type, standard for 270° and half for 180° style
 | gauge_radius | `number` | `47` | Gauge radius
 | gauge_background_style | `object` | Optional | Gauge background style, see [gauge element style object](#gauge-element-style-object)
 | gauge_foreground_style | `object` | Optional | Gauge foreground style, see [gauge element style object](#gauge-element-style-object)
