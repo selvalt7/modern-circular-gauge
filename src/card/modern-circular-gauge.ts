@@ -545,7 +545,7 @@ export class ModernCircularGauge extends LitElement {
       return html``;
     }
 
-    const iconCenter = !(this._config?.show_state ?? false) && (this._config?.show_icon ?? true);
+    const iconCenter = !(this._config?.show_state ?? false) && (this._config?.show_icon ?? true) && this._config?.gauge_type != "half";
 
     if (typeof secondary === "string") {
       this._hasSecondary = true;
@@ -554,7 +554,7 @@ export class ModernCircularGauge extends LitElement {
         class=${classMap({ "preview": this._inCardPicker!, "secondary": true })}
         .hass=${this.hass}
         .stateOverride=${this._templateResults?.secondary?.result ?? secondary}
-        .verticalOffset=${17}
+        .verticalOffset=${this._config?.gauge_type == "half" ? -1 : 17}
         .stateMargin=${this._stateMargin}
         .gaugeType=${this._config?.gauge_type}
         small
@@ -616,7 +616,7 @@ export class ModernCircularGauge extends LitElement {
       .verticalOffset=${secondary.state_size == "big" ? (this._config?.gauge_type == "half" ? -14 : 14) : iconCenter ? 22 : this._config?.gauge_type == "half" ? -1 : 17}
       .horizontalOffset=${halfStateBig ? -16 : 0}
       .small=${secondary.state_size != "big"}
-      .label=${secondary.label}
+      .label=${this._config?.gauge_type == "half" && secondary.state_size != "big" ? "" : secondary.label}
       .gaugeType=${this._config?.gauge_type}
       .stateMargin=${this._stateMargin}
       .labelFontSize=${secondary.label_font_size}
@@ -637,7 +637,7 @@ export class ModernCircularGauge extends LitElement {
         class=${classMap({ "preview": this._inCardPicker!, "tertiary": true })}
         .hass=${this.hass}
         .stateOverride=${this._templateResults?.tertiary?.result ?? tertiary}
-        .verticalOffset=${-19}
+        .verticalOffset=${this._config?.gauge_type == "half" ? (!this._hasSecondary ? -28 :-31) : -19}
         .stateMargin=${this._stateMargin}
         .gaugeType=${this._config?.gauge_type}
         small
@@ -697,7 +697,7 @@ export class ModernCircularGauge extends LitElement {
       .verticalOffset=${this._config?.gauge_type == "half" ? (!this._hasSecondary ? -28 : (threeGauges ? -29 : -31)) : -19}
       .stateMargin=${this._stateMargin}
       .showUnit=${tertiary.show_unit ?? true}
-      .label=${tertiary.label}
+      .label=${this._config?.gauge_type == "half" ? "" : tertiary.label}
       .gaugeType=${this._config?.gauge_type}
       .labelFontSize=${tertiary.label_font_size}
       small
