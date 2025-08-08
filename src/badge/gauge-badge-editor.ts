@@ -2,7 +2,7 @@ import { LitElement, html, nothing, css } from "lit";
 import { HomeAssistant } from "../ha/types";
 import { customElement, property, state } from "lit/decorators.js";
 import { ModernCircularGaugeBadgeConfig } from "./gauge-badge-config";
-import { NUMBER_ENTITY_DOMAINS, DEFAULT_MAX, DEFAULT_MIN } from "../const";
+import { NUMBER_ENTITY_DOMAINS, DEFAULT_MAX, DEFAULT_MIN, NON_NUMERIC_ATTRIBUTES } from "../const";
 import { fireEvent } from "../ha/common/dom/fire_event";
 import { mdiFlipToBack, mdiFlipToFront, mdiPalette, mdiSegment } from "@mdi/js";
 import { hexToRgb } from "../utils/color";
@@ -18,6 +18,17 @@ const FORM = [
     schema: { entity: {
       domain: NUMBER_ENTITY_DOMAINS,
     }},
+  },
+  {
+    name: "attribute",
+    selector: { 
+      attribute: {
+        hide_attributes: NON_NUMERIC_ATTRIBUTES,
+      } 
+    },
+    context: {
+      filter_entity: "entity",
+    }
   },
   {
     name: "name",
