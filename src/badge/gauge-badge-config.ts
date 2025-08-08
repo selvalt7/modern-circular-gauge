@@ -3,6 +3,7 @@ import { GaugeElementConfig, SegmentsConfig } from "../card/type";
 
 export interface ModernCircularGaugeBadgeConfig extends LovelaceBadgeConfig {
   entity: string;
+  attribute?: string;
   name?: string;
   min?: number | string;
   max?: number | string;

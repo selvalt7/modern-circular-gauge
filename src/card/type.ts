@@ -8,6 +8,7 @@ export interface SegmentsConfig {
 
 export interface BaseEntityConfig {
     entity?: string;
+    attribute?: string;
     unit?: string;
     label?: string;
     label_font_size?: number;
@@ -48,6 +49,7 @@ export type GaugeType = "standard" | "half" | "full";
 
 export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     entity: string;
+    attribute?: string;
     name?: string;
     icon?: string;
     icon_entity?: "primary" | "secondary" | "tertiary";

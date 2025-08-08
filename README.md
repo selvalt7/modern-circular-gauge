@@ -61,6 +61,7 @@ Templates are supported on selected options, configurable via `yaml` or visual e
 |------|:----:|:-------:|:------------|:-----------------:|
 | type | `string` | 'custom:modern-circular-gauge' |
 | entity | `string` | Required | Entity. May contain templates|✅
+| attribute | `string` | Optional | Use entity attribute instead of state
 | name | `string` | Optional | Custom title. May contain templates|✅
 | icon | `string` | Optional | Custom icon. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)|✅
 | icon_entity | `primary` or `secondary` or `tertiary` | `primary` | Selects which entity to use for icon selection and color segments
@@ -85,6 +86,7 @@ Templates are supported on selected options, configurable via `yaml` or visual e
 | state_font_size | `number` | `24` | Initial state size in px
 | header_font_size | `number` | `14` | Gauge header font size in px
 | header_offset | `number` | `0` | Gauge header vertical offset in px
+| gauge_type | `standard`, `half` | `standard` | Gauge style type, standard for 270° and half for 180° style
 | gauge_radius | `number` | `47` | Gauge radius
 | gauge_background_style | `object` | Optional | Gauge background style, see [gauge element style object](#gauge-element-style-object)
 | gauge_foreground_style | `object` | Optional | Gauge foreground style, see [gauge element style object](#gauge-element-style-object)
@@ -98,6 +100,7 @@ Templates are supported on selected options, configurable via `yaml` or visual e
 |------|:----:|:-------:|:------------|:-----------------:|
 | type | `string` | 'custom:modern-circular-gauge-badge' |
 | entity | `string` | Required | Entity. May contain templates.|✅
+| attribute | `string` | Optional | Use entity attribute instead of state
 | name | `string` | Optional | Custom title. May contain templates|✅
 | icon | `string` | Entity icon | Custom icon. May contain templates|✅
 | min | `number` or `string` | `0` | Minimum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)|✅
@@ -126,6 +129,7 @@ Templates are supported on selected options, configurable via `yaml` or visual e
 | Name | Type | Default | Description | Supports template |
 |------|:----:|:-------:|:------------|:-----------------:|
 | entity | `string` | Optional | Secondary entity. May contain templates|✅
+| attribute | `string` | Optional | Use entity attribute instead of state
 | unit | `string` | Optional | Custom unit
 | show_gauge | `none`, `inner`, `outer` | `none` | Display secondary info as dot on main gauge or on inner gauge
 | min | `number` | Optional | Minimum inner gauge value. May contain templates|✅
@@ -149,6 +153,7 @@ Templates are supported on selected options, configurable via `yaml` or visual e
 | Name | Type | Default | Description | Supports template |
 |------|:----:|:-------:|:------------|:-----------------:|
 | entity | `string` | Optional | Secondary entity. May contain templates|✅
+| attribute | `string` | Optional | Use entity attribute instead of state
 | unit | `string` | Optional | Custom unit
 | show_gauge | `none`, `inner`, `outer` | `none` | Display secondary info as dot on main gauge or on inner gauge
 | min | `number` | Optional | Minimum inner gauge value. May contain templates|✅

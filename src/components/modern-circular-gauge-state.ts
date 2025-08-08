@@ -13,6 +13,8 @@ export class ModernCircularGaugeState extends LitElement {
 
   @property({ type: Object }) public stateObj?: HassEntity;
 
+  @property({ type: String }) public entityAttribute?: string;
+
   @property() public unit?: string;
 
   @property({ type: Boolean }) public showUnit = true;
@@ -54,7 +56,7 @@ export class ModernCircularGaugeState extends LitElement {
     }
 
     if (this.stateObj) {
-      const state = this.stateOverride ?? this.stateObj.state;
+      const state = this.stateOverride ?? this.stateObj.attributes[this.entityAttribute!] ?? this.stateObj.state;
       const attributes = this.stateObj.attributes ?? undefined;
       const entityState = Number.isNaN(state) ? state
         : formatNumber(state, this.hass?.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass?.entities[this.stateObj?.entity_id]));
