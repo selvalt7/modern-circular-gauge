@@ -66,8 +66,9 @@ export class MCG_List extends LitElement {
             >
           </div>
         `) : nothing}
-        <ha-button .disabled=${this.disabled} @click=${this._addRow}>
+        <ha-button size="small" appearance="plain" .disabled=${this.disabled} @click=${this._addRow}>
           ${this.hass?.localize("ui.common.add") ?? "Add"}
+          <ha-svg-icon slot="start" .path=${mdiPlus}></ha-svg-icon>
           <ha-svg-icon slot="icon" .path=${mdiPlus}></ha-svg-icon>
         </ha-button>
       </div>
