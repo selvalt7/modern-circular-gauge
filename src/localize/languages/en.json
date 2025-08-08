@@ -32,6 +32,7 @@
     "primary_entity_style": "Entity style",
     "secondary_entity_style": "Entity style",
     "tertiary_entity_style": "Entity style",
+    "decimals": "Decimals",
     "gauge_type": "Gauge type",
     "helper": {
       "start_from_zero": "Gauge starts from zero instead of min",
