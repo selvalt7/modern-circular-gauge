@@ -1,7 +1,7 @@
 import { html, LitElement, css, svg, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import { DEFAULT_MAX, DEFAULT_MIN, MAX_ANGLE } from "../const";
-import { GaugeElementConfig, SegmentsConfig } from "../card/type";
+import { DEFAULT_MAX, DEFAULT_MIN, GAUGE_TYPE_ANGLES, MAX_ANGLE } from "../const";
+import { GaugeElementConfig, GaugeType, SegmentsConfig } from "../card/type";
 import { styleMap } from "lit/directives/style-map.js";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { svgArc, renderPath, currentDashArc, strokeDashArc, renderColorSegments, computeSegments } from "../utils/gauge";
@@ -16,7 +16,9 @@ export class ModernCircularGaugeElement extends LitElement {
 
   @property({ type: Number }) public radius = 47;
 
-  @property({ type: Number }) public maxAngle = MAX_ANGLE;
+  @property({ type: String }) public gaugeType: GaugeType = "standard";
+
+  @property({ type: Boolean }) public rotateGauge = false;
 
   @property({ type: Array }) public segments?: SegmentsConfig[];
 
@@ -32,23 +34,28 @@ export class ModernCircularGaugeElement extends LitElement {
 
   @property({ type: Boolean }) public outter = false;
 
+  @property({ type: Boolean }) public error = false;
+
   @state() private _updated = false;
 
   @state() private _path?: string;
 
   @state() private _rotateAngle?: number;
 
+  @state() private _maxAngle: number = MAX_ANGLE;
+
   public connectedCallback(): void {
     super.connectedCallback();
     if (!this._updated) {
+      this._maxAngle = GAUGE_TYPE_ANGLES[this.gaugeType] ?? MAX_ANGLE;
       this._path = svgArc({
         x: 0,
         y: 0,
         start: 0,
-        end: this.maxAngle,
+        end: this._maxAngle,
         r: this.radius,
       });
-      this._rotateAngle = 360 - this.maxAngle / 2 - 90;
+      this._rotateAngle = (360 - this._maxAngle / 2 - 90) + (this.gaugeType == "full" && this.rotateGauge ? 180 : 0);
       this._updated = true;
     }
   }
@@ -58,12 +65,23 @@ export class ModernCircularGaugeElement extends LitElement {
       return nothing;
     }
 
+    if (this.error) {
+      return html`
+      <svg viewBox="-50 -50 100 ${this.gaugeType == "half" ? 50 : 100}" preserveAspectRatio="xMidYMid"
+        overflow="visible"
+      >
+        <g transform="rotate(${this._rotateAngle})">
+          ${renderPath("arc clear", this._path)}
+        </g>
+      </svg>`;
+    }
+
     if (this.outter)
     {
-      const current = strokeDashArc(this.value, this.value, this.min, this.max, this.radius);
+      const current = strokeDashArc(this.value, this.value, this.min, this.max, this.radius, this._maxAngle);
 
       return html`
-      <svg viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid"
+      <svg viewBox="-50 -50 100 ${this.gaugeType == "half" ? 50 : 100}" preserveAspectRatio="xMidYMid"
         overflow="visible"
         style=${styleMap({ "--gauge-stroke-width": this.foregroundStyle?.width ? `${this.foregroundStyle?.width}px` : undefined,
         "--gauge-color": this.foregroundStyle?.color && this.foregroundStyle?.color != "adaptive" ? this.foregroundStyle?.color : computeSegments(this.value, this.segments, this.smoothSegments, this) })}
@@ -75,11 +93,11 @@ export class ModernCircularGaugeElement extends LitElement {
       </svg>
       `
     } else {
-      const current = this.needle ? undefined : currentDashArc(this.value, this.min, this.max, this.radius, this.startFromZero);
-      const needle = this.needle ? strokeDashArc(this.value, this.value, this.min, this.max, this.radius) : undefined;
+      const current = this.needle ? undefined : currentDashArc(this.value, this.min, this.max, this.radius, this.startFromZero, this._maxAngle);
+      const needle = this.needle ? strokeDashArc(this.value, this.value, this.min, this.max, this.radius, this._maxAngle) : undefined;
       
       return html`
-        <svg viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid"
+        <svg viewBox="-50 -50 100 ${this.gaugeType == "half" ? 50 : 100}" preserveAspectRatio="xMidYMid"
           overflow="visible"
           style=${styleMap({ "--gauge-stroke-width": this.foregroundStyle?.width ? `${this.foregroundStyle?.width}px` : undefined,
           "--gauge-color": this.foregroundStyle?.color && this.foregroundStyle?.color != "adaptive" ? this.foregroundStyle?.color : computeSegments(this.value, this.segments, this.smoothSegments, this) })}
@@ -110,14 +128,14 @@ export class ModernCircularGaugeElement extends LitElement {
               ${renderPath("arc clear", this._path, undefined, styleMap({ "stroke": this.backgroundStyle?.color && this.backgroundStyle.color != "adaptive" ? this.backgroundStyle.color : undefined }))}
               ${this.segments && (needle || this.backgroundStyle?.color == "adaptive") ? svg`
               <g class="segments" mask=${ifDefined(this.smoothSegments ? "url(#gradient-path)" : undefined)}>
-                ${renderColorSegments(this.segments, this.min, this.max, this.radius, this.smoothSegments)}
+                ${renderColorSegments(this.segments, this.min, this.max, this.radius, this.smoothSegments, this._maxAngle)}
               </g>`
               : nothing
               }
             </g>
             ${current ? this.foregroundStyle?.color == "adaptive" && this.segments ? svg`
             <g class="foreground-segments" mask="url(#gradient-current-path)" style=${styleMap({ "opacity": this.foregroundStyle?.opacity })}>
-              ${renderColorSegments(this.segments, this.min, this.max, this.radius, this.smoothSegments)}
+              ${renderColorSegments(this.segments, this.min, this.max, this.radius, this.smoothSegments, this._maxAngle)}
             </g>
             ` : renderPath("arc current", this._path, current, styleMap({ "visibility": this.value <= this.min && this.min >= 0 ? "hidden" : "visible", "opacity": this.foregroundStyle?.opacity }))
             : nothing}

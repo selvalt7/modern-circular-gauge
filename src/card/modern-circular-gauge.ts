@@ -13,38 +13,13 @@ import { classMap } from "lit/directives/class-map.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { actionHandler } from "../utils/action-handler-directive";
-import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS, MAX_ANGLE, RADIUS, INNER_RADIUS, TERTIARY_RADIUS } from "../const";
+import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS, GAUGE_TYPE_ANGLES, MAX_ANGLE, RADIUS, INNER_RADIUS, TERTIARY_RADIUS } from "../const";
 import { RenderTemplateResult, subscribeRenderTemplate } from "../ha/data/ws-templates";
 import { isTemplate } from "../utils/template";
 import "../components/modern-circular-gauge-element";
 import "../components/modern-circular-gauge-state";
 import "../components/modern-circular-gauge-icon";
 
-const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
-
-const path = svgArc({
-  x: 0,
-  y: 0,
-  start: 0,
-  end: MAX_ANGLE,
-  r: RADIUS,
-});
-
-const innerPath = svgArc({
-  x: 0,
-  y: 0,
-  start: 0,
-  end: MAX_ANGLE,
-  r: INNER_RADIUS,
-});
-
-const TERTIARY_PATH = svgArc({
-  x: 0,
-  y: 0,
-  start: 0,
-  end: MAX_ANGLE,
-  r: TERTIARY_RADIUS,
-});
 
 registerCustomCard({
   type: "modern-circular-gauge",
@@ -193,6 +168,8 @@ export class ModernCircularGauge extends LitElement {
     const segments = (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config.segments;
     const segmentsLabel = this._getSegmentLabel(numberState, segments);
 
+    const halfStateBig = this._config?.gauge_type == "half" && typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big";
+
     return html`
     <ha-card
       class="${classMap({
@@ -220,7 +197,7 @@ export class ModernCircularGauge extends LitElement {
       </div>
       ` : nothing}
       <div
-        class="container${classMap({ "dual-gauge": typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner" })}"
+        class="container${classMap({ "dual-gauge": (typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner") || (typeof this._config.tertiary != "string" && this._config.tertiary?.show_gauge == "inner"), "half-gauge": this._config.gauge_type == "half" })}"
         style=${styleMap({"--gauge-color": this._config.gauge_foreground_style?.color && this._config.gauge_foreground_style?.color != "adaptive" ? this._config.gauge_foreground_style?.color : computeSegments(numberState, segments, this._config.smooth_segments, this)})}
       >
         <div class="gauge-container">
@@ -229,7 +206,7 @@ export class ModernCircularGauge extends LitElement {
             .max=${max}
             .value=${numberState}
             .radius=${this._config.gauge_radius ?? RADIUS}
-            .maxAngle=${MAX_ANGLE}
+            .gaugeType=${this._config.gauge_type}
             .segments=${segments}
             .smoothSegments=${this._config.smooth_segments}
             .foregroundStyle=${this._config.gauge_foreground_style}
@@ -252,13 +229,15 @@ export class ModernCircularGauge extends LitElement {
           ${this._config.show_state ? html`
           <modern-circular-gauge-state
             class=${classMap({ "preview": this._inCardPicker! })}
-            style=${styleMap({ "--state-text-color": this._config.adaptive_state_color ? "var(--gauge-color)" : undefined , "--state-font-size-override": this._config.state_font_size ? `${this._config.state_font_size}px` : undefined })}
+            style=${styleMap({ "--state-text-color": this._config.adaptive_state_color ? "var(--gauge-color)" : undefined , "--state-font-size-override": this._config.state_font_size ? `${this._config.state_font_size}px` : (halfStateBig ? `15px` : undefined) })}
             .hass=${this.hass}
             .stateObj=${stateObj}
             .entityAttribute=${this._config.attribute}
             .stateOverride=${(segmentsLabel || stateOverride) ?? templatedState}
             .unit=${unit}
-            .verticalOffset=${typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big" ? -14 : 0}
+            .gaugeType=${this._config.gauge_type}
+            .verticalOffset=${typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big" ? -14 : this._config.gauge_type == "half" ? (this._hasSecondary ? -15 : -10) : 0}
+            .horizontalOffset=${this._config?.gauge_type == "half" && typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big" ? 16 : 0}
             .label=${typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big" ? this._config?.label : ""}
             .stateMargin=${this._stateMargin}
             .labelFontSize=${this._config.label_font_size}
@@ -299,31 +278,40 @@ export class ModernCircularGauge extends LitElement {
           ${headerText}
         </p>
       </div>
-      <div class=${classMap({ "icon-center": iconCenter, "container": true })}>
-        <svg viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid"
-          overflow="visible"
-        >
-          <g transform="rotate(${ROTATE_ANGLE})">
-            ${renderPath("arc clear", path)}
-          </g>
-        </svg>
+      <div class=${classMap({ "icon-center": iconCenter, "container": true, "half-gauge": this._config?.gauge_type == "half", "full-gauge": this._config?.gauge_type == "full" })}>
+        <modern-circular-gauge-element 
+          .gaugeType=${this._config?.gauge_type}
+          .radius=${this._config?.gauge_radius ?? RADIUS}
+          error
+        ></modern-circular-gauge-element>
         <modern-circular-gauge-state
           .hass=${this.hass}
           .stateOverride=${stateText}
+          .verticalOffset=${this._config?.gauge_type == "half" ? -10 : 0}
+          .gaugeType=${this._config?.gauge_type}
         ></modern-circular-gauge-state>
-        <modern-circular-gauge-icon
-          class="warning-icon"
-          .hass=${this.hass}
-          .stateObj=${stateObj}
-          .icon=${icon}
-          .position=${iconCenter ? 3 : 2}
-        ></modern-circular-gauge-icon>
+        ${this._config?.gauge_type == "half" && !iconCenter ? nothing : html`
+        <div class="icon-container">
+          <modern-circular-gauge-icon
+            class="warning-icon"
+            .hass=${this.hass}
+            .stateObj=${stateObj}
+            .icon=${icon}
+            .position=${iconCenter ? 3 : 2}
+          ></modern-circular-gauge-icon>
+        </div>
+        `}
       </div>
       </ha-card>
       `;
   }
 
   private _renderIcon(iconOverride?: string): TemplateResult {
+    // Don't know where to put the icon in half gauge, so for now just don't render it
+    if (this._config?.gauge_type == "half") {
+      return html``;
+    }
+
     const iconEntity = this._config?.icon_entity;
 
     let entityId: string | undefined;
@@ -405,7 +393,8 @@ export class ModernCircularGauge extends LitElement {
     const tertiaryObj = this._config?.tertiary as TertiaryEntity;
     const stateObj = this.hass.states[tertiaryObj.entity || ""];
     const templatedState = this._templateResults?.tertiaryEntity?.result;
-    
+    const secondaryInner = (this._config?.secondary as SecondaryEntity).show_gauge == "inner";
+
     if (!tertiaryObj) {
       return html``;
     }
@@ -415,8 +404,8 @@ export class ModernCircularGauge extends LitElement {
         return html`
         <modern-circular-gauge-element
           class="tertiary"
-          .radius=${TERTIARY_RADIUS}
-          .maxAngle=${MAX_ANGLE}
+          .radius=${secondaryInner ? TERTIARY_RADIUS : INNER_RADIUS}
+          .gaugeType=${this._config?.gauge_type}
         ></modern-circular-gauge-element>
         `;
       }
@@ -432,8 +421,8 @@ export class ModernCircularGauge extends LitElement {
         .min=${min}
         .max=${max}
         .value=${numberState}
-        .radius=${tertiaryObj.gauge_radius ?? TERTIARY_RADIUS}
-        .maxAngle=${MAX_ANGLE}
+        .radius=${tertiaryObj.gauge_radius ?? (secondaryInner ? TERTIARY_RADIUS : INNER_RADIUS)}
+        .gaugeType=${this._config?.gauge_type}
         .segments=${segments}
         .smoothSegments=${this._config?.smooth_segments}
         .foregroundStyle=${tertiaryObj?.gauge_foreground_style}
@@ -467,7 +456,7 @@ export class ModernCircularGauge extends LitElement {
         .max=${max}
         .value=${numberState}
         .radius=${this._config?.gauge_radius ?? RADIUS}
-        .maxAngle=${MAX_ANGLE}
+        .gaugeType=${this._config?.gauge_type}
         .foregroundStyle=${tertiaryObj?.gauge_foreground_style}
         .backgroundStyle=${tertiaryObj?.gauge_background_style}
         .outter=${true}
@@ -491,7 +480,7 @@ export class ModernCircularGauge extends LitElement {
         <modern-circular-gauge-element
           class="secondary"
           .radius=${INNER_RADIUS}
-          .maxAngle=${MAX_ANGLE}
+          .gaugeType=${this._config?.gauge_type}
         ></modern-circular-gauge-element>
         `;
       }
@@ -508,7 +497,7 @@ export class ModernCircularGauge extends LitElement {
         .max=${max}
         .value=${numberState}
         .radius=${secondaryObj.gauge_radius ?? INNER_RADIUS}
-        .maxAngle=${MAX_ANGLE}
+        .gaugeType=${this._config?.gauge_type}
         .segments=${segments}
         .smoothSegments=${this._config?.smooth_segments}
         .foregroundStyle=${secondaryObj?.gauge_foreground_style}
@@ -542,7 +531,7 @@ export class ModernCircularGauge extends LitElement {
         .max=${max}
         .value=${numberState}
         .radius=${this._config?.gauge_radius ?? RADIUS}
-        .maxAngle=${MAX_ANGLE}
+        .gaugeType=${this._config?.gauge_type}
         .foregroundStyle=${secondaryObj?.gauge_foreground_style}
         .backgroundStyle=${secondaryObj?.gauge_background_style}
         .outter=${true}
@@ -557,17 +546,18 @@ export class ModernCircularGauge extends LitElement {
       return html``;
     }
 
-    const iconCenter = !(this._config?.show_state ?? false) && (this._config?.show_icon ?? true);
+    const iconCenter = !(this._config?.show_state ?? false) && (this._config?.show_icon ?? true) && this._config?.gauge_type != "half";
 
     if (typeof secondary === "string") {
       this._hasSecondary = true;
       return html`
       <modern-circular-gauge-state
-        class=${classMap({ "preview": this._inCardPicker! })}
+        class=${classMap({ "preview": this._inCardPicker!, "secondary": true })}
         .hass=${this.hass}
         .stateOverride=${this._templateResults?.secondary?.result ?? secondary}
-        .verticalOffset=${17}
+        .verticalOffset=${this._config?.gauge_type == "half" ? -1 : 17}
         .stateMargin=${this._stateMargin}
+        .gaugeType=${this._config?.gauge_type}
         small
       ></modern-circular-gauge-state>
       `;
@@ -609,6 +599,8 @@ export class ModernCircularGauge extends LitElement {
       }
     }
 
+    const halfStateBig = this._config?.gauge_type == "half" && secondary.state_size == "big";
+
     return html`
     <modern-circular-gauge-state
       @action=${this._handleSecondaryAction}
@@ -616,16 +608,18 @@ export class ModernCircularGauge extends LitElement {
         hasHold: hasAction(secondary.hold_action),
         hasDoubleClick: hasAction(secondary.double_tap_action),
       })}
-      class=${classMap({ "preview": this._inCardPicker! })}
-      style=${styleMap({ "--state-text-color-override": secondaryColor ?? (secondary.state_size == "big" ? "var(--secondary-text-color)" : undefined), "--state-font-size-override": secondary.state_font_size ? `${secondary.state_font_size}px` : undefined })}
+      class=${classMap({ "preview": this._inCardPicker!, "secondary": true })}
+      style=${styleMap({ "--state-text-color-override": secondaryColor ?? (secondary.state_size == "big" ? "var(--secondary-text-color)" : undefined), "--state-font-size-override": secondary.state_font_size ? `${secondary.state_font_size}px` : (halfStateBig ? `15px` : undefined) })}
       .hass=${this.hass}
       .stateObj=${stateObj}
       .entityAttribute=${secondary.attribute}
       .stateOverride=${(segmentsLabel || stateOverride) ?? templatedState}
       .unit=${unit}
-      .verticalOffset=${secondary.state_size == "big" ? 14 : iconCenter ? 22 : 17}
+      .verticalOffset=${secondary.state_size == "big" ? (this._config?.gauge_type == "half" ? -14 : 14) : iconCenter ? 22 : this._config?.gauge_type == "half" ? -1 : 17}
+      .horizontalOffset=${halfStateBig ? -16 : 0}
       .small=${secondary.state_size != "big"}
-      .label=${secondary.label}
+      .label=${this._config?.gauge_type == "half" && secondary.state_size != "big" ? "" : secondary.label}
+      .gaugeType=${this._config?.gauge_type}
       .stateMargin=${this._stateMargin}
       .labelFontSize=${secondary.label_font_size}
       .showUnit=${secondary.show_unit ?? true}
@@ -642,11 +636,12 @@ export class ModernCircularGauge extends LitElement {
     if (typeof tertiary === "string") {
       return html`
       <modern-circular-gauge-state
-        class=${classMap({ "preview": this._inCardPicker! })}
+        class=${classMap({ "preview": this._inCardPicker!, "tertiary": true })}
         .hass=${this.hass}
         .stateOverride=${this._templateResults?.tertiary?.result ?? tertiary}
-        .verticalOffset=${-19}
+        .verticalOffset=${this._config?.gauge_type == "half" ? (!this._hasSecondary ? -28 :-31) : -19}
         .stateMargin=${this._stateMargin}
+        .gaugeType=${this._config?.gauge_type}
         small
       ></modern-circular-gauge-state>
       `;
@@ -672,6 +667,8 @@ export class ModernCircularGauge extends LitElement {
     const segments = (this._templateResults?.tertiarySegments?.result as unknown) as SegmentsConfig[] ?? tertiary.segments;
     const segmentsLabel = this._getSegmentLabel(state, segments);
 
+    const threeGauges = (typeof this._config?.secondary != "string" && this._config?.secondary?.show_gauge == "inner") && (typeof this._config?.tertiary != "string" && this._config?.tertiary?.show_gauge == "inner");
+
     let adaptiveColor;
 
     if (tertiary.adaptive_state_color) {
@@ -693,17 +690,18 @@ export class ModernCircularGauge extends LitElement {
         hasHold: hasAction(tertiary.hold_action),
         hasDoubleClick: hasAction(tertiary.double_tap_action),
       })}
-      class=${classMap({ "preview": this._inCardPicker! })}
-      style=${styleMap({ "--state-text-color-override": adaptiveColor ?? undefined , "--state-font-size-override": tertiary.state_font_size ? `${tertiary.state_font_size}px` : undefined })}
+      class=${classMap({ "preview": this._inCardPicker!, "tertiary": true })}
+      style=${styleMap({ "--state-text-color-override": adaptiveColor ?? undefined , "--state-font-size-override": tertiary.state_font_size ? `${tertiary.state_font_size}px` : (threeGauges ? "6px" : undefined) })}
       .hass=${this.hass}
       .stateObj=${stateObj}
       .entityAttribute=${tertiary.attribute}
       .stateOverride=${(segmentsLabel || stateOverride) ?? templatedState}
       .unit=${unit}
-      .verticalOffset=${-19}
+      .verticalOffset=${this._config?.gauge_type == "half" ? (!this._hasSecondary ? -28 : (threeGauges ? -29 : -31)) : -19}
       .stateMargin=${this._stateMargin}
       .showUnit=${tertiary.show_unit ?? true}
-      .label=${tertiary.label}
+      .label=${this._config?.gauge_type == "half" ? "" : tertiary.label}
+      .gaugeType=${this._config?.gauge_type}
       .labelFontSize=${tertiary.label_font_size}
       small
     ></modern-circular-gauge-state>
@@ -941,7 +939,7 @@ export class ModernCircularGauge extends LitElement {
     return {
       columns: 6,
       rows: 4,
-      min_rows: 3,
+      min_rows: this._config?.gauge_type == "half" ? 2 : 3,
       min_columns: 4
     };
   }
@@ -950,7 +948,7 @@ export class ModernCircularGauge extends LitElement {
     return {
       grid_columns: 2,
       grid_rows: 3,
-      grid_min_rows: 3,
+      grid_min_rows: this._config?.gauge_type == "half" ? 2 : 3,
       grid_min_columns: 2
     };
   }
@@ -970,6 +968,8 @@ export class ModernCircularGauge extends LitElement {
       --gauge-stroke-width: 6px;
       --inner-gauge-stroke-width: 4px;
       --gauge-header-font-size: 14px;
+
+      --half-gauge-padding: 16px 0px 24px;
     }
 
     ha-card {
@@ -1010,6 +1010,7 @@ export class ModernCircularGauge extends LitElement {
       left: 0;
       right: 0;
       z-index: 2;
+      padding: inherit;
     }
 
     modern-circular-gauge-state {
@@ -1018,6 +1019,16 @@ export class ModernCircularGauge extends LitElement {
       bottom: 0;
       left: 0;
       right: 0;
+      padding: inherit;
+    }
+
+    .half-gauge modern-circular-gauge-state.secondary,
+    .half-gauge modern-circular-gauge-state.tertiary {
+      --state-font-size-override: 8px;
+    }
+
+    .half-gauge modern-circular-gauge-state:not(.secondary):not(.tertiary) {
+      --state-font-size-override: 20px;
     }
 
     .container {
@@ -1026,39 +1037,20 @@ export class ModernCircularGauge extends LitElement {
       container-name: container;
       width: 100%;
       height: 100%;
+      box-sizing: border-box;
+    }
+
+    .container.half-gauge {
+      padding: var(--half-gauge-padding);
     }
 
     .flex-column-reverse .container {
       margin-bottom: 0px;
     }
 
-    .secondary, .tertiary-state {
-      font-size: 10px;
-      fill: var(--secondary-text-color);
-      --gauge-color: var(--gauge-secondary-color);
-    }
-
-    .tertiary-state {
-      --gauge-color: var(--gauge-tertiary-color);
-    }
-
     .state-label {
       font-size: 0.49em;
       fill: var(--secondary-text-color);
-    }
-
-    .value, .secondary.dual-state {
-      font-size: 21px;
-      fill: var(--primary-text-color);
-      dominant-baseline: middle;
-    }
-
-    .secondary.dual-state {
-      fill: var(--secondary-text-color);
-    }
-
-    .secondary.dual-state .unit {
-      opacity: 1;
     }
 
     modern-circular-gauge-icon {
@@ -1114,6 +1106,10 @@ export class ModernCircularGauge extends LitElement {
       right: 0;
     }
 
+    .half-gauge modern-circular-gauge-element.secondary, .half-gauge modern-circular-gauge-element.tertiary {
+      padding: var(--half-gauge-padding);
+    }
+
     svg {
       width: 100%;
       height: 100%;
@@ -1163,9 +1159,8 @@ export class ModernCircularGauge extends LitElement {
       transition: all 1s ease 0s, stroke 0.3s ease-out;
     }
 
-    .inner {
+    .secondary {
       --gauge-color: var(--gauge-secondary-color);
-      --gauge-stroke-width: var(--inner-gauge-stroke-width);
     }
 
     .tertiary {

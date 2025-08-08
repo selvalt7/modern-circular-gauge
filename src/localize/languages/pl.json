@@ -32,13 +32,15 @@
     "primary_entity_style": "Styl encji",
     "secondary_entity_style": "Styl encji",
     "tertiary_entity_style": "Styl encji",
+    "gauge_type": "Typ wskaźnika",
     "helper": {
       "start_from_zero": "Wskaźnik rozpoczyna się od zera zamiast od minimum",
       "primary_label": "Tekst wyświetlony pod głównym stanem, gdy rozmiar stanu informacji drugorzędnej jest duży",
       "label": "Tekst wyświetlony pod stanem",
       "gauge_color": "Przyjmuje wartości hex, rgb, zmienne CSS lub \"adaptive\" dla stylu segmentów kolorów",
       "icon_entity": "Wybierz encję, której chcesz użyć do wyboru ikon i ich kolorowania",
-      "state_text": "Nadpisuje wyświetlany stan bez nadpisywania danych wskaźnika, akceptuje template"
+      "state_text": "Nadpisuje wyświetlany stan bez nadpisywania danych wskaźnika, akceptuje template",
+      "half_gauge_icon_unavailable": "Ikona jest niedostępna, gdy typ wskaźnika jest ustawiony na połówkę"
     },
     "header_position_options": {
       "options": {
@@ -64,6 +66,12 @@
       "options": {
         "small": "Mały",
         "big": "Duży"
+      }
+    },
+    "gauge_type_options": {
+      "options": {
+        "standard": "Standard",
+        "half": "Połówka"
       }
     }
   }

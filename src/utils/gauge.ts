@@ -77,11 +77,11 @@ export const svgArc = (options: ArcOptions) => {
   ].join(" ");
 };
 
-export const strokeDashArc = (from: number, to: number, min: number, max: number, radius: number): [string, string] => {
+export const strokeDashArc = (from: number, to: number, min: number, max: number, radius: number, maxAngle: number = MAX_ANGLE): [string, string] => {
   const start = valueToPercentage(from, min, max);
   const end = valueToPercentage(to, min, max);
 
-  const track = (radius * 2 * Math.PI * MAX_ANGLE) / 360;
+  const track = (radius * 2 * Math.PI * maxAngle) / 360;
   const arc = Math.max((end - start) * track, 0);
   const arcOffset = start * track - 0.5;
 
@@ -90,19 +90,19 @@ export const strokeDashArc = (from: number, to: number, min: number, max: number
   return [strokeDasharray, strokeDashOffset];
 }
 
-export const getAngle = (value: number, min: number, max: number) => {
-  return valueToPercentage(isNaN(value) ? min : value, min, max) * MAX_ANGLE;
+export const getAngle = (value: number, min: number, max: number, maxAngle: number = MAX_ANGLE) => {
+  return valueToPercentage(isNaN(value) ? min : value, min, max) * maxAngle;
 }
 
 export const valueToPercentage = (value: number, min: number, max: number) => {
   return (clamp(value, min, max) - min) / (max - min);
 }
 
-export const currentDashArc = (value: number, min: number, max: number, radius: number, startFromZero?: boolean): [string, string] => {
+export const currentDashArc = (value: number, min: number, max: number, radius: number, startFromZero?: boolean, maxAngle: number = MAX_ANGLE): [string, string] => {
   if (startFromZero) {
-    return strokeDashArc(value > 0 ? 0 : value, value > 0 ? value : 0, min, max, radius);
+    return strokeDashArc(value > 0 ? 0 : value, value > 0 ? value : 0, min, max, radius, maxAngle);
   } else {
-    return strokeDashArc(min, value, min, max, radius);
+    return strokeDashArc(min, value, min, max, radius, maxAngle);
   }
 }
 
@@ -117,26 +117,29 @@ export function renderPath(pathClass: DirectiveResult<typeof ClassMapDirective>,
     />`;
 }
 
-export function renderColorSegments(segments: SegmentsConfig[], min: number, max: number, radius: number, smooth_segments: boolean | undefined): TemplateResult[] {
+export function renderColorSegments(segments: SegmentsConfig[], min: number, max: number, radius: number, smooth_segments: boolean | undefined, maxAngle: number = MAX_ANGLE): TemplateResult[] {
   if (smooth_segments) {
-    return renderSegmentsGradient(segments, min, max);
+    return renderSegmentsGradient(segments, min, max, maxAngle);
   } else {
-    return renderSegments(segments, min, max, radius);
+    return renderSegments(segments, min, max, radius, maxAngle);
   }
 }
 
-export function renderSegmentsGradient(segments: SegmentsConfig[], min: number, max: number): TemplateResult[] {
+export function renderSegmentsGradient(segments: SegmentsConfig[], min: number, max: number, maxAngle: number = MAX_ANGLE): TemplateResult[] {
   if (segments) {
     let sortedSegments = [...segments].sort((a, b) => Number(a.from) - Number(b.from));
     let gradient: string = "";
+    if (maxAngle == 180) {
+      gradient = "from 0.75turn at 50% 97%,";
+    }
     sortedSegments.map((segment, index) => {
-      const angle = getAngle(Number(segment.from), min, max) + 45;
+      const angle = getAngle(Number(segment.from), min, max, maxAngle) + (maxAngle == 180 ? 0 : 45);
       const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
       gradient += `${color} ${angle}deg${index != sortedSegments.length - 1 ? "," : ""}`;
     });
     return [svg`
-      <foreignObject x="-50" y="-50" width="100%" height="100%" overflow="visible" transform="rotate(45)">
-        <div style="width: 110px; height: 110px; margin-left: -5px; margin-top: -5px; background-image: conic-gradient(${gradient})">
+      <foreignObject x="-55" y="-55" width="110%" height=${maxAngle == 180 ? "120%" : "110%"} overflow="visible" transform="rotate(${maxAngle == 180 ? 180 : 45})">
+        <div style=${styleMap({ "width": "110px", "height": maxAngle == 180 ? "60px" : "110px", "background-image": `conic-gradient(${gradient})` })}>
         </div>
       </foreignObject>
     `];
@@ -145,14 +148,14 @@ export function renderSegmentsGradient(segments: SegmentsConfig[], min: number, 
 }
 
 
-export function renderSegments(segments: SegmentsConfig[], min: number, max: number, radius: number): TemplateResult[] {
+export function renderSegments(segments: SegmentsConfig[], min: number, max: number, radius: number, maxAngle: number = MAX_ANGLE): TemplateResult[] {
   if (segments) {
     let sortedSegments = [...segments].sort((a, b) => Number(a.from) - Number(b.from));
 
     return [...sortedSegments].map((segment, index) => {
       let roundEnd: TemplateResult | undefined;
-      const startAngle = index === 0 ? 0 : getAngle(Number(segment.from), min, max);
-      const angle = index === sortedSegments.length - 1 ? MAX_ANGLE : getAngle(Number(sortedSegments[index + 1].from), min, max);
+      const startAngle = index === 0 ? 0 : getAngle(Number(segment.from), min, max, maxAngle);
+      const angle = index === sortedSegments.length - 1 ? maxAngle : getAngle(Number(sortedSegments[index + 1].from), min, max, maxAngle);
       const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
       const segmentPath = svgArc({
         x: 0,
@@ -166,8 +169,8 @@ export function renderSegments(segments: SegmentsConfig[], min: number, max: num
         const endPath = svgArc({
           x: 0,
           y: 0,
-          start: index === 0 ? 0 : MAX_ANGLE,
-          end: index === 0 ? 0 : MAX_ANGLE,
+          start: index === 0 ? 0 : maxAngle,
+          end: index === 0 ? 0 : maxAngle,
           r: radius,
         });
         roundEnd = renderPath("segment", endPath, undefined, styleMap({ "stroke": color, "stroke-linecap": "round" }));
