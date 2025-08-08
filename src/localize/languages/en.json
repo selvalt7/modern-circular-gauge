@@ -39,7 +39,8 @@
       "label": "Text displayed under the state",
       "gauge_color": "Accepts hex, rgb, CSS variables or \"adaptive\" for segmented style",
       "icon_entity": "Select which entity to use for icon selection and coloring",
-      "state_text": "Overrides displayed state without overriding gauge data, accepts template"
+      "state_text": "Overrides displayed state without overriding gauge data, accepts template",
+      "half_gauge_icon_unavailable": "Icon is unavailable when gauge type is set to half"
     },
     "header_position_options": {
       "options": {
