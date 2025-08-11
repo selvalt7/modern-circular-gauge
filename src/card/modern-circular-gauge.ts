@@ -13,13 +13,13 @@ import { classMap } from "lit/directives/class-map.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { actionHandler } from "../utils/action-handler-directive";
-import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS, GAUGE_TYPE_ANGLES, MAX_ANGLE, RADIUS, INNER_RADIUS, TERTIARY_RADIUS } from "../const";
+import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS, GAUGE_TYPE_ANGLES, MAX_ANGLE, RADIUS, INNER_RADIUS, TERTIARY_RADIUS, TIMESTAMP_STATE_DOMAINS } from "../const";
 import { RenderTemplateResult, subscribeRenderTemplate } from "../ha/data/ws-templates";
 import { isTemplate } from "../utils/template";
 import "../components/modern-circular-gauge-element";
 import "../components/modern-circular-gauge-state";
 import "../components/modern-circular-gauge-icon";
-
+import { computeStateDomain } from "../ha/common/entity/compute_state_domain";
 
 registerCustomCard({
   type: "modern-circular-gauge",
@@ -144,12 +144,24 @@ export class ModernCircularGauge extends LitElement {
       }
     }
 
-    const numberState = Number(templatedState ?? stateObj.attributes[this._config.attribute!] ?? stateObj.state);
+    
     const icon = this._templateResults?.icon?.result ?? this._config.icon;
-
+    
     if (stateObj?.state === "unavailable") {
       return this._renderWarning(this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? stateObj.attributes.friendly_name ?? '', this.hass.localize("state.default.unavailable"), stateObj, icon);
     }
+    
+    const domain = computeStateDomain(stateObj);
+    let secondsUntils: number | undefined;
+
+    if (stateObj?.attributes.device_class === "timestamp" ||
+      TIMESTAMP_STATE_DOMAINS.includes(domain)
+    ) {
+      const timestamp = new Date(stateObj.state);
+      secondsUntils = Math.round(Math.abs(timestamp.getTime() - Date.now()) / 1000);
+    }
+
+    const numberState = secondsUntils ?? Number(templatedState ?? stateObj.attributes[this._config.attribute!] ?? stateObj.state);
 
     if (isNaN(numberState)) {
       return this._renderWarning(this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? stateObj.attributes.friendly_name ?? '', "NaN", stateObj, icon);

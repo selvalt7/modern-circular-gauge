@@ -6,6 +6,9 @@ import { HassEntity } from "home-assistant-js-websocket";
 import { classMap } from "lit/directives/class-map.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { GaugeType } from "../card/type";
+import { TIMESTAMP_STATE_DOMAINS } from "../const";
+import { computeStateDomain } from "../ha/common/entity/compute_state_domain";
+import secondsToDuration from "../ha/common/datetime/seconds_to_duration";
 
 @customElement("modern-circular-gauge-state")
 export class ModernCircularGaugeState extends LitElement {
@@ -37,6 +40,32 @@ export class ModernCircularGaugeState extends LitElement {
 
   @state() private _updated = false;
 
+  private _interval?: any;
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    this._startInterval();
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this._clearInterval();
+  }
+
+  private _startInterval() {
+    this._clearInterval();
+    this._interval = setInterval(() => {
+      this.requestUpdate();
+    }, 1000);
+  }
+
+  private _clearInterval() {
+    if (this._interval) {
+      clearInterval(this._interval);
+      this._interval = undefined;
+    }
+  }
+
   protected firstUpdated(_changedProperties: PropertyValues): void {
     this._updated = true;
     this._scaleText();
@@ -56,6 +85,16 @@ export class ModernCircularGaugeState extends LitElement {
     }
 
     if (this.stateObj) {
+      const domain = computeStateDomain(this.stateObj);
+      let secondsUntil: number | undefined;
+
+      if (this.stateObj?.attributes.device_class === "timestamp" ||
+        TIMESTAMP_STATE_DOMAINS.includes(domain)
+      ) {
+        const timestamp = new Date(this.stateObj.state);
+        secondsUntil = Math.round(Math.abs(timestamp.getTime() - Date.now()) / 1000);
+        return secondsToDuration(secondsUntil) || "0";
+      }
       const state = this.stateOverride ?? this.stateObj.attributes[this.entityAttribute!] ?? this.stateObj.state;
       const attributes = this.stateObj.attributes ?? undefined;
       const entityState = Number.isNaN(state) ? state

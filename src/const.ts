@@ -15,6 +15,7 @@ export const INNER_RADIUS = 42;
 export const TERTIARY_RADIUS = 37;
 
 export const NUMBER_ENTITY_DOMAINS = ["sensor", "number", "counter", "input_number"];
+export const TIMESTAMP_STATE_DOMAINS = ["button", "input_button", "scene"];
 
 export const NON_NUMERIC_ATTRIBUTES = [
   "access_token",
