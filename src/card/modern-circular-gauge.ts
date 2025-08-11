@@ -363,6 +363,7 @@ export class ModernCircularGauge extends LitElement {
       .position=${iconPosition}
       .iconVerticalPositionOverride=${this._config?.icon_vertical_position}
       .iconSizeOverride=${this._config?.icon_size}
+      .showEntityPicture=${this._config?.show_entity_picture ?? false}
     ></modern-circular-gauge-icon>
     `;
   }

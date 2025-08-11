@@ -1,4 +1,4 @@
-import { html, LitElement, css, PropertyValues } from "lit";
+import { html, LitElement, css, svg, PropertyValues, nothing } from "lit";
 import { customElement, property, queryAsync, state } from "lit/decorators.js";
 import { HomeAssistant } from "../ha/types";
 import { HassEntity } from "home-assistant-js-websocket";
@@ -14,6 +14,8 @@ export class ModernCircularGaugeIcon extends LitElement {
   @property({ attribute: false }) public stateObj?: HassEntity;
 
   @property() public icon?: string;
+
+  @property({ type: Boolean }) public showEntityPicture? = false;
 
   /**
    * Position of the icon in the gauge.
@@ -36,6 +38,10 @@ export class ModernCircularGaugeIcon extends LitElement {
   protected updated(_changedProperties: PropertyValues): void {
     super.updated(_changedProperties);
     if (this._updated) {
+      return;
+    }
+
+    if (this.showEntityPicture) {
       return;
     }
 
@@ -93,15 +99,40 @@ export class ModernCircularGaugeIcon extends LitElement {
     return ICONSIZES[this.position];
   }
 
+  private _getImageUrl(entity: HassEntity): string | undefined {
+    if (!entity || !entity.attributes) {
+      return undefined;
+    }
+    
+    const entityPicture =
+      entity.attributes.entity_picture_local ||
+      entity.attributes.entity_picture;
+
+    if (!entityPicture) return undefined;
+
+    let imageUrl = this.hass!.hassUrl(entityPicture);
+
+    return imageUrl;
+  }
+
   protected render() {
+    const imageUrl = this.showEntityPicture
+      ? this._getImageUrl(this.stateObj!)
+      : undefined;
+      
     return html`
-    <ha-state-icon
-      .hass=${this.hass}
-      .stateObj=${this.stateObj}
-      .icon=${this.icon}
-    ></ha-state-icon>
+    ${!imageUrl ? html`
+      <ha-state-icon
+        .hass=${this.hass}
+        .stateObj=${this.stateObj}
+        .icon=${this.icon}
+      ></ha-state-icon>
+    ` : nothing}
     <svg class="gauge-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
       <g class="gauge-icon-group" transform="translate(0 12) translate(0 ${this._computeIconPosition()}) translate(12 12) scale(${this._computeIconSize()}) translate(-12 -12)">
+        ${imageUrl ? svg`
+          <image href="${imageUrl}" width="24" height="24"></image>
+        ` : nothing}
       </g>
     </svg>`;
   }

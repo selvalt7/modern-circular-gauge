@@ -56,6 +56,7 @@ export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     icon_entity?: "primary" | "secondary" | "tertiary";
     icon_size?: number;
     icon_vertical_position?: number;
+    show_entity_picture?: boolean;
     min?: number | string;
     max?: number | string;
     gauge_type?: GaugeType;
