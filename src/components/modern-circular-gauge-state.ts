@@ -201,7 +201,7 @@ export class ModernCircularGaugeState extends LitElement {
     }
 
     .unit {
-      font-size: .33em;
+      font-size: var(--unit-font-size, .33em);
       opacity: 0.6;
     }
 

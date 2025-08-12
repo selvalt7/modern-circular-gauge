@@ -22,6 +22,8 @@ import durationToSeconds from "../ha/common/datetime/duration_to_seconds";
 import { computeStateDomain } from "../ha/common/entity/compute_state_domain";
 import { getTimestampRemainingSeconds, getTimerRemainingSeconds } from "../utils/timer_timestamp_utils";
 import secondsToDuration from "../utils/seconds_to_duration";
+import "../components/mcg-badge-state";
+import "../components/modern-circular-gauge-state";
 
 const MAX_ANGLE = 270;
 const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
@@ -228,13 +230,11 @@ export class ModernCircularGaugeBadge extends LitElement {
 
     const domain = computeStateDomain(stateObj);
     let secondsUntil: number | undefined;
-    let timerState: string | undefined;
 
     if (stateObj?.attributes.device_class === "timestamp" ||
       TIMESTAMP_STATE_DOMAINS.includes(domain)
     ) {
       secondsUntil = getTimestampRemainingSeconds(stateObj);
-      timerState = secondsToDuration(secondsUntil, true) || "0";
     }
 
     let timerDuration: number | undefined;
@@ -242,7 +242,6 @@ export class ModernCircularGaugeBadge extends LitElement {
     if (domain === "timer") {
       timerDuration = durationToSeconds(stateObj.attributes?.duration ?? "00:00");
       secondsUntil = getTimerRemainingSeconds(stateObj);
-      timerState = stateObj.state === "active" ? secondsToDuration(secondsUntil, true) : stateObj.state;
     }
 
     const numberState = Number(templatedState ?? secondsUntil ?? stateObj.attributes[this._config.attribute!] ?? stateObj.state);
@@ -254,21 +253,26 @@ export class ModernCircularGaugeBadge extends LitElement {
     const min = Number(this._templateResults?.min?.result ?? this._config.min) || DEFAULT_MIN;
     const max = Number(this._templateResults?.max?.result ?? this._config.max ?? timerDuration) || DEFAULT_MAX;
 
-    const attributes = stateObj?.attributes ?? undefined;
-
     const current = this._config.needle ? undefined : currentDashArc(numberState, min, max, RADIUS, this._config.start_from_zero);
-    const state = templatedState ?? timerState ?? stateObj.attributes[this._config.attribute!] ?? stateObj.state;
 
     const stateOverride = this._templateResults?.stateText?.result ?? (isTemplate(String(this._config.state_text)) ? "" : (this._config.state_text || undefined));
     const unit = this._config.show_unit ?? true ? (this._config.unit ?? stateObj?.attributes.unit_of_measurement) || "" : "";
 
-    const entityState = stateOverride ?? formatNumber(state, this.hass.locale, getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj?.entity_id])) ?? templatedState;
-
     const showIcon = this._config.show_icon ?? true;
+
+    const stateElement = html`
+      <mcg-badge-state
+        .hass=${this.hass}
+        .stateObj=${stateObj}
+        .unit=${unit}
+        .stateOverride=${stateOverride}
+        .showSeconds=${this._config.show_seconds ?? true}
+      ></mcg-badge-state>
+    `;
 
     const name = this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? stateObj?.attributes.friendly_name ?? "";
     const label = this._config.show_name && showIcon && this._config.show_state ? name : undefined;
-    const content = showIcon && this._config.show_state ? `${entityState} ${unit}` : this._config.show_name ? name : undefined;
+    const content = showIcon && this._config.show_state ? stateElement : this._config.show_name ? name : undefined;
 
     const segments = (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config.segments;
 
@@ -336,14 +340,14 @@ export class ModernCircularGaugeBadge extends LitElement {
           : nothing}
         ${this._config.show_state && !showIcon
           ? html`
-          <svg class="state" viewBox="-50 -50 100 100">
-            <text x="0" y="0" class="value" style=${styleMap({ "font-size": this._calcStateSize(entityState) })}>
-              ${entityState}
-              ${this._config.show_unit ?? true ? svg`
-              <tspan class="unit" dx="-4" dy="-6">${unit}</tspan>
-              ` : nothing}
-            </text>
-          </svg>
+            <modern-circular-gauge-state
+              class="state"
+              .hass=${this.hass}
+              .stateObj=${stateObj}
+              .unit=${unit}
+              .stateOverride=${stateOverride}
+              .showSeconds=${this._config.show_seconds ?? true}
+            ></modern-circular-gauge-state>
           ` : nothing}
       </div>
       ${content}
@@ -426,17 +430,8 @@ export class ModernCircularGaugeBadge extends LitElement {
       left: 0;
       right: 0;
       text-anchor: middle;
-    }
-
-    .value {
-      font-size: 21px;
-      fill: var(--primary-text-color);
-      dominant-baseline: middle;
-    }
-
-    .unit {
-      font-size: .43em;
-      opacity: 0.6;
+      --state-font-size-override: 25px;
+      --unit-font-size: .53em;
     }
 
     .container {
