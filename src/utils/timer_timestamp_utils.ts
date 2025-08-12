@@ -15,5 +15,5 @@ export function getTimerRemainingSeconds(stateObj: HassEntity): number {
 
 export function getTimestampRemainingSeconds(stateObj: HassEntity): number {
   const timestamp = new Date(stateObj.state);
-  return Math.round(Math.abs(timestamp.getTime() - Date.now()) / 1000);
+  return Math.round(Math.abs(Math.max(0, timestamp.getTime() - Date.now())) / 1000);
 }

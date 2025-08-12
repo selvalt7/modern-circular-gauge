@@ -1,6 +1,9 @@
 const leftPad = (num: number) => (num < 10 ? `0${num}` : num);
 
-export default function secondsToDuration(d: number, showSeconds = false) {
+export default function secondsToDuration(d: number | undefined, showSeconds = false) {
+  if (d === undefined) {
+    return undefined;
+  }
   const h = Math.floor(d / 3600);
   const m = Math.floor((d % 3600) / 60);
 
@@ -23,5 +26,5 @@ export default function secondsToDuration(d: number, showSeconds = false) {
   if (m > 0) {
     return `00:${leftPad(m)}`;
   }
-  return null;
+  return undefined;
 }

@@ -2,7 +2,7 @@ import { LitElement, TemplateResult, html, css, nothing, PropertyValues, svg } f
 import { HomeAssistant } from "../ha/types";
 import { ModernCircularGaugeBadgeConfig } from "./gauge-badge-config";
 import { customElement, property, state } from "lit/decorators.js";
-import { NUMBER_ENTITY_DOMAINS, DEFAULT_MIN, DEFAULT_MAX } from "../const";
+import { NUMBER_ENTITY_DOMAINS, DEFAULT_MIN, DEFAULT_MAX, TIMESTAMP_STATE_DOMAINS } from "../const";
 import { getNumberFormatOptions, formatNumber } from "../utils/format_number";
 import { registerCustomBadge } from "../utils/custom-badges";
 import { HassEntity, UnsubscribeFunc } from "home-assistant-js-websocket";
@@ -18,6 +18,10 @@ import { RenderTemplateResult, subscribeRenderTemplate } from "../ha/data/ws-tem
 import { ifDefined } from "lit/directives/if-defined.js";
 import { isTemplate } from "../utils/template";
 import { SegmentsConfig } from "../card/type";
+import durationToSeconds from "../ha/common/datetime/duration_to_seconds";
+import { computeStateDomain } from "../ha/common/entity/compute_state_domain";
+import { getTimestampRemainingSeconds, getTimerRemainingSeconds } from "../utils/timer_timestamp_utils";
+import secondsToDuration from "../utils/seconds_to_duration";
 
 const MAX_ANGLE = 270;
 const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
@@ -67,7 +71,7 @@ export class ModernCircularGaugeBadge extends LitElement {
       throw new Error("Entity must be specified");
     }
 
-    this._config = { min: DEFAULT_MIN, max: DEFAULT_MAX, show_state: true, ...config };
+    this._config = { min: DEFAULT_MIN, show_state: true, ...config };
   }
 
   public connectedCallback() {
@@ -216,24 +220,44 @@ export class ModernCircularGaugeBadge extends LitElement {
       }
     }
 
-    const numberState = Number(templatedState ?? stateObj.attributes[this._config.attribute!] ?? stateObj.state);
     const icon = this._templateResults?.icon?.result ?? this._config.icon;
 
     if (stateObj?.state === "unavailable") {
       return this._renderWarning(this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? stateObj.attributes.friendly_name ?? '', this.hass.localize("state.default.unavailable"), stateObj, "warning", icon);
     }
 
+    const domain = computeStateDomain(stateObj);
+    let secondsUntil: number | undefined;
+    let timerState: string | undefined;
+
+    if (stateObj?.attributes.device_class === "timestamp" ||
+      TIMESTAMP_STATE_DOMAINS.includes(domain)
+    ) {
+      secondsUntil = getTimestampRemainingSeconds(stateObj);
+      timerState = secondsToDuration(secondsUntil, true) || "0";
+    }
+
+    let timerDuration: number | undefined;
+
+    if (domain === "timer") {
+      timerDuration = durationToSeconds(stateObj.attributes?.duration ?? "00:00");
+      secondsUntil = getTimerRemainingSeconds(stateObj);
+      timerState = stateObj.state === "active" ? secondsToDuration(secondsUntil, true) : stateObj.state;
+    }
+
+    const numberState = Number(templatedState ?? secondsUntil ?? stateObj.attributes[this._config.attribute!] ?? stateObj.state);
+
     if (isNaN(numberState)) {
       return this._renderWarning(this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? stateObj.attributes.friendly_name ?? '', "NaN", stateObj, "warning", icon);
     }
 
-    const min = Number(this._templateResults?.min?.result ?? this._config.min) ?? DEFAULT_MIN;
-    const max = Number(this._templateResults?.max?.result ?? this._config.max) ?? DEFAULT_MAX;
+    const min = Number(this._templateResults?.min?.result ?? this._config.min) || DEFAULT_MIN;
+    const max = Number(this._templateResults?.max?.result ?? this._config.max ?? timerDuration) || DEFAULT_MAX;
 
     const attributes = stateObj?.attributes ?? undefined;
 
     const current = this._config.needle ? undefined : currentDashArc(numberState, min, max, RADIUS, this._config.start_from_zero);
-    const state = templatedState ?? stateObj.attributes[this._config.attribute!] ?? stateObj.state;
+    const state = templatedState ?? timerState ?? stateObj.attributes[this._config.attribute!] ?? stateObj.state;
 
     const stateOverride = this._templateResults?.stateText?.result ?? (isTemplate(String(this._config.state_text)) ? "" : (this._config.state_text || undefined));
     const unit = this._config.show_unit ?? true ? (this._config.unit ?? stateObj?.attributes.unit_of_measurement) || "" : "";
