@@ -1,14 +1,13 @@
 import { html, LitElement, css, PropertyValues, svg, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { HomeAssistant } from "../ha/types";
-import { getNumberFormatOptions, formatNumber, getDefaultFormatOptions } from "../utils/format_number";
 import { HassEntity } from "home-assistant-js-websocket";
 import { classMap } from "lit/directives/class-map.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { GaugeType } from "../card/type";
 import { TIMESTAMP_STATE_DOMAINS } from "../const";
 import { computeStateDomain } from "../ha/common/entity/compute_state_domain";
-import secondsToDuration from "../utils/seconds_to_duration";
+import { computeState } from "../utils/compute-state";
 
 @customElement("modern-circular-gauge-state")
 export class ModernCircularGaugeState extends LitElement {
@@ -90,51 +89,6 @@ export class ModernCircularGaugeState extends LitElement {
     this._scaleText();
   }
 
-  private _computeState(): string {
-    if (!this.stateObj && this.stateOverride !== undefined) {
-      if (!Number.isNaN(this.stateOverride)) {
-        const formatOptions = getDefaultFormatOptions(this.stateOverride, { maximumFractionDigits: this.decimals, minimumFractionDigits: this.decimals });
-        return formatNumber(this.stateOverride, this.hass?.locale, formatOptions);
-      }
-      return this.stateOverride;
-    }
-
-    if (this.stateObj) {
-      const domain = computeStateDomain(this.stateObj);
-      let secondsUntil: number | undefined;
-
-      if (this.stateObj?.attributes.device_class === "timestamp" ||
-        TIMESTAMP_STATE_DOMAINS.includes(domain)
-      ) {
-        const timestamp = new Date(this.stateObj.state);
-        secondsUntil = Math.round(Math.abs(timestamp.getTime() - Date.now()) / 1000);
-        return secondsToDuration(secondsUntil, this.showSeconds ?? true) || "0";
-      }
-
-      if (domain === "timer") {
-        secondsUntil = 0;
-        if (this.stateObj.state === "active") {
-          const timestamp = new Date(this.stateObj.attributes?.finishes_at);
-          secondsUntil = Math.round(Math.abs(timestamp.getTime() - Date.now()) / 1000);
-          return secondsToDuration(secondsUntil, this.showSeconds ?? true) || "0";
-        }
-      }
-
-      const state = this.stateOverride ?? this.stateObj.attributes[this.entityAttribute!] ?? this.stateObj.state;
-      const attributes = this.stateObj.attributes ?? undefined;
-      const formatOptions = { ...getNumberFormatOptions({ state, attributes } as HassEntity, this.hass?.entities[this.stateObj?.entity_id]) };
-      if (this.decimals !== undefined) {
-        formatOptions.maximumFractionDigits = this.decimals;
-        formatOptions.minimumFractionDigits = this.decimals;
-      }
-      const entityState = Number.isNaN(state) ? state
-        : formatNumber(state, this.hass?.locale, formatOptions);
-      return entityState;
-    }
-
-    return "";
-  }
-
   private _scaleText() {
     const svgRoot = this.shadowRoot!.querySelector(".state")!;
     if (!svgRoot) {
@@ -161,7 +115,7 @@ export class ModernCircularGaugeState extends LitElement {
       return html``;
     }
 
-    const state = this._computeState();
+    const state = computeState(this.hass, this.stateObj!, this.entityAttribute!, this.stateOverride!, this.decimals, this.showSeconds);
     const verticalOffset = this.verticalOffset ?? 0;
 
     return html`
