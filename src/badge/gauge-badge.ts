@@ -3,7 +3,6 @@ import { HomeAssistant } from "../ha/types";
 import { ModernCircularGaugeBadgeConfig } from "./gauge-badge-config";
 import { customElement, property, state } from "lit/decorators.js";
 import { NUMBER_ENTITY_DOMAINS, DEFAULT_MIN, DEFAULT_MAX, TIMESTAMP_STATE_DOMAINS } from "../const";
-import { getNumberFormatOptions, formatNumber } from "../utils/format_number";
 import { registerCustomBadge } from "../utils/custom-badges";
 import { HassEntity, UnsubscribeFunc } from "home-assistant-js-websocket";
 import { styleMap } from "lit/directives/style-map.js";
@@ -21,7 +20,6 @@ import { SegmentsConfig } from "../card/type";
 import durationToSeconds from "../ha/common/datetime/duration_to_seconds";
 import { computeStateDomain } from "../ha/common/entity/compute_state_domain";
 import { getTimestampRemainingSeconds, getTimerRemainingSeconds } from "../utils/timer_timestamp_utils";
-import secondsToDuration from "../utils/seconds_to_duration";
 import "../components/mcg-badge-state";
 import "../components/modern-circular-gauge-state";
 

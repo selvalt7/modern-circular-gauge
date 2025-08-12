@@ -1,5 +1,5 @@
-import { html, LitElement, css, PropertyValues, svg, nothing, TemplateResult } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+import { html, LitElement, TemplateResult } from "lit";
+import { customElement, property } from "lit/decorators.js";
 import { HomeAssistant } from "../ha/types";
 import { HassEntity } from "home-assistant-js-websocket";
 import { TIMESTAMP_STATE_DOMAINS } from "../const";
@@ -48,7 +48,7 @@ export class McgBadgeState extends LitElement {
     }
     this._interval = setInterval(() => {
       this.requestUpdate();
-    }, this.showSeconds ? 1000 : 60000);
+    }, (this.showSeconds ?? true) ? 1000 : 60000);
   }
 
   private _clearInterval(): void {

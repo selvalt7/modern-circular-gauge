@@ -65,7 +65,7 @@ export class ModernCircularGaugeState extends LitElement {
     this._clearInterval();
     this._interval = setInterval(() => {
       this.requestUpdate();
-    }, this.showSeconds ? 1000 : 60000);
+    }, (this.showSeconds ?? true) ? 1000 : 60000);
   }
 
   private _clearInterval() {
