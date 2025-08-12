@@ -255,7 +255,7 @@ export class ModernCircularGaugeBadge extends LitElement {
 
     const stateOverride = this._templateResults?.stateText?.result ?? (isTemplate(String(this._config.state_text)) ? "" : (this._config.state_text || undefined));
     const unit = this._config.show_unit ?? true ? (this._config.unit ?? stateObj?.attributes.unit_of_measurement) || "" : "";
-
+    
     const showIcon = this._config.show_icon ?? true;
 
     const stateElement = html`

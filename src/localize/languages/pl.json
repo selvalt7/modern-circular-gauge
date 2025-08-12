@@ -32,6 +32,7 @@
     "primary_entity_style": "Styl encji",
     "secondary_entity_style": "Styl encji",
     "tertiary_entity_style": "Styl encji",
+    "decimals": "Miejsca dziesiętne",
     "gauge_type": "Typ wskaźnika",
     "show_seconds": "Pokaż sekundy",
     "helper": {

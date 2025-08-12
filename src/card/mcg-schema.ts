@@ -130,6 +130,10 @@ export const getEntityStyleSchema = (showGaugeOptions: boolean, gaugeDefaultRadi
         default: false,
         selector: { boolean: {} },
       },
+      {
+        name: "decimals",
+        selector: { number: { step: 1, min: 0 } },
+      },
     ]
   },
   {

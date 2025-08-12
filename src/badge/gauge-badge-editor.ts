@@ -115,6 +115,10 @@ const FORM = [
             helper: "start_from_zero",
             selector: { boolean: {} }
           },
+          {
+            name: "decimals",
+            selector: { number: { step: 1, min: 0 } },
+          },
         ]
       },
       {
