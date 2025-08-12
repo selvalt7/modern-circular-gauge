@@ -72,7 +72,7 @@ export class McgBadgeState extends LitElement {
       ) {
         const timestamp = new Date(this.stateObj.state);
         secondsUntil = Math.round(Math.abs(timestamp.getTime() - Date.now()) / 1000);
-        return secondsToDuration(secondsUntil, true) || "0";
+        return secondsToDuration(secondsUntil, this.showSeconds ?? true) || "0";
       }
 
       if (domain === "timer") {
@@ -80,7 +80,7 @@ export class McgBadgeState extends LitElement {
         if (this.stateObj.state === "active") {
           const timestamp = new Date(this.stateObj.attributes?.finishes_at);
           secondsUntil = Math.round(Math.abs(timestamp.getTime() - Date.now()) / 1000);
-          return secondsToDuration(secondsUntil, true) || "0";
+          return secondsToDuration(secondsUntil, this.showSeconds ?? true) || "0";
         }
       }
 

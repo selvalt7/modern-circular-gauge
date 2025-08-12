@@ -101,6 +101,12 @@ const FORM = [
             selector: { boolean: {} },
           },
           {
+            name: "show_seconds",
+            default: true,
+            helper: "show_seconds",
+            selector: { boolean: {} }
+          },
+          {
             name: "smooth_segments",
             selector: { boolean: {} },
           },

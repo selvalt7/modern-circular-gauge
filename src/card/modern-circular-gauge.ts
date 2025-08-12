@@ -261,6 +261,7 @@ export class ModernCircularGauge extends LitElement {
             .stateMargin=${this._stateMargin}
             .labelFontSize=${this._config.label_font_size}
             .showUnit=${this._config.show_unit ?? true}
+            .showSeconds=${this._config.show_seconds}
           ></modern-circular-gauge-state>
           ` : nothing}
           ${this._renderSecondaryState()}
@@ -674,6 +675,7 @@ export class ModernCircularGauge extends LitElement {
       .stateMargin=${this._stateMargin}
       .labelFontSize=${secondary.label_font_size}
       .showUnit=${secondary.show_unit ?? true}
+      .showSeconds=${secondary.show_seconds}
     ></modern-circular-gauge-state>
     `;
   }
@@ -754,6 +756,7 @@ export class ModernCircularGauge extends LitElement {
       .label=${this._config?.gauge_type == "half" ? "" : tertiary.label}
       .gaugeType=${this._config?.gauge_type}
       .labelFontSize=${tertiary.label_font_size}
+      .showSeconds=${tertiary.show_seconds}
       small
     ></modern-circular-gauge-state>
     `;
