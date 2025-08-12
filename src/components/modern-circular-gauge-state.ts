@@ -8,7 +8,7 @@ import { styleMap } from "lit/directives/style-map.js";
 import { GaugeType } from "../card/type";
 import { TIMESTAMP_STATE_DOMAINS } from "../const";
 import { computeStateDomain } from "../ha/common/entity/compute_state_domain";
-import secondsToDuration from "../ha/common/datetime/seconds_to_duration";
+import secondsToDuration from "../utils/seconds_to_duration";
 
 @customElement("modern-circular-gauge-state")
 export class ModernCircularGaugeState extends LitElement {
@@ -38,13 +38,22 @@ export class ModernCircularGaugeState extends LitElement {
 
   @property({ type: Number }) public stateMargin: number = 82;
 
+  @property({ type: Boolean }) public showSeconds = true;
+
   @state() private _updated = false;
 
   private _interval?: any;
 
   connectedCallback(): void {
     super.connectedCallback();
-    this._startInterval();
+    if (this.stateObj) {
+      const domain = computeStateDomain(this.stateObj);
+      if (this.stateObj?.attributes.device_class === "timestamp" ||
+        TIMESTAMP_STATE_DOMAINS.includes(domain)
+      ) {
+        this._startInterval();
+      }
+    }
   }
 
   disconnectedCallback(): void {
@@ -56,7 +65,7 @@ export class ModernCircularGaugeState extends LitElement {
     this._clearInterval();
     this._interval = setInterval(() => {
       this.requestUpdate();
-    }, 1000);
+    }, this.showSeconds ? 1000 : 60000);
   }
 
   private _clearInterval() {
@@ -93,8 +102,18 @@ export class ModernCircularGaugeState extends LitElement {
       ) {
         const timestamp = new Date(this.stateObj.state);
         secondsUntil = Math.round(Math.abs(timestamp.getTime() - Date.now()) / 1000);
-        return secondsToDuration(secondsUntil) || "0";
+        return secondsToDuration(secondsUntil, true) || "0";
       }
+
+      if (domain === "timer") {
+        secondsUntil = 0;
+        if (this.stateObj.state === "active") {
+          const timestamp = new Date(this.stateObj.attributes?.finishes_at);
+          secondsUntil = Math.round(Math.abs(timestamp.getTime() - Date.now()) / 1000);
+          return secondsToDuration(secondsUntil, true) || "0";
+        }
+      }
+
       const state = this.stateOverride ?? this.stateObj.attributes[this.entityAttribute!] ?? this.stateObj.state;
       const attributes = this.stateObj.attributes ?? undefined;
       const entityState = Number.isNaN(state) ? state
