@@ -23,6 +23,7 @@ export interface BaseEntityConfig {
     state_font_size?: number;
     start_from_zero?: boolean;
     gauge_radius?: number;
+    rotate_gauge?: boolean;
     gauge_background_style?: GaugeElementConfig;
     gauge_foreground_style?: GaugeElementConfig;
     adaptive_state_color?: boolean;
@@ -60,6 +61,7 @@ export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     min?: number | string;
     max?: number | string;
     gauge_type?: GaugeType;
+    rotate_gauge?: boolean;
     unit?: string;
     decimals?: number;
     label?: string;
