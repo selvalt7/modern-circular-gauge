@@ -35,6 +35,7 @@
     "decimals": "Decimals",
     "gauge_type": "Gauge type",
     "show_seconds": "Show seconds",
+    "rotate_gauge": "Rotate gauge",
     "helper": {
       "start_from_zero": "Gauge starts from zero instead of min",
       "primary_label": "Text displayed under the main state when secondary state size is set to big",
@@ -44,6 +45,7 @@
       "state_text": "Overrides displayed state without overriding gauge data, accepts template",
       "half_gauge_icon_unavailable": "Icon is unavailable when gauge type is set to half",
       "show_seconds": "Show seconds in time-based states"
+      "rotate_gauge": "Rotates the full gauge type 180 degrees"
     },
     "header_position_options": {
       "options": {
@@ -74,7 +76,8 @@
     "gauge_type_options": {
       "options": {
         "standard": "Standard",
-        "half": "Half"
+        "half": "Half",
+        "full": "Full"
       }
     }
   }

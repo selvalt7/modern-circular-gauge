@@ -2,7 +2,7 @@ export const DEFAULT_MIN = 0;
 export const DEFAULT_MAX = 100;
 export const MAX_ANGLE = 270; // Standard gauge angle
 export const HALF_ANGLE = 180; // Half gauge
-export const FULL_ANGLE = 359; // Full gauge
+export const FULL_ANGLE = 359.99; // Full gauge
 
 export const GAUGE_TYPE_ANGLES: Record<string, number> = {
   standard: MAX_ANGLE,
