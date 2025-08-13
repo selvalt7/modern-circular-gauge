@@ -34,6 +34,7 @@
     "tertiary_entity_style": "Styl encji",
     "decimals": "Miejsca dziesiętne",
     "gauge_type": "Typ wskaźnika",
+    "show_seconds": "Pokaż sekundy",
     "rotate_gauge": "Obróć wskaźnik",
     "helper": {
       "start_from_zero": "Wskaźnik rozpoczyna się od zera zamiast od minimum",
@@ -43,6 +44,7 @@
       "icon_entity": "Wybierz encję, której chcesz użyć do wyboru ikon i ich kolorowania",
       "state_text": "Nadpisuje wyświetlany stan bez nadpisywania danych wskaźnika, akceptuje template",
       "half_gauge_icon_unavailable": "Ikona jest niedostępna, gdy typ wskaźnika jest ustawiony na połówkę",
+      "show_seconds": "Pokaż sekundy w stanach opartych na czasie",
       "rotate_gauge": "Obraca pełny wskaźnik o 180 stopni"
     },
     "header_position_options": {

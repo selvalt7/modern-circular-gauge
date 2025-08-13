@@ -16,6 +16,7 @@ export interface BaseEntityConfig {
     max?: number | string;
     decimals?: number;
     needle?: boolean;
+    show_seconds?: boolean;
     show_gauge?: "none" | "inner" | "outter" | "outer";
     show_state?: boolean;
     show_unit?: boolean;
@@ -59,6 +60,7 @@ export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     icon_vertical_position?: number;
     min?: number | string;
     max?: number | string;
+    show_seconds?: boolean;
     gauge_type?: GaugeType;
     rotate_gauge?: boolean;
     unit?: string;

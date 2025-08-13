@@ -1,11 +1,13 @@
 import { html, LitElement, css, PropertyValues, svg, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { HomeAssistant } from "../ha/types";
-import { getNumberFormatOptions, formatNumber, getDefaultFormatOptions } from "../utils/format_number";
 import { HassEntity } from "home-assistant-js-websocket";
 import { classMap } from "lit/directives/class-map.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { GaugeType } from "../card/type";
+import { TIMESTAMP_STATE_DOMAINS } from "../const";
+import { computeStateDomain } from "../ha/common/entity/compute_state_domain";
+import { computeState } from "../utils/compute-state";
 
 @customElement("modern-circular-gauge-state")
 export class ModernCircularGaugeState extends LitElement {
@@ -37,7 +39,42 @@ export class ModernCircularGaugeState extends LitElement {
 
   @property({ type: Number }) public stateMargin: number = 82;
 
+  @property({ type: Boolean }) public showSeconds = true;
+
   @state() private _updated = false;
+
+  private _interval?: any;
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    if (this.stateObj) {
+      const domain = computeStateDomain(this.stateObj);
+      if (this.stateObj?.attributes.device_class === "timestamp" ||
+        TIMESTAMP_STATE_DOMAINS.includes(domain)
+      ) {
+        this._startInterval();
+      }
+    }
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this._clearInterval();
+  }
+
+  private _startInterval() {
+    this._clearInterval();
+    this._interval = setInterval(() => {
+      this.requestUpdate();
+    }, (this.showSeconds ?? true) ? 1000 : 60000);
+  }
+
+  private _clearInterval() {
+    if (this._interval) {
+      clearInterval(this._interval);
+      this._interval = undefined;
+    }
+  }
 
   protected firstUpdated(_changedProperties: PropertyValues): void {
     this._updated = true;
@@ -50,31 +87,6 @@ export class ModernCircularGaugeState extends LitElement {
       return;
     }
     this._scaleText();
-  }
-
-  private _computeState(): string {
-    if (!this.stateObj && this.stateOverride !== undefined) {
-      if (!Number.isNaN(this.stateOverride)) {
-        const formatOptions = getDefaultFormatOptions(this.stateOverride, { maximumFractionDigits: this.decimals, minimumFractionDigits: this.decimals });
-        return formatNumber(this.stateOverride, this.hass?.locale, formatOptions);
-      }
-      return this.stateOverride;
-    }
-
-    if (this.stateObj) {
-      const state = this.stateOverride ?? this.stateObj.attributes[this.entityAttribute!] ?? this.stateObj.state;
-      const attributes = this.stateObj.attributes ?? undefined;
-      const formatOptions = { ...getNumberFormatOptions({ state, attributes } as HassEntity, this.hass?.entities[this.stateObj?.entity_id]) };
-      if (this.decimals !== undefined) {
-        formatOptions.maximumFractionDigits = this.decimals;
-        formatOptions.minimumFractionDigits = this.decimals;
-      }
-      const entityState = Number.isNaN(state) ? state
-        : formatNumber(state, this.hass?.locale, formatOptions);
-      return entityState;
-    }
-
-    return "";
   }
 
   private _scaleText() {
@@ -103,7 +115,7 @@ export class ModernCircularGaugeState extends LitElement {
       return html``;
     }
 
-    const state = this._computeState();
+    const state = computeState(this.hass, this.stateObj!, this.entityAttribute!, this.stateOverride!, this.decimals, this.showSeconds);
     const verticalOffset = this.verticalOffset ?? 0;
 
     return html`
@@ -154,7 +166,7 @@ export class ModernCircularGaugeState extends LitElement {
     }
 
     .unit {
-      font-size: .33em;
+      font-size: var(--unit-font-size, .33em);
       opacity: 0.6;
     }
 

@@ -13,13 +13,15 @@ import { classMap } from "lit/directives/class-map.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { actionHandler } from "../utils/action-handler-directive";
-import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS, GAUGE_TYPE_ANGLES, MAX_ANGLE, RADIUS, INNER_RADIUS, TERTIARY_RADIUS } from "../const";
+import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS, GAUGE_TYPE_ANGLES, MAX_ANGLE, RADIUS, INNER_RADIUS, TERTIARY_RADIUS, TIMESTAMP_STATE_DOMAINS } from "../const";
 import { RenderTemplateResult, subscribeRenderTemplate } from "../ha/data/ws-templates";
 import { isTemplate } from "../utils/template";
 import "../components/modern-circular-gauge-element";
 import "../components/modern-circular-gauge-state";
 import "../components/modern-circular-gauge-icon";
-
+import { computeStateDomain } from "../ha/common/entity/compute_state_domain";
+import durationToSeconds from "../ha/common/datetime/duration_to_seconds";
+import { getTimerRemainingSeconds, getTimestampRemainingSeconds } from "../utils/timer_timestamp_utils";
 
 registerCustomCard({
   type: "modern-circular-gauge",
@@ -93,7 +95,7 @@ export class ModernCircularGauge extends LitElement {
       }
     }
 
-    this._config = { min: DEFAULT_MIN, max: DEFAULT_MAX, show_header: true, show_state: true, ...config, secondary: secondary, secondary_entity: undefined };
+    this._config = { min: DEFAULT_MIN, show_header: true, show_state: true, ...config, secondary: secondary, secondary_entity: undefined };
   }
 
   public connectedCallback() {
@@ -143,13 +145,30 @@ export class ModernCircularGauge extends LitElement {
         return this._renderWarning(this._config.entity, "", undefined, "mdi:help");
       }
     }
-
-    const numberState = Number(templatedState ?? stateObj.attributes[this._config.attribute!] ?? stateObj.state);
+    
     const icon = this._templateResults?.icon?.result ?? this._config.icon;
-
+    
     if (stateObj?.state === "unavailable") {
       return this._renderWarning(this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? stateObj.attributes.friendly_name ?? '', this.hass.localize("state.default.unavailable"), stateObj, icon);
     }
+    
+    const domain = computeStateDomain(stateObj);
+    let secondsUntil: number | undefined;
+
+    if (stateObj?.attributes.device_class === "timestamp" ||
+      TIMESTAMP_STATE_DOMAINS.includes(domain)
+    ) {
+      secondsUntil = getTimestampRemainingSeconds(stateObj);
+    }
+
+    let timerDuration: number | undefined;
+
+    if (domain === "timer") {
+      timerDuration = durationToSeconds(stateObj.attributes?.duration ?? "00:00");
+      secondsUntil = getTimerRemainingSeconds(stateObj);
+    }
+
+    const numberState = Number(templatedState ?? secondsUntil ?? stateObj.attributes[this._config.attribute!] ?? stateObj.state);
 
     if (isNaN(numberState)) {
       return this._renderWarning(this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? stateObj.attributes.friendly_name ?? '', "NaN", stateObj, icon);
@@ -160,7 +179,7 @@ export class ModernCircularGauge extends LitElement {
     const unit = this._config.unit ?? stateObj?.attributes.unit_of_measurement;
 
     const min = Number(this._templateResults?.min?.result ?? this._config.min) || DEFAULT_MIN;
-    const max = Number(this._templateResults?.max?.result ?? this._config.max) || DEFAULT_MAX;
+    const max = Number(this._templateResults?.max?.result ?? this._config.max ?? timerDuration) || DEFAULT_MAX;
 
     const stateOverride = this._templateResults?.stateText?.result ?? (isTemplate(String(this._config.state_text)) ? "" : (this._config.state_text || undefined));
 
@@ -245,6 +264,7 @@ export class ModernCircularGauge extends LitElement {
             .stateMargin=${this._stateMargin}
             .labelFontSize=${this._config.label_font_size}
             .showUnit=${this._config.show_unit ?? true}
+            .showSeconds=${this._config.show_seconds}
             .decimals=${this._config.decimals}
           ></modern-circular-gauge-state>
           ` : nothing}
@@ -416,10 +436,26 @@ export class ModernCircularGauge extends LitElement {
         `;
       }
 
+      const domain = computeStateDomain(stateObj);
+      let secondsUntil: number | undefined;
+
+      if (stateObj?.attributes.device_class === "timestamp" ||
+        TIMESTAMP_STATE_DOMAINS.includes(domain)
+      ) {
+        secondsUntil = getTimestampRemainingSeconds(stateObj);
+      }
+
+      let timerDuration: number | undefined;
+
+      if (domain === "timer") {
+        timerDuration = durationToSeconds(stateObj.attributes?.duration ?? "00:00");
+        secondsUntil = getTimerRemainingSeconds(stateObj);
+      }
+
       const min = Number(this._templateResults?.tertiaryMin?.result ?? tertiaryObj.min) || DEFAULT_MIN;
-      const max = Number(this._templateResults?.tertiaryMax?.result ?? tertiaryObj.max) || DEFAULT_MAX;
+      const max = Number(this._templateResults?.tertiaryMax?.result ?? tertiaryObj.max ?? timerDuration) || DEFAULT_MAX;
       const segments = (this._templateResults?.tertiarySegments as unknown) as SegmentsConfig[] ?? tertiaryObj.segments;
-      const numberState = Number(templatedState ?? stateObj.attributes[tertiaryObj.attribute!] ?? stateObj.state);
+      const numberState = Number(templatedState ?? secondsUntil ?? stateObj.attributes[tertiaryObj.attribute!] ?? stateObj.state);
 
       return html`
       <modern-circular-gauge-element
@@ -493,10 +529,26 @@ export class ModernCircularGauge extends LitElement {
         `;
       }
 
-      const min = Number(this._templateResults?.secondaryMin?.result ?? secondaryObj.min) || DEFAULT_MIN; 
-      const max = Number(this._templateResults?.secondaryMax?.result ?? secondaryObj.max) || DEFAULT_MAX;
+      const domain = computeStateDomain(stateObj);
+      let secondsUntil: number | undefined;
+
+      if (stateObj?.attributes.device_class === "timestamp" ||
+        TIMESTAMP_STATE_DOMAINS.includes(domain)
+      ) {
+        secondsUntil = getTimestampRemainingSeconds(stateObj);
+      }
+
+      let timerDuration: number | undefined;
+
+      if (domain === "timer") {
+        timerDuration = durationToSeconds(stateObj.attributes?.duration ?? "00:00");
+        secondsUntil = getTimerRemainingSeconds(stateObj);
+      }
+
+      const min = Number(this._templateResults?.secondaryMin?.result ?? secondaryObj.min) || DEFAULT_MIN;
+      const max = Number(this._templateResults?.secondaryMax?.result ?? secondaryObj.max ?? timerDuration) || DEFAULT_MAX;
       const segments = (this._templateResults?.secondarySegments as unknown) as SegmentsConfig[] ?? secondaryObj.segments;
-      const numberState = Number(templatedState ?? stateObj.attributes[secondaryObj.attribute!] ?? stateObj.state);
+      const numberState = Number(templatedState ?? secondsUntil ?? stateObj.attributes[secondaryObj.attribute!] ?? stateObj.state);
 
       return html`
       <modern-circular-gauge-element
@@ -633,6 +685,7 @@ export class ModernCircularGauge extends LitElement {
       .stateMargin=${this._stateMargin}
       .labelFontSize=${secondary.label_font_size}
       .showUnit=${secondary.show_unit ?? true}
+      .showSeconds=${secondary.show_seconds}
       .decimals=${secondary.decimals}
     ></modern-circular-gauge-state>
     `;
@@ -714,6 +767,7 @@ export class ModernCircularGauge extends LitElement {
       .label=${this._config?.gauge_type == "half" ? "" : tertiary.label}
       .gaugeType=${this._config?.gauge_type}
       .labelFontSize=${tertiary.label_font_size}
+      .showSeconds=${tertiary.show_seconds}
       .decimals=${tertiary.decimals}
       small
     ></modern-circular-gauge-state>
