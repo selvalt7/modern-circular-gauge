@@ -35,6 +35,7 @@
     "decimals": "Decimals",
     "gauge_type": "Gauge type",
     "show_entity_picture": "Show entity picture",
+    "show_seconds": "Show seconds",
     "rotate_gauge": "Rotate gauge",
     "helper": {
       "start_from_zero": "Gauge starts from zero instead of min",
@@ -44,6 +45,7 @@
       "icon_entity": "Select which entity to use for icon selection and coloring",
       "state_text": "Overrides displayed state without overriding gauge data, accepts template",
       "half_gauge_icon_unavailable": "Icon is unavailable when gauge type is set to half",
+      "show_seconds": "Show seconds in time-based states",
       "rotate_gauge": "Rotates the full gauge type 180 degrees"
     },
     "header_position_options": {
