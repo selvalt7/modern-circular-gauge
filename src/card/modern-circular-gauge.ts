@@ -197,8 +197,10 @@ export class ModernCircularGauge extends LitElement {
       </div>
       ` : nothing}
       <div
-        class="container${classMap({ "dual-gauge": (typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner") || (typeof this._config.tertiary != "string" && this._config.tertiary?.show_gauge == "inner"), "half-gauge": this._config.gauge_type == "half" })}"
-        style=${styleMap({"--gauge-color": this._config.gauge_foreground_style?.color && this._config.gauge_foreground_style?.color != "adaptive" ? this._config.gauge_foreground_style?.color : computeSegments(numberState, segments, this._config.smooth_segments, this)})}
+        class="container${classMap({ "dual-gauge": (typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner") || (typeof this._config.tertiary != "string" && this._config.tertiary?.show_gauge == "inner"),
+          "half-gauge": this._config.gauge_type == "half", "full-gauge": this._config.gauge_type == "full" })}"
+        style=${styleMap({ "--full-gauge-padding": this._config.show_header ? undefined : "0",
+          "--gauge-color": this._config.gauge_foreground_style?.color && this._config.gauge_foreground_style?.color != "adaptive" ? this._config.gauge_foreground_style?.color : computeSegments(numberState, segments, this._config.smooth_segments, this) })}
       >
         <div class="gauge-container">
           <modern-circular-gauge-element
@@ -213,6 +215,7 @@ export class ModernCircularGauge extends LitElement {
             .backgroundStyle=${this._config.gauge_background_style}
             .needle=${this._config.needle}
             .startFromZero=${this._config.start_from_zero}
+            .rotateGauge=${this._config.rotate_gauge}
           ></modern-circular-gauge-element>
           ${typeof this._config.secondary != "string" ? 
           this._config.secondary?.show_gauge && this._config.secondary?.show_gauge != "none" ?
@@ -354,16 +357,18 @@ export class ModernCircularGauge extends LitElement {
     const iconPosition = iconCenter ? 3 : secondaryHasLabel && this._hasSecondary ? 0 : this._hasSecondary ? 1 : 2;
 
     return html`
-    <modern-circular-gauge-icon
-      class=${classMap({ "adaptive": !!this._config?.adaptive_icon_color })}
-      style=${styleMap({ "--gauge-color": gaugeForegroundStyle?.color && gaugeForegroundStyle.color != "adaptive" ? gaugeForegroundStyle.color : computeSegments(value, segments, this._config?.smooth_segments, this) })}
-      .hass=${this.hass}
-      .stateObj=${stateObj}
-      .icon=${iconOverride}
-      .position=${iconPosition}
-      .iconVerticalPositionOverride=${this._config?.icon_vertical_position}
-      .iconSizeOverride=${this._config?.icon_size}
-    ></modern-circular-gauge-icon>
+    <div class="icon-container">
+      <modern-circular-gauge-icon
+        class=${classMap({ "adaptive": !!this._config?.adaptive_icon_color })}
+        style=${styleMap({ "--gauge-color": gaugeForegroundStyle?.color && gaugeForegroundStyle.color != "adaptive" ? gaugeForegroundStyle.color : computeSegments(value, segments, this._config?.smooth_segments, this) })}
+        .hass=${this.hass}
+        .stateObj=${stateObj}
+        .icon=${iconOverride}
+        .position=${iconPosition}
+        .iconVerticalPositionOverride=${this._config?.icon_vertical_position}
+        .iconSizeOverride=${this._config?.icon_size}
+      ></modern-circular-gauge-icon>
+    </div>
     `;
   }
 
@@ -430,6 +435,7 @@ export class ModernCircularGauge extends LitElement {
         .backgroundStyle=${tertiaryObj?.gauge_background_style}
         .needle=${tertiaryObj?.needle}
         .startFromZero=${tertiaryObj?.start_from_zero}
+        .rotateGauge=${this._config?.rotate_gauge}
       ></modern-circular-gauge-element>
       `;
     } else {
@@ -460,6 +466,7 @@ export class ModernCircularGauge extends LitElement {
         .gaugeType=${this._config?.gauge_type}
         .foregroundStyle=${tertiaryObj?.gauge_foreground_style}
         .backgroundStyle=${tertiaryObj?.gauge_background_style}
+        .rotateGauge=${this._config?.rotate_gauge}
         .outter=${true}
       ></modern-circular-gauge-element>
       `;
@@ -505,6 +512,7 @@ export class ModernCircularGauge extends LitElement {
         .backgroundStyle=${secondaryObj?.gauge_background_style}
         .needle=${secondaryObj?.needle}
         .startFromZero=${secondaryObj.start_from_zero}
+        .rotateGauge=${this._config?.rotate_gauge}
       ></modern-circular-gauge-element>
       `;
     } else {
@@ -536,6 +544,7 @@ export class ModernCircularGauge extends LitElement {
         .foregroundStyle=${secondaryObj?.gauge_foreground_style}
         .backgroundStyle=${secondaryObj?.gauge_background_style}
         .outter=${true}
+        .rotateGauge=${this._config?.rotate_gauge}
       ></modern-circular-gauge-element>
       `;
     }
@@ -693,7 +702,7 @@ export class ModernCircularGauge extends LitElement {
         hasDoubleClick: hasAction(tertiary.double_tap_action),
       })}
       class=${classMap({ "preview": this._inCardPicker!, "tertiary": true })}
-      style=${styleMap({ "--state-text-color-override": adaptiveColor ?? undefined , "--state-font-size-override": tertiary.state_font_size ? `${tertiary.state_font_size}px` : (threeGauges ? "6px" : undefined) })}
+      style=${styleMap({ "--state-text-color-override": adaptiveColor ?? undefined , "--state-font-size-override": tertiary.state_font_size ? `${tertiary.state_font_size}px` : (this._config?.gauge_type == "half" && threeGauges ? "6px" : undefined) })}
       .hass=${this.hass}
       .stateObj=${stateObj}
       .entityAttribute=${tertiary.attribute}
@@ -973,6 +982,7 @@ export class ModernCircularGauge extends LitElement {
       --gauge-header-font-size: 14px;
 
       --half-gauge-padding: 16px 0px 24px;
+      --full-gauge-padding: 20px 0px;
     }
 
     ha-card {
@@ -1047,6 +1057,10 @@ export class ModernCircularGauge extends LitElement {
       padding: var(--half-gauge-padding);
     }
 
+    .container.full-gauge {
+      padding: var(--full-gauge-padding);
+    }
+
     .flex-column-reverse .container {
       margin-bottom: 0px;
     }
@@ -1057,11 +1071,6 @@ export class ModernCircularGauge extends LitElement {
     }
 
     modern-circular-gauge-icon {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: 0;
-      right: 0;
       color: var(--primary-color);
     }
 
@@ -1111,6 +1120,19 @@ export class ModernCircularGauge extends LitElement {
 
     .half-gauge modern-circular-gauge-element.secondary, .half-gauge modern-circular-gauge-element.tertiary {
       padding: var(--half-gauge-padding);
+    }
+
+    .full-gauge modern-circular-gauge-element.secondary, .full-gauge modern-circular-gauge-element.tertiary {
+      padding: var(--full-gauge-padding);
+    }
+
+    .icon-container {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: inherit;
     }
 
     svg {

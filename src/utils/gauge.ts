@@ -129,16 +129,18 @@ export function renderSegmentsGradient(segments: SegmentsConfig[], min: number, 
   if (segments) {
     let sortedSegments = [...segments].sort((a, b) => Number(a.from) - Number(b.from));
     let gradient: string = "";
+    const angleOffset = maxAngle == 180 ? 0 : (maxAngle > 359 ? 0 : 45);
+    const rotateAngle = maxAngle == 180 ? 180 : (maxAngle > 359 ? 90 : 45);
     if (maxAngle == 180) {
       gradient = "from 0.75turn at 50% 97%,";
     }
     sortedSegments.map((segment, index) => {
-      const angle = getAngle(Number(segment.from), min, max, maxAngle) + (maxAngle == 180 ? 0 : 45);
+      const angle = getAngle(Number(segment.from), min, max, maxAngle) + angleOffset;
       const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
       gradient += `${color} ${angle}deg${index != sortedSegments.length - 1 ? "," : ""}`;
     });
     return [svg`
-      <foreignObject x="-55" y="-55" width="110%" height=${maxAngle == 180 ? "120%" : "110%"} overflow="visible" transform="rotate(${maxAngle == 180 ? 180 : 45})">
+      <foreignObject x="-55" y="-55" width="110%" height=${maxAngle == 180 ? "120%" : "110%"} overflow="visible" transform="rotate(${rotateAngle})">
         <div style=${styleMap({ "width": "110px", "height": maxAngle == 180 ? "60px" : "110px", "background-image": `conic-gradient(${gradient})` })}>
         </div>
       </foreignObject>
