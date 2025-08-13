@@ -18,6 +18,7 @@ import { RenderTemplateResult, subscribeRenderTemplate } from "../ha/data/ws-tem
 import { ifDefined } from "lit/directives/if-defined.js";
 import { isTemplate } from "../utils/template";
 import { SegmentsConfig } from "../card/type";
+import getEntityPictureUrl from "../utils/entity-picture";
 
 const MAX_ANGLE = 270;
 const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
@@ -248,6 +249,10 @@ export class ModernCircularGaugeBadge extends LitElement {
 
     const showIcon = this._config.show_icon ?? true;
 
+    const imageUrl = this._config.show_entity_picture
+      ? getEntityPictureUrl(this.hass, stateObj)
+      : undefined;
+
     const name = this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? stateObj?.attributes.friendly_name ?? "";
     const label = this._config.show_name && showIcon && this._config.show_state ? name : undefined;
     const content = showIcon && this._config.show_state ? `${entityState} ${unit}` : this._config.show_name ? name : undefined;
@@ -309,12 +314,14 @@ export class ModernCircularGaugeBadge extends LitElement {
           </g>
         </svg>
         ${showIcon
-          ? html`
-          <ha-state-icon
-            .hass=${this.hass}
-            .stateObj=${stateObj}
-            .icon=${icon}
-          ></ha-state-icon>`
+          ? imageUrl
+            ? html`<img src=${imageUrl} aria-hidden/>`
+            : html`
+            <ha-state-icon
+              .hass=${this.hass}
+              .stateObj=${stateObj}
+              .icon=${icon}
+            ></ha-state-icon>`
           : nothing}
         ${this._config.show_state && !showIcon
           ? html`
@@ -401,6 +408,7 @@ export class ModernCircularGaugeBadge extends LitElement {
       margin-inline-end: 0;
     }
 
+    
     .state {
       position: absolute;
       top: 0;
@@ -435,6 +443,16 @@ export class ModernCircularGaugeBadge extends LitElement {
       pointer-events: none;
     }
 
+    .container img {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      object-fit: cover;
+      overflow: hidden;
+      margin-right: 0;
+      margin-inline-end: 0;
+    }
+    
     .container.icon-only {
       margin-left: 0;
       margin-inline-start: 0;

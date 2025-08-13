@@ -101,6 +101,11 @@ const FORM = [
             selector: { boolean: {} },
           },
           {
+            name: "show_entity_picture",
+            default: false,
+            selector: { boolean: {} },
+          },
+          {
             name: "smooth_segments",
             selector: { boolean: {} },
           },

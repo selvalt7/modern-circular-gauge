@@ -10,6 +10,7 @@ export interface ModernCircularGaugeBadgeConfig extends LovelaceBadgeConfig {
   decimals?: number;
   unit?: string;
   icon?: string;
+  show_entity_picture?: boolean;
   show_name?: boolean;
   show_state?: boolean;
   show_icon?: boolean;

@@ -2,6 +2,7 @@ import { html, LitElement, css, svg, PropertyValues, nothing } from "lit";
 import { customElement, property, queryAsync, state } from "lit/decorators.js";
 import { HomeAssistant } from "../ha/types";
 import { HassEntity } from "home-assistant-js-websocket";
+import getEntityPictureUrl from "../utils/entity-picture";
 
 
 const ICONPOSITIONS = [-3.6, -4.8, -5.52, -12];
@@ -99,25 +100,9 @@ export class ModernCircularGaugeIcon extends LitElement {
     return ICONSIZES[this.position];
   }
 
-  private _getImageUrl(entity: HassEntity): string | undefined {
-    if (!entity || !entity.attributes) {
-      return undefined;
-    }
-    
-    const entityPicture =
-      entity.attributes.entity_picture_local ||
-      entity.attributes.entity_picture;
-
-    if (!entityPicture) return undefined;
-
-    let imageUrl = this.hass!.hassUrl(entityPicture);
-
-    return imageUrl;
-  }
-
   protected render() {
     const imageUrl = this.showEntityPicture
-      ? this._getImageUrl(this.stateObj!)
+      ? getEntityPictureUrl(this.hass!, this.stateObj!)
       : undefined;
       
     return html`
