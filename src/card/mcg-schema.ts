@@ -88,7 +88,7 @@ export const getGaugeStyleSchema = (gaugeDefaultWidth: number = 6) => [
   }
 ];
 
-export const getEntityStyleSchema = (showGaugeOptions: boolean, gaugeDefaultRadius: number = RADIUS, labelHelper: string = "label") => [
+export const getEntityStyleSchema = (showGaugeOptions: boolean, gaugeDefaultRadius: number = RADIUS, labelHelper: string = "label", fullGauge: boolean = false) => [
   {
     name: "label",
     helper: labelHelper,
@@ -124,6 +124,13 @@ export const getEntityStyleSchema = (showGaugeOptions: boolean, gaugeDefaultRadi
         default: false,
         selector: { boolean: {} },
       },
+      {
+        name: "rotate_gauge",
+        default: false,
+        disabled: !showGaugeOptions || !fullGauge,
+        helper: "rotate_gauge",
+        selector: { boolean: {} },
+      },
     ]
   },
   {
@@ -153,7 +160,7 @@ export const getEntityStyleSchema = (showGaugeOptions: boolean, gaugeDefaultRadi
   }
 ];
 
-export function getSecondarySchema(showGaugeOptions: boolean) {
+export function getSecondarySchema(showGaugeOptions: boolean, fullGauge: boolean = false) {
   return {
     name: "secondary",
     type: "expandable",
@@ -204,7 +211,7 @@ export function getSecondarySchema(showGaugeOptions: boolean) {
         type: "expandable",
         flatten: true,
         iconPath: mdiGauge,
-        schema: getEntityStyleSchema(showGaugeOptions, INNER_RADIUS)
+        schema: getEntityStyleSchema(showGaugeOptions, INNER_RADIUS, "label", fullGauge)
       },
       ...getSegmentsSchema(),
       {
@@ -215,7 +222,7 @@ export function getSecondarySchema(showGaugeOptions: boolean) {
   }
 }
 
-export function getTertiarySchema(showGaugeOptions: boolean) {
+export function getTertiarySchema(showGaugeOptions: boolean, fullGauge: boolean = false) {
   return {
     name: "tertiary",
     type: "expandable",
@@ -249,7 +256,7 @@ export function getTertiarySchema(showGaugeOptions: boolean) {
         type: "expandable",
         flatten: true,
         iconPath: mdiGauge,
-        schema: getEntityStyleSchema(showGaugeOptions, TERTIARY_RADIUS)
+        schema: getEntityStyleSchema(showGaugeOptions, TERTIARY_RADIUS, "label", fullGauge)
       },
       ...getSegmentsSchema(),
       {

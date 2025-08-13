@@ -98,10 +98,10 @@ export class ModernCircularGaugeEditor extends LitElement {
         type: "expandable",
         flatten: true,
         iconPath: mdiGauge,
-        schema: getEntityStyleSchema(true, RADIUS, "primary_label")
+        schema: getEntityStyleSchema(true, RADIUS, "primary_label", gaugeType === "full"),
       },
-        getSecondarySchema(showInnerGaugeOptions),
-        getTertiarySchema(showTertiaryGaugeOptions),
+        getSecondarySchema(showInnerGaugeOptions, gaugeType === "full"),
+        getTertiarySchema(showTertiaryGaugeOptions, gaugeType === "full"),
       {
         name: "appearance",
         type: "expandable",
