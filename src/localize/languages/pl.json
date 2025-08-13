@@ -34,6 +34,7 @@
     "tertiary_entity_style": "Styl encji",
     "decimals": "Miejsca dziesiętne",
     "gauge_type": "Typ wskaźnika",
+    "show_entity_picture": "Pokaż zdjęcie encji",
     "show_seconds": "Pokaż sekundy",
     "rotate_gauge": "Obróć wskaźnik",
     "helper": {

@@ -34,6 +34,7 @@
     "tertiary_entity_style": "Entity style",
     "decimals": "Decimals",
     "gauge_type": "Gauge type",
+    "show_entity_picture": "Show entity picture",
     "show_seconds": "Show seconds",
     "rotate_gauge": "Rotate gauge",
     "helper": {

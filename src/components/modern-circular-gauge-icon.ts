@@ -1,7 +1,8 @@
-import { html, LitElement, css, PropertyValues } from "lit";
+import { html, LitElement, css, svg, PropertyValues, nothing } from "lit";
 import { customElement, property, queryAsync, state } from "lit/decorators.js";
 import { HomeAssistant } from "../ha/types";
 import { HassEntity } from "home-assistant-js-websocket";
+import getEntityPictureUrl from "../utils/entity-picture";
 
 
 const ICONPOSITIONS = [-3.6, -4.8, -5.52, -12];
@@ -14,6 +15,8 @@ export class ModernCircularGaugeIcon extends LitElement {
   @property({ attribute: false }) public stateObj?: HassEntity;
 
   @property() public icon?: string;
+
+  @property({ type: Boolean }) public showEntityPicture? = false;
 
   /**
    * Position of the icon in the gauge.
@@ -39,8 +42,12 @@ export class ModernCircularGaugeIcon extends LitElement {
       return;
     }
 
+    if (this.showEntityPicture) {
+      return;
+    }
+
     this._haStateIcon.then( async (haStateIcon) => {
-      if (!haStateIcon.shadowRoot) {
+      if (!haStateIcon || !haStateIcon.shadowRoot) {
         return;
       }
 
@@ -94,14 +101,23 @@ export class ModernCircularGaugeIcon extends LitElement {
   }
 
   protected render() {
+    const imageUrl = this.showEntityPicture
+      ? getEntityPictureUrl(this.hass!, this.stateObj!)
+      : undefined;
+      
     return html`
-    <ha-state-icon
-      .hass=${this.hass}
-      .stateObj=${this.stateObj}
-      .icon=${this.icon}
-    ></ha-state-icon>
+    ${!imageUrl ? html`
+      <ha-state-icon
+        .hass=${this.hass}
+        .stateObj=${this.stateObj}
+        .icon=${this.icon}
+      ></ha-state-icon>
+    ` : nothing}
     <svg class="gauge-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
       <g class="gauge-icon-group" transform="translate(0 12) translate(0 ${this._computeIconPosition()}) translate(12 12) scale(${this._computeIconSize()}) translate(-12 -12)">
+        ${imageUrl ? svg`
+          <image href="${imageUrl}" width="24" height="24"></image>
+        ` : nothing}
       </g>
     </svg>`;
   }
@@ -125,6 +141,10 @@ export class ModernCircularGaugeIcon extends LitElement {
     path.secondary-path {
       fill: var(--icon-secondary-color, currentcolor);
       opacity: var(--icon-secondary-opactity, 0.5);
+    }
+
+    image {
+      clip-path: inset(0 round 50%);
     }
 
     ha-state-icon {

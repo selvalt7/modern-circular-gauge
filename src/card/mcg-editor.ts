@@ -150,6 +150,13 @@ export class ModernCircularGaugeEditor extends LitElement {
                 selector: { boolean: {} },
               },
               {
+                name: "show_entity_picture",
+                default: false,
+                disabled: gaugeType === "half",
+                helper: gaugeType === "half" ? "half_gauge_icon_unavailable" : undefined,
+                selector: { boolean: {} },
+              },
+              {
                 name: "icon_entity",
                 default: "primary",
                 disabled: gaugeType === "half",

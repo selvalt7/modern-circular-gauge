@@ -101,6 +101,11 @@ const FORM = [
             selector: { boolean: {} },
           },
           {
+            name: "show_entity_picture",
+            default: false,
+            selector: { boolean: {} },
+          },
+          {
             name: "show_seconds",
             default: true,
             helper: "show_seconds",

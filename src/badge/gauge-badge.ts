@@ -17,6 +17,7 @@ import { RenderTemplateResult, subscribeRenderTemplate } from "../ha/data/ws-tem
 import { ifDefined } from "lit/directives/if-defined.js";
 import { isTemplate } from "../utils/template";
 import { SegmentsConfig } from "../card/type";
+import getEntityPictureUrl from "../utils/entity-picture";
 import durationToSeconds from "../ha/common/datetime/duration_to_seconds";
 import { computeStateDomain } from "../ha/common/entity/compute_state_domain";
 import { getTimestampRemainingSeconds, getTimerRemainingSeconds } from "../utils/timer_timestamp_utils";
@@ -258,6 +259,10 @@ export class ModernCircularGaugeBadge extends LitElement {
     
     const showIcon = this._config.show_icon ?? true;
 
+    const imageUrl = this._config.show_entity_picture
+      ? getEntityPictureUrl(this.hass, stateObj)
+      : undefined;
+
     const stateElement = html`
       <mcg-badge-state
         .hass=${this.hass}
@@ -330,12 +335,14 @@ export class ModernCircularGaugeBadge extends LitElement {
           </g>
         </svg>
         ${showIcon
-          ? html`
-          <ha-state-icon
-            .hass=${this.hass}
-            .stateObj=${stateObj}
-            .icon=${icon}
-          ></ha-state-icon>`
+          ? imageUrl
+            ? html`<img src=${imageUrl} aria-hidden/>`
+            : html`
+            <ha-state-icon
+              .hass=${this.hass}
+              .stateObj=${stateObj}
+              .icon=${icon}
+            ></ha-state-icon>`
           : nothing}
         ${this._config.show_state && !showIcon
           ? html`
@@ -423,6 +430,7 @@ export class ModernCircularGaugeBadge extends LitElement {
       margin-inline-end: 0;
     }
 
+    
     .state {
       position: absolute;
       top: 0;
@@ -448,6 +456,16 @@ export class ModernCircularGaugeBadge extends LitElement {
       pointer-events: none;
     }
 
+    .container img {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      object-fit: cover;
+      overflow: hidden;
+      margin-right: 0;
+      margin-inline-end: 0;
+    }
+    
     .container.icon-only {
       margin-left: 0;
       margin-inline-start: 0;
