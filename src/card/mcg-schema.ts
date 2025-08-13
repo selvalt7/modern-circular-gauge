@@ -131,6 +131,10 @@ export const getEntityStyleSchema = (showGaugeOptions: boolean, gaugeDefaultRadi
         helper: "rotate_gauge",
         selector: { boolean: {} },
       },
+      {
+        name: "decimals",
+        selector: { number: { step: 1, min: 0 } },
+      },
     ]
   },
   {

@@ -70,6 +70,7 @@ Templates are supported on selected options, configurable via `yaml` or visual e
 | min | `number` or `string` | `0` | Minimum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)|✅
 | max | `number` or `string` | `100` | Maximum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/) see [example](#gauge-with-templated-additional-info-and-segments)|✅
 | unit | `string` | Optional | Custom unit
+| decimals | `number` | Optional | Adjusts decimal places
 | label | `string` | Optional | Label under the state, only used when `state_size` is set to `big`, see [secondary](#secondary-entity-object)
 | label_font_size | `number` | `0.49em` | Label font size in px
 | header_position | `top` or `bottom` | `bottom` | Header position
@@ -107,6 +108,7 @@ Templates are supported on selected options, configurable via `yaml` or visual e
 | min | `number` or `string` | `0` | Minimum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)|✅
 | max | `number` or `string` | `100` | Maximum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)|✅
 | unit | `string` | Optional | Custom unit
+| decimals | `number` | Optional | Adjusts decimal places
 | show_name | `bool` | `false` | Show badge name
 | show_state | `bool` | `true` | Show entity state
 | show_icon | `bool` | `true` | Show icon
@@ -135,6 +137,7 @@ Templates are supported on selected options, configurable via `yaml` or visual e
 | show_gauge | `none`, `inner`, `outer` | `none` | Display secondary info as dot on main gauge or on inner gauge
 | min | `number` | Optional | Minimum inner gauge value. May contain templates|✅
 | max | `number` | Optional | Maximum inner gauge value. May contain templates|✅
+| decimals | `number` | Optional | Adjusts decimal places
 | label | `string` | Optional | Label under the state
 | label_font_size | `number` | `0.49em` | Label font size in px
 | state_size | `small` or `big` | `small` | Secondary state size 
@@ -157,6 +160,7 @@ Templates are supported on selected options, configurable via `yaml` or visual e
 | entity | `string` | Optional | Secondary entity. May contain templates|✅
 | attribute | `string` | Optional | Use entity attribute instead of state
 | unit | `string` | Optional | Custom unit
+| decimals | `number` | Optional | Adjusts decimal places
 | show_gauge | `none`, `inner`, `outer` | `none` | Display secondary info as dot on main gauge or on inner gauge
 | min | `number` | Optional | Minimum inner gauge value. May contain templates|✅
 | max | `number` | Optional | Maximum inner gauge value. May contain templates|✅
