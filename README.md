@@ -78,6 +78,7 @@ Templates are supported on selected options, configurable via `yaml` or visual e
 | show_unit | `boolean` | `true` | Show state unit
 | show_header | `boolean` | `true` | Show card header
 | show_icon | `boolean` | `true` | Show card icon
+| show_seconds | `boolean` | `true` | Show seconds when displaying time based entities
 | needle | `boolean` | `false` | 
 | state_text | `string` | Entity state | Displayed state override. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)|✅
 | adaptive_icon_color | `boolean` | `false` | Makes icon color adaptive to current color segment
@@ -113,6 +114,7 @@ Templates are supported on selected options, configurable via `yaml` or visual e
 | show_state | `bool` | `true` | Show entity state
 | show_icon | `bool` | `true` | Show icon
 | show_unit | `bool` | `true` | Show unit
+|  | `boolean` | `true` | Show seconds when displaying time based entities
 | needle | `bool` | `false` | 
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min
 | gauge_background_style | `object` | Optional | Gauge background style, see [gauge element style object](#gauge-element-style-object)
@@ -143,6 +145,7 @@ Templates are supported on selected options, configurable via `yaml` or visual e
 | state_size | `small` or `big` | `small` | Secondary state size 
 | show_state | `boolean` | `true` | Show secondary state
 | show_unit | `boolean` | `true` | Show secondary unit
+| show_seconds | `boolean` | `true` | Show seconds when displaying time based entities
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min
 | state_font_size | `number` | `10` or `24` | State size in px
 | state_text | `string` | Entity state | Displayed state override. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)|✅
@@ -168,6 +171,7 @@ Templates are supported on selected options, configurable via `yaml` or visual e
 | label_font_size | `number` | `0.49em` | Label font size in px
 | show_state | `boolean` | `true` | Show secondary state
 | show_unit | `boolean` | `true` | Show secondary unit
+| show_seconds | `boolean` | `true` | Show seconds when displaying time based entities
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min
 | state_font_size | `number` | `10` | State size in px
 | state_text | `string` | Entity state | Displayed state override. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)|✅
