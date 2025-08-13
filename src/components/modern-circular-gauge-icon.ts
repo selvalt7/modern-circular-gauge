@@ -143,6 +143,10 @@ export class ModernCircularGaugeIcon extends LitElement {
       opacity: var(--icon-secondary-opactity, 0.5);
     }
 
+    image {
+      clip-path: inset(0 round 50%);
+    }
+
     ha-state-icon {
       visibility: hidden;
       position: absolute;
