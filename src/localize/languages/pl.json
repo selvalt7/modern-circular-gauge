@@ -44,7 +44,7 @@
       "icon_entity": "Wybierz encję, której chcesz użyć do wyboru ikon i ich kolorowania",
       "state_text": "Nadpisuje wyświetlany stan bez nadpisywania danych wskaźnika, akceptuje template",
       "half_gauge_icon_unavailable": "Ikona jest niedostępna, gdy typ wskaźnika jest ustawiony na połówkę",
-      "show_seconds": "Pokaż sekundy w stanach opartych na czasie"
+      "show_seconds": "Pokaż sekundy w stanach opartych na czasie",
       "rotate_gauge": "Obraca pełny wskaźnik o 180 stopni"
     },
     "header_position_options": {
