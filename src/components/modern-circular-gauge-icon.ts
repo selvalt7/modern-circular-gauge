@@ -46,7 +46,7 @@ export class ModernCircularGaugeIcon extends LitElement {
     }
 
     this._haStateIcon.then( async (haStateIcon) => {
-      if (!haStateIcon.shadowRoot) {
+      if (!haStateIcon || !haStateIcon.shadowRoot) {
         return;
       }
 
