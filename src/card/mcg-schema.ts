@@ -120,6 +120,12 @@ export const getEntityStyleSchema = (showGaugeOptions: boolean, gaugeDefaultRadi
         selector: { boolean: {} },
       },
       {
+        name: "show_seconds",
+        default: true,
+        helper: "show_seconds",
+        selector: { boolean: {} }
+      },
+      {
         name: "adaptive_state_color",
         default: false,
         selector: { boolean: {} },

@@ -2,8 +2,7 @@ import { LitElement, TemplateResult, html, css, nothing, PropertyValues, svg } f
 import { HomeAssistant } from "../ha/types";
 import { ModernCircularGaugeBadgeConfig } from "./gauge-badge-config";
 import { customElement, property, state } from "lit/decorators.js";
-import { NUMBER_ENTITY_DOMAINS, DEFAULT_MIN, DEFAULT_MAX } from "../const";
-import { getNumberFormatOptions, formatNumber } from "../utils/format_number";
+import { NUMBER_ENTITY_DOMAINS, DEFAULT_MIN, DEFAULT_MAX, TIMESTAMP_STATE_DOMAINS } from "../const";
 import { registerCustomBadge } from "../utils/custom-badges";
 import { HassEntity, UnsubscribeFunc } from "home-assistant-js-websocket";
 import { styleMap } from "lit/directives/style-map.js";
@@ -19,6 +18,11 @@ import { ifDefined } from "lit/directives/if-defined.js";
 import { isTemplate } from "../utils/template";
 import { SegmentsConfig } from "../card/type";
 import getEntityPictureUrl from "../utils/entity-picture";
+import durationToSeconds from "../ha/common/datetime/duration_to_seconds";
+import { computeStateDomain } from "../ha/common/entity/compute_state_domain";
+import { getTimestampRemainingSeconds, getTimerRemainingSeconds } from "../utils/timer_timestamp_utils";
+import "../components/mcg-badge-state";
+import "../components/modern-circular-gauge-state";
 
 const MAX_ANGLE = 270;
 const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
@@ -68,7 +72,7 @@ export class ModernCircularGaugeBadge extends LitElement {
       throw new Error("Entity must be specified");
     }
 
-    this._config = { min: DEFAULT_MIN, max: DEFAULT_MAX, show_state: true, ...config };
+    this._config = { min: DEFAULT_MIN, show_state: true, ...config };
   }
 
   public connectedCallback() {
@@ -217,45 +221,62 @@ export class ModernCircularGaugeBadge extends LitElement {
       }
     }
 
-    const numberState = Number(templatedState ?? stateObj.attributes[this._config.attribute!] ?? stateObj.state);
     const icon = this._templateResults?.icon?.result ?? this._config.icon;
 
     if (stateObj?.state === "unavailable") {
       return this._renderWarning(this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? stateObj.attributes.friendly_name ?? '', this.hass.localize("state.default.unavailable"), stateObj, "warning", icon);
     }
 
+    const domain = computeStateDomain(stateObj);
+    let secondsUntil: number | undefined;
+
+    if (stateObj?.attributes.device_class === "timestamp" ||
+      TIMESTAMP_STATE_DOMAINS.includes(domain)
+    ) {
+      secondsUntil = getTimestampRemainingSeconds(stateObj);
+    }
+
+    let timerDuration: number | undefined;
+
+    if (domain === "timer") {
+      timerDuration = durationToSeconds(stateObj.attributes?.duration ?? "00:00");
+      secondsUntil = getTimerRemainingSeconds(stateObj);
+    }
+
+    const numberState = Number(templatedState ?? secondsUntil ?? stateObj.attributes[this._config.attribute!] ?? stateObj.state);
+
     if (isNaN(numberState)) {
       return this._renderWarning(this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? stateObj.attributes.friendly_name ?? '', "NaN", stateObj, "warning", icon);
     }
 
-    const min = Number(this._templateResults?.min?.result ?? this._config.min) ?? DEFAULT_MIN;
-    const max = Number(this._templateResults?.max?.result ?? this._config.max) ?? DEFAULT_MAX;
-
-    const attributes = stateObj?.attributes ?? undefined;
+    const min = Number(this._templateResults?.min?.result ?? this._config.min) || DEFAULT_MIN;
+    const max = Number(this._templateResults?.max?.result ?? this._config.max ?? timerDuration) || DEFAULT_MAX;
 
     const current = this._config.needle ? undefined : currentDashArc(numberState, min, max, RADIUS, this._config.start_from_zero);
-    const state = templatedState ?? stateObj.attributes[this._config.attribute!] ?? stateObj.state;
 
     const stateOverride = this._templateResults?.stateText?.result ?? (isTemplate(String(this._config.state_text)) ? "" : (this._config.state_text || undefined));
     const unit = this._config.show_unit ?? true ? (this._config.unit ?? stateObj?.attributes.unit_of_measurement) || "" : "";
-
-    const formatOptions = { ...getNumberFormatOptions({ state, attributes } as HassEntity, this.hass.entities[stateObj?.entity_id]) };
-    if (this._config.decimals !== undefined) {
-      formatOptions.minimumFractionDigits = this._config.decimals;
-      formatOptions.maximumFractionDigits = this._config.decimals;
-    }
-
-    const entityState = stateOverride ?? formatNumber(state, this.hass.locale, formatOptions) ?? templatedState;
-
+    
     const showIcon = this._config.show_icon ?? true;
 
     const imageUrl = this._config.show_entity_picture
       ? getEntityPictureUrl(this.hass, stateObj)
       : undefined;
 
+    const stateElement = html`
+      <mcg-badge-state
+        .hass=${this.hass}
+        .stateObj=${stateObj}
+        .unit=${unit}
+        .stateOverride=${stateOverride ?? templatedState}
+        .showSeconds=${this._config.show_seconds}
+        .decimals=${this._config.decimals}
+      ></mcg-badge-state>
+    `;
+
     const name = this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? stateObj?.attributes.friendly_name ?? "";
     const label = this._config.show_name && showIcon && this._config.show_state ? name : undefined;
-    const content = showIcon && this._config.show_state ? `${entityState} ${unit}` : this._config.show_name ? name : undefined;
+    const content = showIcon && this._config.show_state ? stateElement : this._config.show_name ? name : undefined;
 
     const segments = (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config.segments;
 
@@ -325,14 +346,15 @@ export class ModernCircularGaugeBadge extends LitElement {
           : nothing}
         ${this._config.show_state && !showIcon
           ? html`
-          <svg class="state" viewBox="-50 -50 100 100">
-            <text x="0" y="0" class="value" style=${styleMap({ "font-size": this._calcStateSize(entityState) })}>
-              ${entityState}
-              ${this._config.show_unit ?? true ? svg`
-              <tspan class="unit" dx="-4" dy="-6">${unit}</tspan>
-              ` : nothing}
-            </text>
-          </svg>
+            <modern-circular-gauge-state
+              class="state"
+              .hass=${this.hass}
+              .stateObj=${stateObj}
+              .unit=${unit}
+              .stateOverride=${stateOverride ?? templatedState}
+              .showSeconds=${this._config.show_seconds}
+              .decimals=${this._config.decimals}
+            ></modern-circular-gauge-state>
           ` : nothing}
       </div>
       ${content}
@@ -416,17 +438,8 @@ export class ModernCircularGaugeBadge extends LitElement {
       left: 0;
       right: 0;
       text-anchor: middle;
-    }
-
-    .value {
-      font-size: 21px;
-      fill: var(--primary-text-color);
-      dominant-baseline: middle;
-    }
-
-    .unit {
-      font-size: .43em;
-      opacity: 0.6;
+      --state-font-size-override: 25px;
+      --unit-font-size: .53em;
     }
 
     .container {
