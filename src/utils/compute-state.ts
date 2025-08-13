@@ -7,7 +7,7 @@ import { HomeAssistant } from "../ha/types";
 
 export function computeState(hass: HomeAssistant, stateObj: HassEntity, entityAttribute: string, stateOverride: string, decimals: number | undefined, showSeconds: boolean | undefined): string {
   if (!stateObj && stateOverride !== undefined) {
-    if (!Number.isNaN(stateOverride)) {
+    if (!Number.isNaN(Number(stateOverride))) {
       const formatOptions = getDefaultFormatOptions(stateOverride, { maximumFractionDigits: decimals, minimumFractionDigits: decimals });
       return formatNumber(stateOverride, hass?.locale, formatOptions);
     }

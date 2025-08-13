@@ -142,7 +142,7 @@ export class ModernCircularGauge extends LitElement {
       if (isTemplate(this._config.entity)) {
         return this._renderWarning();
       } else {
-        return this._renderWarning(this._config.entity, "", undefined, "mdi:help");
+        return this._renderWarning(this._config.entity, undefined, undefined, "mdi:help");
       }
     }
     
@@ -278,7 +278,7 @@ export class ModernCircularGauge extends LitElement {
   }
 
   private _renderWarning(headerText?: string, stateText?: string, stateObj?: HassEntity, icon?: string): TemplateResult {
-    const iconCenter = stateText?.length == 0;
+    const iconCenter = stateText === undefined || stateText?.length == 0;
     return html`
       <ha-card
       class="${classMap({
