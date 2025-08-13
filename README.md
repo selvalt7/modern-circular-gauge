@@ -64,6 +64,7 @@ Templates are supported on selected options, configurable via `yaml` or visual e
 | attribute | `string` | Optional | Use entity attribute instead of state
 | name | `string` | Optional | Custom title. May contain templates|✅
 | icon | `string` | Optional | Custom icon. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)|✅
+| show_entity_picture | `boolean` | `false` | Show entity picture instead of icon
 | icon_entity | `primary` or `secondary` or `tertiary` | `primary` | Selects which entity to use for icon selection and color segments
 | icon_size | `number` | Optional | Icon size in %
 | icon_vertical_position | `number` | Optional | Icon vertical position in % (50% indicates center)
@@ -105,6 +106,7 @@ Templates are supported on selected options, configurable via `yaml` or visual e
 | attribute | `string` | Optional | Use entity attribute instead of state
 | name | `string` | Optional | Custom title. May contain templates|✅
 | icon | `string` | Entity icon | Custom icon. May contain templates|✅
+| show_entity_picture | `boolean` | `false` | Show entity picture instead of icon
 | min | `number` or `string` | `0` | Minimum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)|✅
 | max | `number` or `string` | `100` | Maximum gauge value. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)|✅
 | unit | `string` | Optional | Custom unit
