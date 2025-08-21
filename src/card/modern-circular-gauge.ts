@@ -294,6 +294,8 @@ export class ModernCircularGauge extends LitElement {
             .needle=${this._config.needle}
             .startFromZero=${this._config.start_from_zero}
             .rotateGauge=${this._config.rotate_gauge}
+            .linePadding=${this._config?.combine_gauges ? this._config.gauge_type == "full" ? 7.5 : 3.25 : 0}
+            .lineOffset=${this._config?.combine_gauges ? this._config.gauge_type == "full" ? 3.25 : 0 : 0}
           ></modern-circular-gauge-element>
           ${typeof this._config.secondary != "string" ? 
           (this._config.secondary?.show_gauge && this._config.secondary?.show_gauge != "none") || this._config.combine_gauges ?
@@ -632,10 +634,12 @@ export class ModernCircularGauge extends LitElement {
         .foregroundStyle=${secondaryObj?.gauge_foreground_style}
         .backgroundStyle=${secondaryObj?.gauge_background_style}
         .needle=${secondaryObj?.needle}
-        .startFromZero=${secondaryObj.start_from_zero || this._config?.combine_gauges}
+        .startFromZero=${secondaryObj.start_from_zero}
         .rotateGauge=${this._config?.rotate_gauge}
         .disableBackground=${this._config?.combine_gauges}
         .flipGauge=${this._config?.combine_gauges}
+        .linePadding=${this._config?.combine_gauges ? this._config.gauge_type == "full" ? 7.5 : 3.25 : 0}
+        .lineOffset=${this._config?.combine_gauges ? this._config.gauge_type == "full" ? 3.25 : 3.25 : 0}
       ></modern-circular-gauge-element>
       `;
     } else {
