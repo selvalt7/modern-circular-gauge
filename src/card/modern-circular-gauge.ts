@@ -178,6 +178,14 @@ export class ModernCircularGauge extends LitElement {
     return undefined;
   }
 
+  private _getEntityStatesSum(): number {
+    let combinedStates = 0;
+    this._entityStates.forEach((_, key) => {
+      combinedStates += Number(this._getEntityState(key)) ?? 0;
+    });
+    return combinedStates;
+  }
+
   protected render(): TemplateResult {
     if (!this.hass || !this._config) {
       return html``;
@@ -220,11 +228,7 @@ export class ModernCircularGauge extends LitElement {
     }
 
     if (this._config.combine_gauges) {
-      let combinedStates = 0;
-      this._entityStates.forEach((_, key) => {
-        combinedStates += Number(this._getEntityState(key)) ?? 0;
-      });
-      calculatedMax = combinedStates;
+      calculatedMax = this._getEntityStatesSum();
     }
 
     const numberState = Number(templatedState ?? secondsUntil ?? stateObj?.attributes[this._config.attribute!] ?? stateObj?.state);
@@ -240,7 +244,10 @@ export class ModernCircularGauge extends LitElement {
     const min = Number(this._templateResults?.min?.result ?? this._config.min) || DEFAULT_MIN;
     const max = Number(this._templateResults?.max?.result ?? this._config.max ?? calculatedMax) || DEFAULT_MAX;
 
-    const stateOverride = this._templateResults?.stateText?.result ?? (isTemplate(String(this._config.state_text)) ? "" : (this._config.state_text || undefined));
+    const stateOverride = 
+      this._config.combine_gauges 
+      ? this._getEntityStatesSum()
+      : (this._templateResults?.stateText?.result ?? (isTemplate(String(this._config.state_text)) ? "" : (this._config.state_text || undefined)));
 
     const iconCenter = !(this._config.show_state ?? false) && (this._config.show_icon ?? true);
     const segments = (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config.segments;
@@ -312,7 +319,7 @@ export class ModernCircularGauge extends LitElement {
           ${this._config.show_state ? html`
           <modern-circular-gauge-state
             class=${classMap({ "preview": this._inCardPicker! })}
-            style=${styleMap({ "--state-text-color": this._config.adaptive_state_color ? "var(--gauge-color)" : undefined , "--state-font-size-override": this._config.state_font_size ? `${this._config.state_font_size}px` : (halfStateBig ? `15px` : undefined) })}
+            style=${styleMap({ "--state-text-color": (this._config.adaptive_state_color && !this._config.combine_gauges) ? "var(--gauge-color)" : undefined , "--state-font-size-override": this._config.state_font_size ? `${this._config.state_font_size}px` : (halfStateBig ? `15px` : undefined) })}
             .hass=${this.hass}
             .stateObj=${stateObj}
             .entityAttribute=${this._config.attribute}
@@ -725,9 +732,10 @@ export class ModernCircularGauge extends LitElement {
     let secondaryColor;
 
     if (secondary.adaptive_state_color) {
+      secondaryColor = "var(--gauge-color)";
       if (secondary.show_gauge == "outter") {
         secondaryColor = computeSegments(state, (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config?.segments, this._config?.smooth_segments, this);
-      } else {
+      } else if (segments) {
         secondaryColor = computeSegments(state, segments, this._config?.smooth_segments, this);
       }
 
@@ -767,6 +775,45 @@ export class ModernCircularGauge extends LitElement {
   }
 
   private _renderTertiaryState(): TemplateResult {
+    const threeGauges = (typeof this._config?.secondary != "string" && this._config?.secondary?.show_gauge == "inner") && (typeof this._config?.tertiary != "string" && this._config?.tertiary?.show_gauge == "inner");
+
+    if (this._config?.combine_gauges) {
+      const templatedState = this._templateResults?.entity?.result;
+      const stateObj = this._getEntityStateObj("primary");
+      const numberState = Number(this._getEntityState("primary"));
+      const unit = this._config.unit ?? stateObj?.attributes?.unit_of_measurement ?? "";
+
+      const stateOverride = this._templateResults?.stateText?.result ?? (isTemplate(String(this._config.state_text)) ? "" : (this._config.state_text || undefined));
+      const segments = (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config.segments;
+      const segmentsLabel = this._getSegmentLabel(numberState, segments);
+      const halfStateBig = this._config?.gauge_type == "half" && typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big";
+
+      return html`
+      <modern-circular-gauge-state
+        @action=${this._handleAction}
+        .actionHandler=${actionHandler({
+          hasHold: hasAction(this._config.hold_action),
+          hasDoubleClick: hasAction(this._config.double_tap_action),
+        })}
+        class=${classMap({ "preview": this._inCardPicker! })}
+        style=${styleMap({ "--state-text-color-override": this._config.adaptive_state_color ? "var(--gauge-color)" : undefined , "--state-font-size-override": this._config.state_font_size ? `${this._config.state_font_size}px` : (halfStateBig ? `15px` : undefined) })}
+        .hass=${this.hass}
+        .stateObj=${stateObj}
+        .entityAttribute=${this._config.attribute}
+        .stateOverride=${(segmentsLabel || stateOverride) ?? templatedState}
+        .unit=${unit}
+        .verticalOffset=${this._config?.gauge_type == "half" ? (!this._hasSecondary ? -28 : (threeGauges ? -29 : -31)) : -19}
+        .stateMargin=${this._stateMargin}
+        .showUnit=${this._config.show_unit ?? true}
+        .label=${this._config?.gauge_type == "half" ? "" : this._config.label}
+        .gaugeType=${this._config?.gauge_type}
+        .labelFontSize=${this._config.label_font_size}
+        .showSeconds=${this._config.show_seconds}
+        .decimals=${this._config.decimals}
+        small
+      ></modern-circular-gauge-state>
+      `;
+    }
     const tertiary = this._config?.tertiary;
     if (!tertiary) {
       return html``;
@@ -805,8 +852,6 @@ export class ModernCircularGauge extends LitElement {
     const stateOverride = this._templateResults?.tertiaryStateText?.result ?? (isTemplate(String(tertiary.state_text)) ? "" : (tertiary.state_text || undefined));
     const segments = (this._templateResults?.tertiarySegments?.result as unknown) as SegmentsConfig[] ?? tertiary.segments;
     const segmentsLabel = this._getSegmentLabel(state, segments);
-
-    const threeGauges = (typeof this._config?.secondary != "string" && this._config?.secondary?.show_gauge == "inner") && (typeof this._config?.tertiary != "string" && this._config?.tertiary?.show_gauge == "inner");
 
     let adaptiveColor;
 
