@@ -172,6 +172,13 @@ export class ModernCircularGaugeEditor extends LitElement {
                     translation_key: "icon_entity_options",
                   },
                 },
+              },
+              {
+                name: "combine_gauges",
+                default: false,
+                disabled: gaugeType !== "full",
+                helper: "combine_gauges",
+                selector: { boolean: {} },
               }
             ],
           },

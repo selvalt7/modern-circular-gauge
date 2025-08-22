@@ -227,7 +227,7 @@ export class ModernCircularGauge extends LitElement {
       secondsUntil = getTimerRemainingSeconds(stateObj!);
     }
 
-    if (this._config.combine_gauges) {
+    if (this._config.combine_gauges && this._config.gauge_type === "full") {
       calculatedMax = this._getEntityStatesSum();
     }
 
@@ -245,7 +245,7 @@ export class ModernCircularGauge extends LitElement {
     const max = Number(this._templateResults?.max?.result ?? this._config.max ?? calculatedMax) || DEFAULT_MAX;
 
     const stateOverride = 
-      this._config.combine_gauges 
+      this._config.combine_gauges && this._config.gauge_type === "full" 
       ? this._getEntityStatesSum()
       : (this._templateResults?.stateText?.result ?? (isTemplate(String(this._config.state_text)) ? "" : (this._config.state_text || undefined)));
 
@@ -301,11 +301,11 @@ export class ModernCircularGauge extends LitElement {
             .needle=${this._config.needle}
             .startFromZero=${this._config.start_from_zero}
             .rotateGauge=${this._config.rotate_gauge}
-            .linePadding=${this._config?.combine_gauges ? this._config.gauge_type == "full" ? 7.5 : 3.25 : 0}
-            .lineOffset=${this._config?.combine_gauges ? this._config.gauge_type == "full" ? 3.25 : 0 : 0}
+            .linePadding=${this._config.combine_gauges && this._config.gauge_type === "full" ? 7.5 : 0}
+            .lineOffset=${this._config.combine_gauges && this._config.gauge_type === "full" ?  3.25 : 0}
           ></modern-circular-gauge-element>
           ${typeof this._config.secondary != "string" ? 
-          (this._config.secondary?.show_gauge && this._config.secondary?.show_gauge != "none") || this._config.combine_gauges ?
+          (this._config.secondary?.show_gauge && this._config.secondary?.show_gauge != "none") || (this._config.combine_gauges && this._config.gauge_type === "full") ?
           this._renderSecondaryGauge()
           : nothing
           : nothing}
@@ -587,7 +587,7 @@ export class ModernCircularGauge extends LitElement {
       return html``;
     }
     
-    if (secondaryObj.show_gauge == "inner" || this._config?.combine_gauges) {
+    if (secondaryObj.show_gauge == "inner" || (this._config?.combine_gauges && this._config.gauge_type === "full")) {
       if (!stateObj && templatedState === undefined) {
         return html`
         <modern-circular-gauge-element
@@ -614,7 +614,7 @@ export class ModernCircularGauge extends LitElement {
         secondsUntil = getTimerRemainingSeconds(stateObj);
       }
 
-      if (this._config?.combine_gauges) {
+      if (this._config?.combine_gauges && this._config.gauge_type === "full") {
         let combinedStates = 0;
         this._entityStates.forEach((_, key) => {
           combinedStates += Number(this._getEntityState(key)) ?? 0;
@@ -634,7 +634,7 @@ export class ModernCircularGauge extends LitElement {
         .min=${min}
         .max=${max}
         .value=${numberState}
-        .radius=${this._config?.combine_gauges ? (this._config?.gauge_radius ?? RADIUS) : (secondaryObj.gauge_radius ?? INNER_RADIUS)}
+        .radius=${this._config?.combine_gauges && this._config.gauge_type === "full" ? (this._config?.gauge_radius ?? RADIUS) : (secondaryObj.gauge_radius ?? INNER_RADIUS)}
         .gaugeType=${this._config?.gauge_type}
         .segments=${segments}
         .smoothSegments=${this._config?.smooth_segments}
@@ -643,10 +643,10 @@ export class ModernCircularGauge extends LitElement {
         .needle=${secondaryObj?.needle}
         .startFromZero=${secondaryObj.start_from_zero}
         .rotateGauge=${this._config?.rotate_gauge}
-        .disableBackground=${this._config?.combine_gauges}
-        .flipGauge=${this._config?.combine_gauges}
-        .linePadding=${this._config?.combine_gauges ? this._config.gauge_type == "full" ? 7.5 : 3.25 : 0}
-        .lineOffset=${this._config?.combine_gauges ? this._config.gauge_type == "full" ? 3.25 : 3.25 : 0}
+        .disableBackground=${this._config?.combine_gauges && this._config.gauge_type === "full"}
+        .flipGauge=${this._config?.combine_gauges && this._config.gauge_type === "full"}
+        .linePadding=${this._config?.combine_gauges && this._config.gauge_type === "full" ? 7.5 : 0}
+        .lineOffset=${this._config?.combine_gauges && this._config.gauge_type === "full" ? 3.25 : 0}
       ></modern-circular-gauge-element>
       `;
     } else {
@@ -777,7 +777,7 @@ export class ModernCircularGauge extends LitElement {
   private _renderTertiaryState(): TemplateResult {
     const threeGauges = (typeof this._config?.secondary != "string" && this._config?.secondary?.show_gauge == "inner") && (typeof this._config?.tertiary != "string" && this._config?.tertiary?.show_gauge == "inner");
 
-    if (this._config?.combine_gauges) {
+    if (this._config?.combine_gauges && this._config.gauge_type === "full") {
       const templatedState = this._templateResults?.entity?.result;
       const stateObj = this._getEntityStateObj("primary");
       const numberState = Number(this._getEntityState("primary"));
@@ -786,7 +786,6 @@ export class ModernCircularGauge extends LitElement {
       const stateOverride = this._templateResults?.stateText?.result ?? (isTemplate(String(this._config.state_text)) ? "" : (this._config.state_text || undefined));
       const segments = (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config.segments;
       const segmentsLabel = this._getSegmentLabel(numberState, segments);
-      const halfStateBig = this._config?.gauge_type == "half" && typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big";
 
       return html`
       <modern-circular-gauge-state
@@ -796,16 +795,16 @@ export class ModernCircularGauge extends LitElement {
           hasDoubleClick: hasAction(this._config.double_tap_action),
         })}
         class=${classMap({ "preview": this._inCardPicker! })}
-        style=${styleMap({ "--state-text-color-override": this._config.adaptive_state_color ? "var(--gauge-color)" : undefined , "--state-font-size-override": this._config.state_font_size ? `${this._config.state_font_size}px` : (halfStateBig ? `15px` : undefined) })}
+        style=${styleMap({ "--state-text-color-override": this._config.adaptive_state_color ? "var(--gauge-color)" : undefined , "--state-font-size-override": this._config.state_font_size ? `${this._config.state_font_size}px` : undefined })}
         .hass=${this.hass}
         .stateObj=${stateObj}
         .entityAttribute=${this._config.attribute}
         .stateOverride=${(segmentsLabel || stateOverride) ?? templatedState}
         .unit=${unit}
-        .verticalOffset=${this._config?.gauge_type == "half" ? (!this._hasSecondary ? -28 : (threeGauges ? -29 : -31)) : -19}
+        .verticalOffset=${-19}
         .stateMargin=${this._stateMargin}
         .showUnit=${this._config.show_unit ?? true}
-        .label=${this._config?.gauge_type == "half" ? "" : this._config.label}
+        .label=${this._config.label}
         .gaugeType=${this._config?.gauge_type}
         .labelFontSize=${this._config.label_font_size}
         .showSeconds=${this._config.show_seconds}
