@@ -22,7 +22,7 @@ export default [
       json(),
       commonjs(),
       babel({
-        exclude: "node_modules/**",
+        exclude: /node_modules\/(?!lit)(?!@lit)/,
         babelHelpers: "bundled",
         compact: true,
         extensions: [".js", ".ts"],
@@ -31,7 +31,6 @@ export default [
             "@babel/env",
             {
               "modules": false,
-              "targets": { node: "current" },
             },
           ],
         ],
