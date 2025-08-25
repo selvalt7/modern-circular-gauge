@@ -44,7 +44,7 @@ export class ModernCircularGauge extends LitElement {
 
   @state() private _inCardPicker?: boolean;
 
-  private _entityStates: Map<EntityNames, HassEntity | string | undefined> = new Map();
+  private _entityStates: Map<EntityNames, HassEntity | string | number | undefined> = new Map();
 
   public static async getConfigElement(): Promise<HTMLElement> {
     await import("./mcg-editor");
@@ -156,15 +156,15 @@ export class ModernCircularGauge extends LitElement {
     }
   }
 
-  private _getEntityState(entityName: EntityNames): string | undefined {
+  private _getEntityState(entityName: EntityNames, attribute?: string): string | number | undefined {
     const state = this._entityStates.get(entityName);
     if (state === undefined) {
       return undefined;
     }
-    if (typeof state === "string") {
-      return state;
+    if (typeof state === "object") {
+      return attribute ? state.attributes[attribute] : state.state;
     }
-    return state.state;
+    return state;
   }
 
   private _getEntityStateObj(entityName: EntityNames): HassEntity | undefined {
@@ -181,7 +181,11 @@ export class ModernCircularGauge extends LitElement {
   private _getEntityStatesSum(): number {
     let combinedStates = 0;
     this._entityStates.forEach((_, key) => {
-      combinedStates += Number(this._getEntityState(key)) ?? 0;
+      if (key === "primary") {
+        combinedStates += Number(this._getEntityState(key, this._config?.attribute)) ?? 0;
+      } else {
+        combinedStates += Number(this._getEntityState(key, typeof this._config?.[key] === "object" ? this._config?.[key].attribute : undefined)) ?? 0;
+      }
     });
     return combinedStates;
   }
@@ -194,6 +198,7 @@ export class ModernCircularGauge extends LitElement {
     this._buildEntityStates();
 
     const stateObj = this._getEntityStateObj("primary");
+    const entityState = this._getEntityState("primary", this._config.attribute);
     const templatedState = this._templateResults?.entity?.result;
     const isPrimaryTemplate = isTemplate(this._config.entity);
 
@@ -214,7 +219,7 @@ export class ModernCircularGauge extends LitElement {
     const domain = computeStateDomain(stateObj!);
     let secondsUntil: number | undefined;
 
-    if ((!isPrimaryTemplate && stateObj?.attributes.device_class === "timestamp") ||
+    if ((!isPrimaryTemplate && stateObj?.attributes?.device_class === "timestamp") ||
       TIMESTAMP_STATE_DOMAINS.includes(domain)
     ) {
       secondsUntil = getTimestampRemainingSeconds(stateObj!);
@@ -231,7 +236,7 @@ export class ModernCircularGauge extends LitElement {
       calculatedMax = this._getEntityStatesSum();
     }
 
-    const numberState = Number(templatedState ?? secondsUntil ?? stateObj?.attributes[this._config.attribute!] ?? stateObj?.state);
+    const numberState = Number(templatedState ?? secondsUntil ?? entityState);
 
     if (isNaN(numberState)) {
       return this._renderWarning(this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? stateObj?.attributes.friendly_name ?? '', "NaN", stateObj, icon);
@@ -311,7 +316,7 @@ export class ModernCircularGauge extends LitElement {
           : nothing}
           ${typeof this._config.tertiary != "string" ? 
           this._config.tertiary?.show_gauge && this._config.tertiary?.show_gauge != "none" ?
-          this._renderTertiaryRing()
+          this._renderTertiaryGauge()
           : nothing
           : nothing}
         </div>
@@ -484,7 +489,10 @@ export class ModernCircularGauge extends LitElement {
     return (gauge.radius - gauge.width) * 2;
   }
 
-  private _renderTertiaryRing(): TemplateResult {
+  private _renderTertiaryGauge(): TemplateResult {
+    if (this._config?.combine_gauges && this._config.gauge_type === "full") {
+      return html``;
+    }
     const tertiaryObj = this._config?.tertiary as TertiaryEntity;
     const stateObj = this.hass.states[tertiaryObj.entity || ""];
     const templatedState = this._templateResults?.tertiaryEntity?.result;
@@ -615,11 +623,7 @@ export class ModernCircularGauge extends LitElement {
       }
 
       if (this._config?.combine_gauges && this._config.gauge_type === "full") {
-        let combinedStates = 0;
-        this._entityStates.forEach((_, key) => {
-          combinedStates += Number(this._getEntityState(key)) ?? 0;
-        });
-        calculatedMax = combinedStates;
+        calculatedMax = this._getEntityStatesSum();
       }
 
       
@@ -780,7 +784,7 @@ export class ModernCircularGauge extends LitElement {
     if (this._config?.combine_gauges && this._config.gauge_type === "full") {
       const templatedState = this._templateResults?.entity?.result;
       const stateObj = this._getEntityStateObj("primary");
-      const numberState = Number(this._getEntityState("primary"));
+      const numberState = Number(this._getEntityState("primary", this._config.attribute));
       const unit = this._config.unit ?? stateObj?.attributes?.unit_of_measurement ?? "";
 
       const stateOverride = this._templateResults?.stateText?.result ?? (isTemplate(String(this._config.state_text)) ? "" : (this._config.state_text || undefined));
