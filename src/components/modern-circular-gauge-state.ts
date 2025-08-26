@@ -43,37 +43,12 @@ export class ModernCircularGaugeState extends LitElement {
 
   @state() private _updated = false;
 
-  private _interval?: any;
-
   connectedCallback(): void {
     super.connectedCallback();
-    if (this.stateObj) {
-      const domain = computeStateDomain(this.stateObj);
-      if (this.stateObj?.attributes?.device_class === "timestamp" ||
-        TIMESTAMP_STATE_DOMAINS.includes(domain)
-      ) {
-        this._startInterval();
-      }
-    }
   }
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
-    this._clearInterval();
-  }
-
-  private _startInterval() {
-    this._clearInterval();
-    this._interval = setInterval(() => {
-      this.requestUpdate();
-    }, (this.showSeconds ?? true) ? 1000 : 60000);
-  }
-
-  private _clearInterval() {
-    if (this._interval) {
-      clearInterval(this._interval);
-      this._interval = undefined;
-    }
   }
 
   protected firstUpdated(_changedProperties: PropertyValues): void {

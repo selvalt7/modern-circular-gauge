@@ -23,6 +23,7 @@ import { computeStateDomain } from "../ha/common/entity/compute_state_domain";
 import { getTimestampRemainingSeconds, getTimerRemainingSeconds } from "../utils/timer_timestamp_utils";
 import "../components/mcg-badge-state";
 import "../components/modern-circular-gauge-state";
+import { compareHass } from "../utils/compare-hass";
 
 const MAX_ANGLE = 270;
 const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
@@ -50,6 +51,12 @@ export class ModernCircularGaugeBadge extends LitElement {
   @state() private _templateResults?: Partial<Record<string, RenderTemplateResult | undefined>> = {};
 
   @state() private _unsubRenderTemplates?: Map<string, Promise<UnsubscribeFunc>> = new Map();
+
+  private _trackedEntities: Set<string> = new Set();
+
+  private _isTimerOrTimestamp: boolean = false;
+
+  private _interval?: any;
 
   public static async getStubConfig(hass: HomeAssistant): Promise<ModernCircularGaugeBadgeConfig> {
     const entities = Object.keys(hass.states);
@@ -85,10 +92,44 @@ export class ModernCircularGaugeBadge extends LitElement {
     this._tryDisconnect();
   }
 
+  private _startInterval() {
+    this._clearInterval();
+    this._interval = setInterval(() => {
+      this.requestUpdate();
+    }, 1000);
+  }
+
+  private _clearInterval() {
+    if (this._interval) {
+      clearInterval(this._interval);
+      this._interval = undefined;
+    }
+  }
+
+  protected shouldUpdate(_changedProperties: PropertyValues): boolean {
+    if (_changedProperties.has("_templateResults")) {
+      return true;
+    }
+    if (_changedProperties.has("hass")) {
+      if (this._trackedEntities.size <= 0) {
+        return true;
+      }
+      const oldHass = _changedProperties.get("hass") as HomeAssistant | undefined;
+      return compareHass(oldHass, this.hass, this._trackedEntities);
+    }
+    return true;
+  }
+
   protected updated(changedProps: PropertyValues): void {
     super.updated(changedProps);
     if (!this._config || !this.hass) {
       return;
+    }
+
+    if (this._isTimerOrTimestamp) {
+      if (!this._interval) {
+        this._startInterval();
+      }
     }
 
     this._tryConnect();
@@ -210,6 +251,11 @@ export class ModernCircularGaugeBadge extends LitElement {
       return html``;
     }
 
+    this._trackedEntities.clear();
+    if (this._config.entity && !isTemplate(this._config.entity)) {
+      this._trackedEntities.add(this._config.entity);
+    }
+
     const stateObj = this.hass.states[this._config.entity];
     const templatedState = this._templateResults?.entity?.result;    
 
@@ -234,6 +280,7 @@ export class ModernCircularGaugeBadge extends LitElement {
       TIMESTAMP_STATE_DOMAINS.includes(domain)
     ) {
       secondsUntil = getTimestampRemainingSeconds(stateObj);
+      this._isTimerOrTimestamp = true;
     }
 
     let timerDuration: number | undefined;
@@ -241,6 +288,7 @@ export class ModernCircularGaugeBadge extends LitElement {
     if (domain === "timer") {
       timerDuration = durationToSeconds(stateObj.attributes?.duration ?? "00:00");
       secondsUntil = getTimerRemainingSeconds(stateObj);
+      this._isTimerOrTimestamp = true;
     }
 
     const numberState = Number(templatedState ?? secondsUntil ?? stateObj.attributes[this._config.attribute!] ?? stateObj.state);
