@@ -24,39 +24,12 @@ export class McgBadgeState extends LitElement {
 
   @property({ type: Boolean }) public showSeconds = true;
 
-  private _interval?: any;
-
   connectedCallback(): void {
     super.connectedCallback();
-    if (this.stateObj) {
-      const domain = computeStateDomain(this.stateObj);
-      if (this.stateObj?.attributes.device_class === "timestamp" ||
-        TIMESTAMP_STATE_DOMAINS.includes(domain)
-      ) {
-        this._startInterval();
-      }
-    }
   }
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
-    this._clearInterval();
-  }
-
-  private _startInterval(): void {
-    if (this._interval) {
-      clearInterval(this._interval);
-    }
-    this._interval = setInterval(() => {
-      this.requestUpdate();
-    }, (this.showSeconds ?? true) ? 1000 : 60000);
-  }
-
-  private _clearInterval(): void {
-    if (this._interval) {
-      clearInterval(this._interval);
-      this._interval = undefined;
-    }
   }
 
   protected render(): TemplateResult {

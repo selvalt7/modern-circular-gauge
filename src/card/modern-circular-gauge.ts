@@ -49,6 +49,10 @@ export class ModernCircularGauge extends LitElement {
 
   private _trackedEntities: Set<string> = new Set();
 
+  private _isTimerOrTimestamp: boolean = false;
+
+  private _interval?: any;
+
   public static async getConfigElement(): Promise<HTMLElement> {
     await import("./mcg-editor");
     return document.createElement("modern-circular-gauge-editor");
@@ -114,7 +118,24 @@ export class ModernCircularGauge extends LitElement {
     this._tryDisconnect();
   }
 
+  private _startInterval() {
+    this._clearInterval();
+    this._interval = setInterval(() => {
+      this.requestUpdate();
+    }, 1000);
+  }
+
+  private _clearInterval() {
+    if (this._interval) {
+      clearInterval(this._interval);
+      this._interval = undefined;
+    }
+  }
+
   protected shouldUpdate(_changedProperties: PropertyValues): boolean {
+    if (_changedProperties.has("_templateResults")) {
+      return true;
+    }
     if (_changedProperties.has("hass")) {
       if (this._trackedEntities.size <= 0) {
         return true;
@@ -135,6 +156,12 @@ export class ModernCircularGauge extends LitElement {
       return;
     }
 
+    if (this._isTimerOrTimestamp) {
+      if (!this._interval) {
+        this._startInterval();
+      }
+    }
+
     this._tryConnect();
   }
 
@@ -149,6 +176,8 @@ export class ModernCircularGauge extends LitElement {
   private _buildEntityStates() {
     this._entityStates.clear();
     this._trackedEntities.clear();
+    this._isTimerOrTimestamp = false;
+
     if (this._config?.entity) {
       const state = this._templateResults?.entity?.result ?? (isTemplate(this._config.entity) ? undefined : this.hass.states[this._config.entity]) ?? undefined;
 
@@ -255,6 +284,7 @@ export class ModernCircularGauge extends LitElement {
       TIMESTAMP_STATE_DOMAINS.includes(domain)
     ) {
       secondsUntil = getTimestampRemainingSeconds(stateObj!);
+      this._isTimerOrTimestamp = true;
     }
 
     let calculatedMax: number | undefined;
@@ -262,6 +292,7 @@ export class ModernCircularGauge extends LitElement {
     if (domain === "timer") {
       calculatedMax = durationToSeconds(stateObj?.attributes?.duration ?? "00:00");
       secondsUntil = getTimerRemainingSeconds(stateObj!);
+      this._isTimerOrTimestamp = true;
     }
 
     if (this._config.combine_gauges && this._config.gauge_type === "full") {
@@ -552,6 +583,7 @@ export class ModernCircularGauge extends LitElement {
         TIMESTAMP_STATE_DOMAINS.includes(domain)
       ) {
         secondsUntil = getTimestampRemainingSeconds(stateObj);
+        this._isTimerOrTimestamp = true;
       }
 
       let timerDuration: number | undefined;
@@ -559,6 +591,7 @@ export class ModernCircularGauge extends LitElement {
       if (domain === "timer") {
         timerDuration = durationToSeconds(stateObj.attributes?.duration ?? "00:00");
         secondsUntil = getTimerRemainingSeconds(stateObj);
+        this._isTimerOrTimestamp = true;
       }
 
       const min = Number(this._templateResults?.tertiaryMin?.result ?? tertiaryObj.min) || DEFAULT_MIN;
@@ -645,6 +678,7 @@ export class ModernCircularGauge extends LitElement {
         TIMESTAMP_STATE_DOMAINS.includes(domain)
       ) {
         secondsUntil = getTimestampRemainingSeconds(stateObj);
+        this._isTimerOrTimestamp = true;
       }
 
       let calculatedMax: number | undefined;
@@ -652,6 +686,7 @@ export class ModernCircularGauge extends LitElement {
       if (domain === "timer") {
         calculatedMax = durationToSeconds(stateObj.attributes?.duration ?? "00:00");
         secondsUntil = getTimerRemainingSeconds(stateObj);
+        this._isTimerOrTimestamp = true;
       }
 
       if (this._config?.combine_gauges && this._config.gauge_type === "full") {

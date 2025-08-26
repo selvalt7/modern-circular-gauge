@@ -54,6 +54,10 @@ export class ModernCircularGaugeBadge extends LitElement {
 
   private _trackedEntities: Set<string> = new Set();
 
+  private _isTimerOrTimestamp: boolean = false;
+
+  private _interval?: any;
+
   public static async getStubConfig(hass: HomeAssistant): Promise<ModernCircularGaugeBadgeConfig> {
     const entities = Object.keys(hass.states);
     const numbers = entities.filter((e) =>
@@ -88,6 +92,20 @@ export class ModernCircularGaugeBadge extends LitElement {
     this._tryDisconnect();
   }
 
+  private _startInterval() {
+    this._clearInterval();
+    this._interval = setInterval(() => {
+      this.requestUpdate();
+    }, 1000);
+  }
+
+  private _clearInterval() {
+    if (this._interval) {
+      clearInterval(this._interval);
+      this._interval = undefined;
+    }
+  }
+
   protected shouldUpdate(_changedProperties: PropertyValues): boolean {
     if (_changedProperties.has("hass")) {
       if (this._trackedEntities.size <= 0) {
@@ -103,6 +121,12 @@ export class ModernCircularGaugeBadge extends LitElement {
     super.updated(changedProps);
     if (!this._config || !this.hass) {
       return;
+    }
+
+    if (this._isTimerOrTimestamp) {
+      if (!this._interval) {
+        this._startInterval();
+      }
     }
 
     this._tryConnect();
@@ -253,6 +277,7 @@ export class ModernCircularGaugeBadge extends LitElement {
       TIMESTAMP_STATE_DOMAINS.includes(domain)
     ) {
       secondsUntil = getTimestampRemainingSeconds(stateObj);
+      this._isTimerOrTimestamp = true;
     }
 
     let timerDuration: number | undefined;
@@ -260,6 +285,7 @@ export class ModernCircularGaugeBadge extends LitElement {
     if (domain === "timer") {
       timerDuration = durationToSeconds(stateObj.attributes?.duration ?? "00:00");
       secondsUntil = getTimerRemainingSeconds(stateObj);
+      this._isTimerOrTimestamp = true;
     }
 
     const numberState = Number(templatedState ?? secondsUntil ?? stateObj.attributes[this._config.attribute!] ?? stateObj.state);
