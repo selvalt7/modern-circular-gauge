@@ -23,6 +23,7 @@ import { computeStateDomain } from "../ha/common/entity/compute_state_domain";
 import { getTimestampRemainingSeconds, getTimerRemainingSeconds } from "../utils/timer_timestamp_utils";
 import "../components/mcg-badge-state";
 import "../components/modern-circular-gauge-state";
+import { compareHass } from "../utils/compare-hass";
 
 const MAX_ANGLE = 270;
 const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
@@ -50,6 +51,8 @@ export class ModernCircularGaugeBadge extends LitElement {
   @state() private _templateResults?: Partial<Record<string, RenderTemplateResult | undefined>> = {};
 
   @state() private _unsubRenderTemplates?: Map<string, Promise<UnsubscribeFunc>> = new Map();
+
+  private _trackedEntities: Set<string> = new Set();
 
   public static async getStubConfig(hass: HomeAssistant): Promise<ModernCircularGaugeBadgeConfig> {
     const entities = Object.keys(hass.states);
@@ -83,6 +86,17 @@ export class ModernCircularGaugeBadge extends LitElement {
   public disconnectedCallback() {
     super.disconnectedCallback();
     this._tryDisconnect();
+  }
+
+  protected shouldUpdate(_changedProperties: PropertyValues): boolean {
+    if (_changedProperties.has("hass")) {
+      if (this._trackedEntities.size <= 0) {
+        return true;
+      }
+      const oldHass = _changedProperties.get("hass") as HomeAssistant | undefined;
+      return compareHass(oldHass, this.hass, this._trackedEntities);
+    }
+    return true;
   }
 
   protected updated(changedProps: PropertyValues): void {
@@ -208,6 +222,11 @@ export class ModernCircularGaugeBadge extends LitElement {
   protected render(): TemplateResult {
     if (!this.hass || !this._config) {
       return html``;
+    }
+
+    this._trackedEntities.clear();
+    if (this._config.entity && !isTemplate(this._config.entity)) {
+      this._trackedEntities.add(this._config.entity);
     }
 
     const stateObj = this.hass.states[this._config.entity];

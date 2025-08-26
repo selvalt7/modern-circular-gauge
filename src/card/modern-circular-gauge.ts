@@ -22,6 +22,7 @@ import "../components/modern-circular-gauge-icon";
 import { computeStateDomain } from "../ha/common/entity/compute_state_domain";
 import durationToSeconds from "../ha/common/datetime/duration_to_seconds";
 import { getTimerRemainingSeconds, getTimestampRemainingSeconds } from "../utils/timer_timestamp_utils";
+import { compareHass } from "../utils/compare-hass";
 
 registerCustomCard({
   type: "modern-circular-gauge",
@@ -45,6 +46,8 @@ export class ModernCircularGauge extends LitElement {
   @state() private _inCardPicker?: boolean;
 
   private _entityStates: Map<EntityNames, HassEntity | string | number | undefined> = new Map();
+
+  private _trackedEntities: Set<string> = new Set();
 
   public static async getConfigElement(): Promise<HTMLElement> {
     await import("./mcg-editor");
@@ -111,6 +114,17 @@ export class ModernCircularGauge extends LitElement {
     this._tryDisconnect();
   }
 
+  protected shouldUpdate(_changedProperties: PropertyValues): boolean {
+    if (_changedProperties.has("hass")) {
+      if (this._trackedEntities.size <= 0) {
+        return true;
+      }
+      const oldHass = _changedProperties.get("hass") as HomeAssistant | undefined;
+      return compareHass(oldHass, this.hass, this._trackedEntities);
+    }
+    return true;
+  }
+
   protected firstUpdated(_changedProperties: PropertyValues): void {
     this._stateMargin = this._calcStateMargin();
   }
@@ -134,8 +148,14 @@ export class ModernCircularGauge extends LitElement {
 
   private _buildEntityStates() {
     this._entityStates.clear();
+    this._trackedEntities.clear();
     if (this._config?.entity) {
       const state = this._templateResults?.entity?.result ?? (isTemplate(this._config.entity) ? undefined : this.hass.states[this._config.entity]) ?? undefined;
+
+      if (!isTemplate(this._config.entity) && this.hass.states[this._config.entity]) {
+        this._trackedEntities.add(this._config.entity);
+      }
+
       this._entityStates.set("primary", state);
     }
     if (this._config?.secondary) {
@@ -143,6 +163,13 @@ export class ModernCircularGauge extends LitElement {
       if (secondaryEntity)
       {
         const state = this._templateResults?.secondaryEntity?.result ?? (isTemplate(secondaryEntity) ? undefined : this.hass.states[secondaryEntity]) ?? undefined;
+
+        if (!isTemplate(secondaryEntity) && this.hass.states[secondaryEntity]) {
+          this._trackedEntities.add(secondaryEntity);
+        }
+
+        this._hasSecondary = true;
+
         this._entityStates.set("secondary", state);
       }
     }
@@ -151,6 +178,11 @@ export class ModernCircularGauge extends LitElement {
       if (tertiaryEntity)
       {
         const state = this._templateResults?.tertiaryEntity?.result ?? (isTemplate(tertiaryEntity) ? undefined : this.hass.states[tertiaryEntity]) ?? undefined;
+
+        if (!isTemplate(tertiaryEntity) && this.hass.states[tertiaryEntity]) {
+          this._trackedEntities.add(tertiaryEntity);
+        }
+
         this._entityStates.set("tertiary", state);
       }
     }
