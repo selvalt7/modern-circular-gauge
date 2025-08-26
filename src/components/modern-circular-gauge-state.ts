@@ -49,7 +49,7 @@ export class ModernCircularGaugeState extends LitElement {
     super.connectedCallback();
     if (this.stateObj) {
       const domain = computeStateDomain(this.stateObj);
-      if (this.stateObj?.attributes.device_class === "timestamp" ||
+      if (this.stateObj?.attributes?.device_class === "timestamp" ||
         TIMESTAMP_STATE_DOMAINS.includes(domain)
       ) {
         this._startInterval();

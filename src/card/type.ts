@@ -50,6 +50,8 @@ export interface GaugeElementConfig {
 
 export type GaugeType = "standard" | "half" | "full";
 
+export type EntityNames = "primary" | "secondary" | "tertiary";
+
 export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     entity: string;
     attribute?: string;
@@ -62,6 +64,7 @@ export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     min?: number | string;
     max?: number | string;
     show_seconds?: boolean;
+    combine_gauges?: boolean;
     gauge_type?: GaugeType;
     rotate_gauge?: boolean;
     unit?: string;

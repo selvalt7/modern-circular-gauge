@@ -18,7 +18,7 @@ export function computeState(hass: HomeAssistant, stateObj: HassEntity, entityAt
     const domain = computeStateDomain(stateObj);
     let secondsUntil: number | undefined;
 
-    if (stateObj?.attributes.device_class === "timestamp" ||
+    if (stateObj?.attributes?.device_class === "timestamp" ||
       TIMESTAMP_STATE_DOMAINS.includes(domain)
     ) {
       const timestamp = new Date(stateObj.state);

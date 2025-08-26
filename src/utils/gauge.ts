@@ -77,16 +77,17 @@ export const svgArc = (options: ArcOptions) => {
   ].join(" ");
 };
 
-export const strokeDashArc = (from: number, to: number, min: number, max: number, radius: number, maxAngle: number = MAX_ANGLE): [string, string] => {
+export const strokeDashArc = (from: number, to: number, min: number, max: number, radius: number, maxAngle: number = MAX_ANGLE, linePadding?: number, offset?: number): [string, string] => {
   const start = valueToPercentage(from, min, max);
   const end = valueToPercentage(to, min, max);
 
+  const padding = linePadding ? linePadding : 0;
   const track = (radius * 2 * Math.PI * maxAngle) / 360;
-  const arc = Math.max((end - start) * track, 0);
+  const arc = Math.max(((end - start) * track) - padding, 0);
   const arcOffset = start * track - 0.5;
 
-  const strokeDasharray = `${arc} ${track - arc}`;
-  const strokeDashOffset = `-${arcOffset}`;
+  const strokeDasharray = `${arc} ${(track - arc) + padding}`;
+  const strokeDashOffset = `-${arcOffset + (offset ?? 0)}`;
   return [strokeDasharray, strokeDashOffset];
 }
 
@@ -98,11 +99,11 @@ export const valueToPercentage = (value: number, min: number, max: number) => {
   return (clamp(value, min, max) - min) / (max - min);
 }
 
-export const currentDashArc = (value: number, min: number, max: number, radius: number, startFromZero?: boolean, maxAngle: number = MAX_ANGLE): [string, string] => {
+export const currentDashArc = (value: number, min: number, max: number, radius: number, startFromZero?: boolean, maxAngle: number = MAX_ANGLE, linePadding?: number, offset?: number): [string, string] => {
   if (startFromZero) {
-    return strokeDashArc(value > 0 ? 0 : value, value > 0 ? value : 0, min, max, radius, maxAngle);
+    return strokeDashArc(value > 0 ? 0 : value, value > 0 ? value : 0, min, max, radius, maxAngle, linePadding, offset);
   } else {
-    return strokeDashArc(min, value, min, max, radius, maxAngle);
+    return strokeDashArc(min, value, min, max, radius, maxAngle, linePadding, offset);
   }
 }
 

@@ -36,6 +36,16 @@ export class ModernCircularGaugeElement extends LitElement {
 
   @property({ type: Boolean }) public error = false;
 
+  @property({ type: Boolean }) public disableBackground = false;
+
+  @property({ type: Number }) public gaugeRotationOffset = 0;
+
+  @property({ type: Boolean }) public flipGauge = false;
+
+  @property({ type: Number }) public linePadding = 0;
+
+  @property({ type: Number }) public lineOffset = 0;
+
   @state() private _updated = false;
 
   @state() private _path?: string;
@@ -93,8 +103,10 @@ export class ModernCircularGaugeElement extends LitElement {
       </svg>
       `
     } else {
-      const current = this.needle ? undefined : currentDashArc(this.value, this.min, this.max, this.radius, this.startFromZero, this._maxAngle);
-      const needle = this.needle ? strokeDashArc(this.value, this.value, this.min, this.max, this.radius, this._maxAngle) : undefined;
+      const min = this.flipGauge ? -this.max : this.min;
+      const max = this.flipGauge ? this.min : this.max;
+      const current = this.needle ? undefined : currentDashArc(this.value * (this.flipGauge ? -1.0 : 1.0), min, max, this.radius, (this.startFromZero || this.flipGauge), this._maxAngle, this.linePadding, this.lineOffset);
+      const needle = this.needle ? strokeDashArc(this.value, this.value, min, max, this.radius, this._maxAngle) : undefined;
       
       return html`
         <svg viewBox="-50 -50 100 ${this.gaugeType == "half" ? 50 : 100}" preserveAspectRatio="xMidYMid"
@@ -116,28 +128,32 @@ export class ModernCircularGaugeElement extends LitElement {
                 />
                 ` : nothing}
               </mask>
+              ${!this.disableBackground ? svg`
               <mask id="gradient-path">
                 ${renderPath("arc", this._path, undefined, styleMap({ "stroke": "white", "stroke-width": this.backgroundStyle?.width ? `${this.backgroundStyle?.width}px` : undefined }))}
               </mask>
+              `: nothing}
               <mask id="gradient-current-path">
-                ${current ? renderPath("arc current", this._path, current, styleMap({ "stroke": "white", "visibility": this.value <= this.min && this.min >= 0 ? "hidden" : "visible" })) : nothing}
+                ${current ? renderPath("arc current", this._path, current, styleMap({ "stroke": "white", "visibility": this.value <= min && min >= 0 ? "hidden" : "visible" })) : nothing}
               </mask>
             </defs>
+            ${!this.disableBackground ? svg`
             <g class="background" mask=${ifDefined(needle ? "url(#needle-border-mask)" : undefined)} style=${styleMap({ "opacity": this.backgroundStyle?.opacity,
               "--gauge-stroke-width": this.backgroundStyle?.width ? `${this.backgroundStyle?.width}px` : undefined })}>
               ${renderPath("arc clear", this._path, undefined, styleMap({ "stroke": this.backgroundStyle?.color && this.backgroundStyle.color != "adaptive" ? this.backgroundStyle.color : undefined }))}
               ${this.segments && (needle || this.backgroundStyle?.color == "adaptive") ? svg`
               <g class="segments" mask=${ifDefined(this.smoothSegments ? "url(#gradient-path)" : undefined)}>
-                ${renderColorSegments(this.segments, this.min, this.max, this.radius, this.smoothSegments, this._maxAngle)}
+                ${renderColorSegments(this.segments, min, max, this.radius, this.smoothSegments, this._maxAngle)}
               </g>`
               : nothing
               }
             </g>
+            `: nothing}
             ${current ? this.foregroundStyle?.color == "adaptive" && this.segments ? svg`
             <g class="foreground-segments" mask="url(#gradient-current-path)" style=${styleMap({ "opacity": this.foregroundStyle?.opacity })}>
-              ${renderColorSegments(this.segments, this.min, this.max, this.radius, this.smoothSegments, this._maxAngle)}
+              ${renderColorSegments(this.segments, min, max, this.radius, this.smoothSegments, this._maxAngle)}
             </g>
-            ` : renderPath("arc current", this._path, current, styleMap({ "visibility": this.value <= this.min && this.min >= 0 ? "hidden" : "visible", "opacity": this.foregroundStyle?.opacity }))
+            ` : renderPath("arc current", this._path, current, styleMap({ "visibility": (this.value <= min && min >= 0) || (this.flipGauge && this.value <= this.min) ? "hidden" : "visible", "opacity": this.foregroundStyle?.opacity }))
             : nothing}
             ${needle ? svg`
             ${renderPath("needle", this._path, needle)}
