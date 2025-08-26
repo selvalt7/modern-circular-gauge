@@ -107,6 +107,9 @@ export class ModernCircularGaugeBadge extends LitElement {
   }
 
   protected shouldUpdate(_changedProperties: PropertyValues): boolean {
+    if (_changedProperties.has("_templateResults")) {
+      return true;
+    }
     if (_changedProperties.has("hass")) {
       if (this._trackedEntities.size <= 0) {
         return true;
