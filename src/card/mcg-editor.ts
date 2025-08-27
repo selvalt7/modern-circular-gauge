@@ -2,7 +2,7 @@ import { fireEvent } from "../ha/common/dom/fire_event";
 import { HomeAssistant } from "../ha/types";
 import { html, LitElement, nothing, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import type { GaugeType, ModernCircularGaugeConfig } from "./type";
+import type { EntityNames, GaugeType, ModernCircularGaugeConfig } from "./type";
 import { mdiSegment, mdiPalette, mdiGauge } from "@mdi/js";
 import { fullDarkGaugeIcon, fullGaugeIcon, getEntityStyleSchema, getSecondarySchema, getTertiarySchema, halfDarkGaugeIcon, halfGaugeIcon, standardDarkGaugeIcon, standardGaugeIcon } from "./mcg-schema";
 import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS, RADIUS, NON_NUMERIC_ATTRIBUTES } from "../const";
@@ -34,7 +34,7 @@ export class ModernCircularGaugeEditor extends LitElement {
   }
 
   private _schema = memoizeOne(
-    (showInnerGaugeOptions: boolean, showTertiaryGaugeOptions: boolean, gaugeType: GaugeType) =>
+    (showInnerGaugeOptions: boolean, showTertiaryGaugeOptions: boolean, gaugeType: GaugeType, entities?: Map<EntityNames, string>) =>
     [
       {
         name: "entity",
@@ -49,11 +49,9 @@ export class ModernCircularGaugeEditor extends LitElement {
         selector: { 
           attribute: {
             hide_attributes: NON_NUMERIC_ATTRIBUTES,
+            entity_id: entities?.get("primary") ?? undefined,
           } 
         },
-        context: {
-          filter_entity: "entity",
-        }
       },
       {
         name: "name",
@@ -100,8 +98,8 @@ export class ModernCircularGaugeEditor extends LitElement {
         iconPath: mdiGauge,
         schema: getEntityStyleSchema(true, RADIUS, "primary_label", gaugeType === "full"),
       },
-        getSecondarySchema(showInnerGaugeOptions, gaugeType === "full"),
-        getTertiarySchema(showTertiaryGaugeOptions, gaugeType === "full"),
+        getSecondarySchema(showInnerGaugeOptions, gaugeType === "full", entities),
+        getTertiarySchema(showTertiaryGaugeOptions, gaugeType === "full", entities),
       {
         name: "appearance",
         type: "expandable",
@@ -246,9 +244,21 @@ export class ModernCircularGaugeEditor extends LitElement {
       return nothing;
     }
 
+    const entities = new Map<EntityNames, string>();
+    entities.set("primary", this._config.entity);
+    const secondary = typeof this._config.secondary === "string" ? this._config.secondary : this._config.secondary?.entity;
+    if (secondary !== undefined) {
+      entities.set("secondary", secondary);
+    }
+    const tertiary = typeof this._config.tertiary === "string" ? this._config.tertiary : this._config.tertiary?.entity;
+    if (tertiary !== undefined) {
+      entities.set("tertiary", tertiary);
+    }
+
     const schema = this._schema(typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner",
       typeof this._config.tertiary != "string" && this._config.tertiary?.show_gauge == "inner",
-      this._config.gauge_type || "standard"
+      this._config.gauge_type || "standard",
+      entities
     );
 
     const DATA = {
