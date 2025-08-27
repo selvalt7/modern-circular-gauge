@@ -1,5 +1,6 @@
 import { mdiNumeric2BoxOutline, mdiSegment, mdiNumeric3BoxOutline, mdiFlipToFront, mdiFlipToBack, mdiGauge } from "@mdi/js";
 import { NUMBER_ENTITY_DOMAINS, DEFAULT_MIN, DEFAULT_MAX, RADIUS, INNER_RADIUS, TERTIARY_RADIUS, NON_NUMERIC_ATTRIBUTES } from "../const";
+import { EntityNames } from "./type";
 
 export const getSecondaryGaugeSchema = (showGaugeOptions: boolean) => [
   {
@@ -170,7 +171,7 @@ export const getEntityStyleSchema = (showGaugeOptions: boolean, gaugeDefaultRadi
   }
 ];
 
-export function getSecondarySchema(showGaugeOptions: boolean, fullGauge: boolean = false) {
+export function getSecondarySchema(showGaugeOptions: boolean, fullGauge: boolean = false, entities?: Map<EntityNames, string>) {
   return {
     name: "secondary",
     type: "expandable",
@@ -188,11 +189,9 @@ export function getSecondarySchema(showGaugeOptions: boolean, fullGauge: boolean
         selector: { 
           attribute: {
             hide_attributes: NON_NUMERIC_ATTRIBUTES,
+            entity_id: entities?.get("secondary") ?? undefined,
           } 
         },
-        context: {
-          filter_entity: "entity",
-        }
       },
       {
         name: "",
@@ -232,7 +231,7 @@ export function getSecondarySchema(showGaugeOptions: boolean, fullGauge: boolean
   }
 }
 
-export function getTertiarySchema(showGaugeOptions: boolean, fullGauge: boolean = false) {
+export function getTertiarySchema(showGaugeOptions: boolean, fullGauge: boolean = false, entities?: Map<EntityNames, string>) {
   return {
     name: "tertiary",
     type: "expandable",
@@ -250,11 +249,9 @@ export function getTertiarySchema(showGaugeOptions: boolean, fullGauge: boolean 
         selector: { 
           attribute: {
             hide_attributes: NON_NUMERIC_ATTRIBUTES,
+            entity_id: entities?.get("tertiary") ?? undefined,
           } 
         },
-        context: {
-          filter_entity: "entity",
-        }
       },
       {
         name: "unit",
