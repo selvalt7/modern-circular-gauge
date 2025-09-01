@@ -48,7 +48,8 @@
       "half_gauge_icon_unavailable": "Ikona jest niedostępna, gdy typ wskaźnika jest ustawiony na połówkę",
       "show_seconds": "Pokaż sekundy w stanach opartych na czasie",
       "rotate_gauge": "Obraca pełny wskaźnik o 180 stopni",
-      "combine_gauges": "Łączy encję pierwszorzędną i drugorzędną w jeden pełny wskaźnik, dostępne tylko gdy typ wskaźnika jest ustawiony na pełny"
+      "combine_gauges": "Łączy encję pierwszorzędną i drugorzędną w jeden pełny wskaźnik, dostępne tylko gdy typ wskaźnika jest ustawiony na pełny",
+      "tertiary_combined": "Encja trzeciorzędna jest wyłączona podczas łączenia encji pierwszorzędnej i drugorzędnej"
     },
     "header_position_options": {
       "options": {

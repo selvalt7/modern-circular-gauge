@@ -48,7 +48,8 @@
       "half_gauge_icon_unavailable": "Icon is unavailable when gauge type is set to half",
       "show_seconds": "Show seconds in time-based states",
       "rotate_gauge": "Rotates the full gauge type 180 degrees",
-      "combine_gauges": "Combines primary and secondary entity into one full gauge, only available when gauge type is set to full"
+      "combine_gauges": "Combines primary and secondary entity into one full gauge, only available when gauge type is set to full",
+      "tertiary_combined": "Tertiary entity is disabled when combining primary and secondary entity"
     },
     "header_position_options": {
       "options": {

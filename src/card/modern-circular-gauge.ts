@@ -239,12 +239,12 @@ export class ModernCircularGauge extends LitElement {
     return undefined;
   }
 
-  private _getEntityStatesSum(): number {
+  private _getEntityStatesSum(ignoreTertiary: boolean = false): number {
     let combinedStates = 0;
     this._entityStates.forEach((_, key) => {
       if (key === "primary") {
         combinedStates += Number(this._getEntityState(key, this._config?.attribute)) ?? 0;
-      } else {
+      } else if (key === "secondary" || (key === "tertiary" && !ignoreTertiary)) {
         combinedStates += Number(this._getEntityState(key, typeof this._config?.[key] === "object" ? this._config?.[key].attribute : undefined)) ?? 0;
       }
     });
@@ -296,7 +296,7 @@ export class ModernCircularGauge extends LitElement {
     }
 
     if (this._config.combine_gauges && this._config.gauge_type === "full") {
-      calculatedMax = this._getEntityStatesSum();
+      calculatedMax = this._getEntityStatesSum(true);
     }
 
     const numberState = Number(templatedState ?? secondsUntil ?? entityState);
@@ -314,7 +314,7 @@ export class ModernCircularGauge extends LitElement {
 
     const stateOverride = 
       this._config.combine_gauges && this._config.gauge_type === "full" 
-      ? this._getEntityStatesSum()
+      ? this._getEntityStatesSum(true)
       : (this._templateResults?.stateText?.result ?? (isTemplate(String(this._config.state_text)) ? "" : (this._config.state_text || undefined)));
 
     const iconCenter = !(this._config.show_state ?? false) && (this._config.show_icon ?? true);
@@ -690,7 +690,7 @@ export class ModernCircularGauge extends LitElement {
       }
 
       if (this._config?.combine_gauges && this._config.gauge_type === "full") {
-        calculatedMax = this._getEntityStatesSum();
+        calculatedMax = this._getEntityStatesSum(true);
       }
 
       

@@ -34,7 +34,7 @@ export class ModernCircularGaugeEditor extends LitElement {
   }
 
   private _schema = memoizeOne(
-    (showInnerGaugeOptions: boolean, showTertiaryGaugeOptions: boolean, gaugeType: GaugeType, entities?: Map<EntityNames, string>) =>
+    (showInnerGaugeOptions: boolean, showTertiaryGaugeOptions: boolean, disableTertiary: boolean, gaugeType: GaugeType, entities?: Map<EntityNames, string>) =>
     [
       {
         name: "entity",
@@ -99,7 +99,7 @@ export class ModernCircularGaugeEditor extends LitElement {
         schema: getEntityStyleSchema(true, RADIUS, "primary_label"),
       },
         getSecondarySchema(showInnerGaugeOptions, entities),
-        getTertiarySchema(showTertiaryGaugeOptions, entities),
+        getTertiarySchema(disableTertiary, showTertiaryGaugeOptions, entities),
       {
         name: "appearance",
         type: "expandable",
@@ -264,6 +264,7 @@ export class ModernCircularGaugeEditor extends LitElement {
 
     const schema = this._schema(typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner",
       typeof this._config.tertiary != "string" && this._config.tertiary?.show_gauge == "inner",
+      this._config.combine_gauges === true && this._config.gauge_type === "full",
       this._config.gauge_type || "standard",
       entities
     );
@@ -274,13 +275,13 @@ export class ModernCircularGaugeEditor extends LitElement {
 
     return html`
     <ha-form
-        .hass=${this.hass}
-        .data=${DATA}
-        .schema=${schema}
-        .computeLabel=${this._computeLabel}
-        .localizeValue=${this._localizeValue}
-        .computeHelper=${this._computeHelper}
-        @value-changed=${this._valueChanged}
+      .hass=${this.hass}
+      .data=${DATA}
+      .schema=${schema}
+      .computeLabel=${this._computeLabel}
+      .localizeValue=${this._localizeValue}
+      .computeHelper=${this._computeHelper}
+      @value-changed=${this._valueChanged}
     ></ha-form>
     `;
   }
