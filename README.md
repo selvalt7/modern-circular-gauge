@@ -9,12 +9,17 @@
 
 Modern look at the default Home Assistant gauge card
 
-![cards](https://github.com/user-attachments/assets/91d0ad86-2851-4203-bc48-bb686001ecc1)
+<img width="1400" height="718" alt="cards" src="https://github.com/user-attachments/assets/f3b370b6-8614-46f3-ace6-1df3d3b12679" />
 
 ### Features
 - Card and badge gauge
+- Attribute support
 - Secondary info under the state with two size options
 - Tertiary info above the state
+- Half gauge style
+- Full gauge style
+- Combined primary and tertiary entity as pie chart
+- Timer and timestamp support
 - Sections support
 - Needle
 - Template support for `min`, `max`, `entity`, `name`, `icon`, `secondary`, `tertiary` and `state_text`
@@ -366,25 +371,17 @@ segments:
 
 ### Remaining timer
 
-Requires sensor with remaining timer seconds.
-
 ![timer](https://github.com/user-attachments/assets/2ecf0810-42ca-435e-8057-407e9412311c)
 
 ```yaml
 type: custom:modern-circular-gauge
-entity: sensor.timer_remaining_seconds
+entity: timer.example_timer
 needle: true
-state_text: "{{ states('sensor.timer_remaining_seconds') | int | timestamp_custom('%M:%S', false) }}"
 name: Timer
 gauge_background_style:
   color: aqua
   opacity: 0.2
 icon: mdi:clock
-min: 0
-max: 210
-tap_action:
-  action: more-info
-  entity: timer.awesome_timer
 
 ```
 
