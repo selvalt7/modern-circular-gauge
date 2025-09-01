@@ -224,11 +224,13 @@ export function getSecondarySchema(showGaugeOptions: boolean, entities?: Map<Ent
   }
 }
 
-export function getTertiarySchema(showGaugeOptions: boolean, entities?: Map<EntityNames, string>) {
+export function getTertiarySchema(disableTertiary: boolean, showGaugeOptions: boolean, entities?: Map<EntityNames, string>) {
   return {
     name: "tertiary",
     type: "expandable",
     iconPath: mdiNumeric3BoxOutline,
+    disabled: disableTertiary,
+    helper: disableTertiary ? "tertiary_combined" : undefined,
     schema: [
       {
         name: "entity",
