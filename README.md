@@ -117,7 +117,7 @@ Templates are supported on selected options, configurable via `yaml` or visual e
 | show_state | `bool` | `true` | Show entity state
 | show_icon | `bool` | `true` | Show icon
 | show_unit | `bool` | `true` | Show unit
-|  | `boolean` | `true` | Show seconds when displaying time based entities
+| show_seconds | `boolean` | `true` | Show seconds when displaying time based entities
 | needle | `bool` | `false` | 
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min
 | gauge_background_style | `object` | Optional | Gauge background style, see [gauge element style object](#gauge-element-style-object)
