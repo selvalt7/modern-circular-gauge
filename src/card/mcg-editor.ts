@@ -96,10 +96,10 @@ export class ModernCircularGaugeEditor extends LitElement {
         type: "expandable",
         flatten: true,
         iconPath: mdiGauge,
-        schema: getEntityStyleSchema(true, RADIUS, "primary_label", gaugeType === "full"),
+        schema: getEntityStyleSchema(true, RADIUS, "primary_label"),
       },
-        getSecondarySchema(showInnerGaugeOptions, gaugeType === "full", entities),
-        getTertiarySchema(showTertiaryGaugeOptions, gaugeType === "full", entities),
+        getSecondarySchema(showInnerGaugeOptions, entities),
+        getTertiarySchema(showTertiaryGaugeOptions, entities),
       {
         name: "appearance",
         type: "expandable",
@@ -177,7 +177,14 @@ export class ModernCircularGaugeEditor extends LitElement {
                 disabled: gaugeType !== "full",
                 helper: "combine_gauges",
                 selector: { boolean: {} },
-              }
+              },
+              {
+                name: "rotate_gauge",
+                default: false,
+                disabled: gaugeType !== "full",
+                helper: "rotate_gauge",
+                selector: { boolean: {} },
+              },
             ],
           },
           {
