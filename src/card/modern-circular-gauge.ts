@@ -196,8 +196,12 @@ export class ModernCircularGauge extends LitElement {
         if (!isTemplate(secondaryEntity) && this.hass.states[secondaryEntity]) {
           this._trackedEntities.add(secondaryEntity);
         }
-
-        this._hasSecondary = true;
+        
+        if (typeof this._config.secondary != "string" && !this._config.secondary.show_state) {
+          this._hasSecondary = false;
+        } else {
+          this._hasSecondary = true;
+        }
 
         this._entityStates.set("secondary", state);
       }
@@ -384,7 +388,7 @@ export class ModernCircularGauge extends LitElement {
           : nothing}
         </div>
         <div class="gauge-state">
-          ${this._config.show_state ? html`
+          ${this._config.show_state || this._config.combine_gauges ? html`
           <modern-circular-gauge-state
             class=${classMap({ "preview": this._inCardPicker! })}
             style=${styleMap({ "--state-text-color": (this._config.adaptive_state_color && !this._config.combine_gauges) ? "var(--gauge-color)" : undefined , "--state-font-size-override": this._config.state_font_size ? `${this._config.state_font_size}px` : (halfStateBig ? `15px` : undefined) })}
@@ -508,7 +512,7 @@ export class ModernCircularGauge extends LitElement {
     }
 
     const value = Number(templatedState ?? stateObj.state);
-    const iconCenter = !(this._config?.show_state ?? false) && (this._config?.show_icon ?? true);
+    const iconCenter = !(this._config?.show_state ?? false) && (this._config?.show_icon ?? true) && !this._config?.combine_gauges;
     const secondaryHasLabel = typeof this._config?.secondary != "string" && this._config?.secondary?.label;
     const iconPosition = iconCenter ? 3 : secondaryHasLabel && this._hasSecondary ? 0 : this._hasSecondary ? 1 : 2;
 
@@ -849,6 +853,9 @@ export class ModernCircularGauge extends LitElement {
     const threeGauges = (typeof this._config?.secondary != "string" && this._config?.secondary?.show_gauge == "inner") && (typeof this._config?.tertiary != "string" && this._config?.tertiary?.show_gauge == "inner");
 
     if (this._config?.combine_gauges && this._config.gauge_type === "full") {
+      if (!this._config.show_state) {
+        return html``;
+      }
       const templatedState = this._templateResults?.entity?.result;
       const stateObj = this._getEntityStateObj("primary");
       const numberState = Number(this._getEntityState("primary", this._config.attribute));
