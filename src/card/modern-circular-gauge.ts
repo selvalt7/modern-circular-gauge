@@ -197,7 +197,7 @@ export class ModernCircularGauge extends LitElement {
           this._trackedEntities.add(secondaryEntity);
         }
         
-        if (typeof this._config.secondary != "string" && !this._config.secondary.show_state) {
+        if (typeof this._config.secondary != "string" && !(this._config.secondary.show_state ?? true)) {
           this._hasSecondary = false;
         } else {
           this._hasSecondary = true;
@@ -388,10 +388,10 @@ export class ModernCircularGauge extends LitElement {
           : nothing}
         </div>
         <div class="gauge-state">
-          ${this._config.show_state || this._config.combine_gauges ? html`
+          ${this._config.show_state || (this._config.combine_gauges && this._config.gauge_type === "full") ? html`
           <modern-circular-gauge-state
             class=${classMap({ "preview": this._inCardPicker! })}
-            style=${styleMap({ "--state-text-color": (this._config.adaptive_state_color && !this._config.combine_gauges) ? "var(--gauge-color)" : undefined , "--state-font-size-override": this._config.state_font_size ? `${this._config.state_font_size}px` : (halfStateBig ? `15px` : undefined) })}
+            style=${styleMap({ "--state-text-color": (this._config.adaptive_state_color && (!this._config.combine_gauges || this._config.gauge_type !== "full")) ? "var(--gauge-color)" : undefined , "--state-font-size-override": this._config.state_font_size ? `${this._config.state_font_size}px` : (halfStateBig ? `15px` : undefined) })}
             .hass=${this.hass}
             .stateObj=${stateObj}
             .entityAttribute=${this._config.attribute}
@@ -512,7 +512,7 @@ export class ModernCircularGauge extends LitElement {
     }
 
     const value = Number(templatedState ?? stateObj.state);
-    const iconCenter = !(this._config?.show_state ?? false) && (this._config?.show_icon ?? true) && !this._config?.combine_gauges;
+    const iconCenter = !(this._config?.show_state ?? false) && (this._config?.show_icon ?? true) && (!this._config?.combine_gauges || this._config?.gauge_type !== "full");
     const secondaryHasLabel = typeof this._config?.secondary != "string" && this._config?.secondary?.label;
     const iconPosition = iconCenter ? 3 : secondaryHasLabel && this._hasSecondary ? 0 : this._hasSecondary ? 1 : 2;
 
@@ -666,6 +666,9 @@ export class ModernCircularGauge extends LitElement {
     
     if (secondaryObj.show_gauge == "inner" || (this._config?.combine_gauges && this._config.gauge_type === "full")) {
       if (!stateObj && templatedState === undefined) {
+        if (this._config?.combine_gauges && this._config.gauge_type === "full") {
+          return html``;
+        }
         return html`
         <modern-circular-gauge-element
           class="secondary"
@@ -765,7 +768,7 @@ export class ModernCircularGauge extends LitElement {
       return html``;
     }
 
-    const iconCenter = !(this._config?.show_state ?? false) && (this._config?.show_icon ?? true) && this._config?.gauge_type != "half";
+    const iconCenter = !(this._config?.show_state ?? false) && (this._config?.show_icon ?? true) && this._config?.gauge_type != "half" && (!this._config?.combine_gauges || this._config?.gauge_type !== "full");
 
     if (typeof secondary === "string") {
       this._hasSecondary = true;
