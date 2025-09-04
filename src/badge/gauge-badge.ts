@@ -79,6 +79,22 @@ export class ModernCircularGaugeBadge extends LitElement {
       throw new Error("Entity must be specified");
     }
 
+    const templates = {
+      entity: "entity",
+      name: "name",
+      icon: "icon",
+      min: "min",
+      max: "max",
+      segments: "segments",
+      stateText: "state_text",
+    };
+
+    Object.entries(templates).forEach(([key, value]) => {
+      if (this._config?.[value] !== config[value]) {
+        this._tryDisconnectKey(key);
+      }
+    });
+
     this._config = { min: DEFAULT_MIN, show_state: true, ...config };
   }
 
