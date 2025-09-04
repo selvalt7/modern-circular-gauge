@@ -1243,6 +1243,7 @@ export class ModernCircularGauge extends LitElement {
       padding: 10px;
       flex-direction: column-reverse;
       align-items: center;
+      overflow: hidden;
     }
 
     ha-card.action {
