@@ -20,6 +20,7 @@ export interface BaseEntityConfig {
     show_gauge?: "none" | "inner" | "outter" | "outer";
     show_state?: boolean;
     show_unit?: boolean;
+    show_in_graph?: boolean;
     state_text?: string;
     state_font_size?: number;
     start_from_zero?: boolean;
@@ -75,6 +76,8 @@ export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     show_header?: boolean;
     show_unit?: boolean;
     show_icon?: boolean;
+    show_graph?: boolean;
+    show_in_graph?: boolean;
     needle?: boolean;
     state_text?: string;
     adaptive_icon_color?: boolean;

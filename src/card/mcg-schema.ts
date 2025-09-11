@@ -135,6 +135,11 @@ export const getEntityStyleSchema = (showGaugeOptions: boolean, gaugeDefaultRadi
         name: "decimals",
         selector: { number: { step: 1, min: 0 } },
       },
+      {
+        name: "show_in_graph",
+        default: false,
+        selector: { boolean: {} },
+      }
     ]
   },
   {

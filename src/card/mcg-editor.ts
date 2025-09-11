@@ -3,7 +3,7 @@ import { HomeAssistant } from "../ha/types";
 import { html, LitElement, nothing, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { EntityNames, GaugeType, ModernCircularGaugeConfig } from "./type";
-import { mdiSegment, mdiPalette, mdiGauge } from "@mdi/js";
+import { mdiSegment, mdiPalette, mdiGauge, mdiChartLineVariant } from "@mdi/js";
 import { fullDarkGaugeIcon, fullGaugeIcon, getEntityStyleSchema, getSecondarySchema, getTertiarySchema, halfDarkGaugeIcon, halfGaugeIcon, standardDarkGaugeIcon, standardGaugeIcon } from "./mcg-schema";
 import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS, RADIUS, NON_NUMERIC_ATTRIBUTES } from "../const";
 import memoizeOne from "memoize-one";
@@ -186,6 +186,31 @@ export class ModernCircularGaugeEditor extends LitElement {
                 selector: { boolean: {} },
               },
             ],
+          },
+          {
+            name: "graph",
+            type: "expandable",
+            flatten: true,
+            iconPath: mdiChartLineVariant,
+            schema: [
+              {
+                name: "",
+                type: "grid",
+                schema: [
+                  {
+                    name: "show_graph",
+                    default: false,
+                    selector: { boolean: {} } 
+                  },
+                  {
+                    name: "graph_hours_to_show",
+                    default: 24,
+                    selector: { number: { min: 1, max: 168, step: 1 } }
+                  },
+                ]
+              },
+
+            ]
           },
           {
             name: "gauge_type",

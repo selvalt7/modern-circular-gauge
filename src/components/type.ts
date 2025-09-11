@@ -1,3 +1,4 @@
+import { EntityNames, SegmentsConfig } from "../card/type";
 import { HaFormBaseSchema } from "../ha/components/ha-form-types";
 
 export interface HaFormMCGListSchema extends HaFormBaseSchema {
@@ -15,4 +16,17 @@ export interface HaFormMCGTemplateSchema extends HaFormBaseSchema {
   label?: string;
   flatten?: boolean;
   schema?: readonly any[] | any;
+}
+
+interface MCGGraphEntity {
+  entity: string;
+  min: number;
+  max: number;
+  segments?: SegmentsConfig[];
+}
+
+export interface MCGGraphConfig {
+  entitys?: Map<EntityNames, MCGGraphEntity>;
+  hours_to_show?: number;
+  smooth_segments?: boolean;
 }
