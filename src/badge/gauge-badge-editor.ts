@@ -194,16 +194,7 @@ export class ModernCircularGaugeBadgeEditor extends LitElement {
       return nothing;
     }
 
-    const DATA = {
-      ...this._config,
-      segments: this._config.segments?.map(value => {
-        let color = value.color;
-        if (typeof value.color === "string") {
-            color = hexToRgb(value.color) as any;
-        }
-        return { ...value, color };
-      })
-    };
+    const DATA = this._config;
 
     return html`
     <ha-form
