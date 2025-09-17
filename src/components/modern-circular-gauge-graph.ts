@@ -6,8 +6,8 @@ import { subscribeHistoryStatesTimeWindow } from "../ha/data/history";
 import { MCGGraphConfig } from "./type";
 import { DEFAULT_MAX, DEFAULT_MIN } from "../const";
 import { EntityNames, SegmentsConfig } from "../card/type";
-import { clamp, valueToPercentage, valueToPercentageUnclamped } from "../utils/gauge";
-import { ifDefined } from "lit/directives/if-defined.js";
+import { valueToPercentage, valueToPercentageUnclamped } from "../utils/gauge";
+import { styleMap } from "lit/directives/style-map.js";
 
 const DEFAULT_HOURS_TO_SHOW = 24;
 
@@ -62,7 +62,7 @@ export class ModernCircularGaugeGraph extends LitElement {
               d=${path}
             ></path>
           </mask>
-          <rect height="16%" width="38%" fill=${ifDefined(segmentsGradient.length ? `url(#${entity}-grad)`: undefined)} mask="url(#${entity.concat("-line")})"></rect>
+          <rect height="16%" width="38%" style=${styleMap({ "fill": segmentsGradient.length ? `url(#${entity}-grad)`: undefined })} mask="url(#${entity.concat("-line")})"></rect>
         </g>
       `);
     });
@@ -311,7 +311,7 @@ export class ModernCircularGaugeGraph extends LitElement {
     }
 
     .primary rect {
-      /* fill: var(--gauge-color); */
+      fill: var(--gauge-color);
     }
     .secondary rect {
       fill: var(--gauge-secondary-color, var(--gauge-color));
