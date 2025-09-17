@@ -6,7 +6,7 @@ import { subscribeHistoryStatesTimeWindow } from "../ha/data/history";
 import { MCGGraphConfig } from "./type";
 import { DEFAULT_MAX, DEFAULT_MIN } from "../const";
 import { EntityNames, SegmentsConfig } from "../card/type";
-import { valueToPercentage } from "../utils/gauge";
+import { clamp, valueToPercentage, valueToPercentageUnclamped } from "../utils/gauge";
 import { ifDefined } from "lit/directives/if-defined.js";
 
 const DEFAULT_HOURS_TO_SHOW = 24;
@@ -18,6 +18,8 @@ export class ModernCircularGaugeGraph extends LitElement {
   @property({ attribute: false }) public config?: MCGGraphConfig;
 
   @state() private _coordinates?: Map<EntityNames, [number, number][]> = new Map();
+
+  private _limits?: Map<EntityNames, { min?: number, max?: number }> = new Map();
 
   public connectedCallback(): void {
     super.connectedCallback();
@@ -39,7 +41,7 @@ export class ModernCircularGaugeGraph extends LitElement {
 
       const path = this._getPath(coords);
       const entityConfig = this.config?.entitys?.get(entity);
-      const segmentsGradient = this._computeGradient(entityConfig?.segments ?? [], entityConfig?.min ?? DEFAULT_MIN, entityConfig?.max ?? DEFAULT_MAX);
+      const segmentsGradient = this._computeGradient(entityConfig?.segments ?? [], this._limits?.get(entity)?.min ?? DEFAULT_MIN, this._limits?.get(entity)?.max ?? DEFAULT_MAX);
 
       graphs.push(svg`
         <g class=${entity} mask="url(#gradient)">
@@ -79,6 +81,7 @@ export class ModernCircularGaugeGraph extends LitElement {
         </mask>
       </defs>
       ${graphs}
+      <!-- <rect height="16%" width="38%" fill="url(#primary-grad)"></rect> -->
     </svg>
     `;
   }
@@ -86,19 +89,33 @@ export class ModernCircularGaugeGraph extends LitElement {
   private _computeGradient(segments: SegmentsConfig[], min: number, max: number): TemplateResult[] {
     if (segments) {
       let sortedSegments = [...segments].sort((a, b) => Number(a.from) - Number(b.from));
+      const height = 16;
+      const strokeWidth = 4;
+      const halfStrokeWidth = strokeWidth / 2;
 
-       return [...sortedSegments].map((segment, index) => {
-        const offset = valueToPercentage(Number(segment.from), min ?? DEFAULT_MIN, max ?? DEFAULT_MAX) * 100;
+      return [...sortedSegments].map((segment, index) => {
+        let yRatio = ((max ?? DEFAULT_MAX) - (min ?? DEFAULT_MIN)) / height;
+        yRatio = yRatio !== 0 ? yRatio : height;
+
+        // const offset = ((height + strokeWidth / 2 - (segment.from - min) / yRatio) / 16) * 100;
+        // console.log(offset);
+        const offset = this._remapValue(valueToPercentageUnclamped(Number(segment.from), min ?? DEFAULT_MIN, max ?? DEFAULT_MAX), 0.0, 1.0, halfStrokeWidth / height, (height - halfStrokeWidth) / height) * 100;
         const color = typeof segment.color === "object" ? `rgb(${segment.color[0]},${segment.color[1]},${segment.color[2]})` : segment.color;
         let hardStop: TemplateResult | undefined;
         if (sortedSegments[index + 1] && !this.config?.smooth_segments) {
-          const nextOffset = valueToPercentage(Number(sortedSegments[index + 1].from), min ?? DEFAULT_MIN, max ?? DEFAULT_MAX) * 100;
+          // const nextOffset = ((height + strokeWidth / 2 - (sortedSegments[index + 1].from - min) / yRatio) / 16) * 100;
+          const nextOffset = this._remapValue(valueToPercentageUnclamped(Number(sortedSegments[index + 1].from), min ?? DEFAULT_MIN, max ?? DEFAULT_MAX), 0.0, 1.0, halfStrokeWidth / height, (height - halfStrokeWidth) / height) * 100;
           hardStop = svg`<stop offset="${nextOffset}%" stop-color="${color}" />`;
         }
         return svg`<stop offset="${offset}%" stop-color="${color}" />${hardStop || ""}`;
       });
     }
     return [];
+  }
+
+  private _remapValue(value: number, inMin: number, inMax: number, outMin: number, outMax: number): number {
+    const newRange = ((value - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
+    return newRange;
   }
 
   private async _subscribeHistory(): Promise<() => Promise<void>> { 
@@ -130,11 +147,12 @@ export class ModernCircularGaugeGraph extends LitElement {
           }));
 
           this._coordinates?.set(entityName, this._calcCoordinates(
+            entityName,
             history,
             hourToShow,
             38,
             2,
-            { min: entity.min, max: entity.max }
+            { min: entity.adaptive_range ? undefined : entity.min, max: entity.adaptive_range ? undefined : entity.max }
           ) || []);
         });
         this.requestUpdate();
@@ -145,7 +163,7 @@ export class ModernCircularGaugeGraph extends LitElement {
     );
   }
 
-  private _calcCoordinates(history: any, hours: number, width: number, detail: number, limits: { min?: number, max?: number }): [number, number][] | undefined {
+  private _calcCoordinates(entity: EntityNames, history: any, hours: number, width: number, detail: number, limits: { min?: number, max?: number }): [number, number][] | undefined {
     history = history.filter((item) => !Number.isNaN(item.state));
 
     const min =
@@ -156,6 +174,9 @@ export class ModernCircularGaugeGraph extends LitElement {
       limits?.max !== undefined
         ? limits.max
         : Math.max(...history.map((item) => item.state));
+
+    this._limits?.set(entity, { min: min, max: max });
+
     const now = new Date().getTime();
 
     const reduce = (res, item, point) => {
@@ -199,7 +220,7 @@ export class ModernCircularGaugeGraph extends LitElement {
 
   private _calcPoints(history: any, hours: number, width: number, detail: number, min: number, max: number): [number, number][] {
     const coords = [] as [number, number][];
-    const height = 14;
+    const height = 12;
     const strokeWidth = 4;
     let yRatio = (max - min) / height;
     yRatio = yRatio !== 0 ? yRatio : height;
@@ -212,8 +233,10 @@ export class ModernCircularGaugeGraph extends LitElement {
     }
     let last = [this._average(first), this._lastValue(first)];
 
+    // const getY = (value: number): number =>
+    //   height + strokeWidth / 2 - (value - min) / yRatio;
     const getY = (value: number): number =>
-      height + strokeWidth / 2 - (value - min) / yRatio;
+      Math.abs(valueToPercentage(value, min, max) - 1) * height + strokeWidth / 2;
 
     const getCoords = (item: any[], i: number, offset = 0, depth = 1) => {
       if (depth > 1 && item) {

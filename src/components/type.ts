@@ -22,6 +22,7 @@ interface MCGGraphEntity {
   entity: string;
   min: number;
   max: number;
+  adaptive_range?: boolean;
   segments?: SegmentsConfig[];
 }
 

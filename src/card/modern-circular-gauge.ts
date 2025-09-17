@@ -543,6 +543,7 @@ export class ModernCircularGauge extends LitElement {
         min: Number(this._templateResults?.min?.result ?? this._config?.min) || DEFAULT_MIN,
         max: Number(this._templateResults?.max?.result ?? this._config?.max) || DEFAULT_MAX,
         segments: (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config?.segments,
+        adaptive_range: this._config?.adaptive_graph_range
       });
     }
     if (this._config?.secondary && typeof this._config?.secondary != "string" && this._config.secondary.show_in_graph) {
@@ -552,6 +553,7 @@ export class ModernCircularGauge extends LitElement {
           min: Number(this._templateResults?.secondaryMin?.result ?? this._config?.secondary?.min) || DEFAULT_MIN,
           max: Number(this._templateResults?.secondaryMax?.result ?? this._config?.secondary?.max) || DEFAULT_MAX,
           segments: (this._templateResults?.secondarySegments?.result as unknown) as SegmentsConfig[] ?? this._config?.secondary?.segments,
+          adaptive_range: this._config.secondary.adaptive_graph_range
         });
       }
     }
@@ -562,6 +564,7 @@ export class ModernCircularGauge extends LitElement {
           min: Number(this._templateResults?.tertiaryMin?.result ?? this._config?.tertiary?.min) || DEFAULT_MIN,
           max: Number(this._templateResults?.tertiaryMax?.result ?? this._config?.tertiary?.max) || DEFAULT_MAX,
           segments: (this._templateResults?.tertiarySegments?.result as unknown) as SegmentsConfig[] ?? this._config?.tertiary?.segments,
+          adaptive_range: this._config.tertiary.adaptive_graph_range
         });
       }
     }

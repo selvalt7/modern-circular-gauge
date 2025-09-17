@@ -139,6 +139,11 @@ export const getEntityStyleSchema = (showGaugeOptions: boolean, gaugeDefaultRadi
         name: "show_in_graph",
         default: false,
         selector: { boolean: {} },
+      },
+      {
+        name: "adaptive_graph_bounds",
+        default: false,
+        selector: { boolean: {} },
       }
     ]
   },
