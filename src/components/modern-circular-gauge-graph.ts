@@ -19,13 +19,20 @@ export class ModernCircularGaugeGraph extends LitElement {
 
   @state() private _coordinates?: Map<EntityNames, [number, number][]> = new Map();
 
+  private _subscribed?: Promise<(() => Promise<void>) | undefined>;
+
   private _limits?: Map<EntityNames, { min?: number, max?: number }> = new Map();
 
   public connectedCallback(): void {
     super.connectedCallback();
     if (this.config) {
-      this._subscribeHistory();
+      this._subscribed = this._subscribeHistory();
     }
+  }
+
+  public disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this._unsubscribeHistory();
   }
 
   protected render(): TemplateResult {
@@ -81,7 +88,6 @@ export class ModernCircularGaugeGraph extends LitElement {
         </mask>
       </defs>
       ${graphs}
-      <!-- <rect height="16%" width="38%" fill="url(#primary-grad)"></rect> -->
     </svg>
     `;
   }
@@ -94,16 +100,10 @@ export class ModernCircularGaugeGraph extends LitElement {
       const halfStrokeWidth = strokeWidth / 2;
 
       return [...sortedSegments].map((segment, index) => {
-        let yRatio = ((max ?? DEFAULT_MAX) - (min ?? DEFAULT_MIN)) / height;
-        yRatio = yRatio !== 0 ? yRatio : height;
-
-        // const offset = ((height + strokeWidth / 2 - (segment.from - min) / yRatio) / 16) * 100;
-        // console.log(offset);
         const offset = this._remapValue(valueToPercentageUnclamped(Number(segment.from), min ?? DEFAULT_MIN, max ?? DEFAULT_MAX), 0.0, 1.0, halfStrokeWidth / height, (height - halfStrokeWidth) / height) * 100;
         const color = typeof segment.color === "object" ? `rgb(${segment.color[0]},${segment.color[1]},${segment.color[2]})` : segment.color;
         let hardStop: TemplateResult | undefined;
         if (sortedSegments[index + 1] && !this.config?.smooth_segments) {
-          // const nextOffset = ((height + strokeWidth / 2 - (sortedSegments[index + 1].from - min) / yRatio) / 16) * 100;
           const nextOffset = this._remapValue(valueToPercentageUnclamped(Number(sortedSegments[index + 1].from), min ?? DEFAULT_MIN, max ?? DEFAULT_MAX), 0.0, 1.0, halfStrokeWidth / height, (height - halfStrokeWidth) / height) * 100;
           hardStop = svg`<stop offset="${nextOffset}%" stop-color="${color}" />`;
         }
@@ -161,6 +161,13 @@ export class ModernCircularGaugeGraph extends LitElement {
       entities,
       false
     );
+  }
+
+  private _unsubscribeHistory() {
+    if (this._subscribed) {
+      this._subscribed.then((unsub) => unsub?.());
+      this._subscribed = undefined;
+    }
   }
 
   private _calcCoordinates(entity: EntityNames, history: any, hours: number, width: number, detail: number, limits: { min?: number, max?: number }): [number, number][] | undefined {
