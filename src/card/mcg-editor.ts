@@ -205,7 +205,12 @@ export class ModernCircularGaugeEditor extends LitElement {
                   {
                     name: "graph_hours_to_show",
                     default: 24,
-                    selector: { number: { min: 1, max: 168, step: 1 } }
+                    selector: { number: { min: 1, max: 168, step: 1, mode: "box" } }
+                  },
+                  {
+                    name: "graph_points_per_hour",
+                    default: 1,
+                    selector: { number: { min: 0.1, max: 16, step: 0.1, mode: "box" } }
                   },
                 ]
               },

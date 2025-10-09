@@ -30,4 +30,5 @@ export interface MCGGraphConfig {
   entitys?: Map<EntityNames, MCGGraphEntity>;
   hours_to_show?: number;
   smooth_segments?: boolean;
+  points_per_hour?: number;
 }

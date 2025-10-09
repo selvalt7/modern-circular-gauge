@@ -80,6 +80,8 @@ export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     show_graph?: boolean;
     show_in_graph?: boolean;
     adaptive_graph_range?: boolean;
+    graph_hours_to_show?: number;
+    graph_points_per_hour?: number;
     needle?: boolean;
     state_text?: string;
     adaptive_icon_color?: boolean;

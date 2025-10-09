@@ -537,7 +537,7 @@ export class ModernCircularGauge extends LitElement {
   }
 
   private _renderGraph(): TemplateResult {
-    let graphConfig: MCGGraphConfig = { entitys: new Map(), hours_to_show: this._config?.graph_hours_to_show ?? 24, smooth_segments: this._config?.smooth_segments ?? false };
+    let graphConfig: MCGGraphConfig = { entitys: new Map(), hours_to_show: this._config?.graph_hours_to_show ?? 24, smooth_segments: this._config?.smooth_segments ?? false, points_per_hour: this._config?.graph_points_per_hour ?? 1 };
     if (this._config?.show_in_graph ?? true) {
       graphConfig.entitys?.set("primary", { entity: this._config?.entity ?? "",
         min: Number(this._templateResults?.min?.result ?? this._config?.min) || DEFAULT_MIN,

@@ -10,6 +10,7 @@ import { valueToPercentage, valueToPercentageUnclamped } from "../utils/gauge";
 import { styleMap } from "lit/directives/style-map.js";
 
 const DEFAULT_HOURS_TO_SHOW = 24;
+const DEFAULT_POINTS_PER_HOUR = 2;
 
 @customElement("modern-circular-gauge-graph")
 export class ModernCircularGaugeGraph extends LitElement {
@@ -79,8 +80,8 @@ export class ModernCircularGaugeGraph extends LitElement {
       <defs>
         <linearGradient id="grad" x1="0%" y1="0%" x2="38%" y2="0%">
           <stop offset="0%" stop-color="black" />
-          <stop offset="20%" stop-color="white" />
-          <stop offset="80%" stop-color="white" />
+          <stop offset="10%" stop-color="white" />
+          <stop offset="90%" stop-color="white" />
           <stop offset="100%" stop-color="black" />
         </linearGradient>
         <mask id="gradient">
@@ -151,7 +152,7 @@ export class ModernCircularGaugeGraph extends LitElement {
             history,
             hourToShow,
             38,
-            2,
+            Math.max(0, this.config?.points_per_hour ?? DEFAULT_POINTS_PER_HOUR),
             { min: entity.adaptive_range ? undefined : entity.min, max: entity.adaptive_range ? undefined : entity.max }
           ) || []);
         });
@@ -186,42 +187,46 @@ export class ModernCircularGaugeGraph extends LitElement {
 
     const now = new Date().getTime();
 
-    const reduce = (res, item, point) => {
-      const age = now - new Date(item.last_changed).getTime();
+    const graphStart = now - hours * 3600 * 1000;
 
-      let key = Math.abs(age / (1000 * 3600) - hours);
-      if (point) {
-        key = (key - Math.floor(key)) * 60;
-        key = Number((Math.round(key / 10) * 10).toString()[0]);
-      } else {
-        key = Math.floor(key);
+    let initialValue: any = null;
+    for (let i = history.length - 1; i >= 0; i--) {
+      if (history[i].last_changed < graphStart) {
+        initialValue = history[i];
+        break;
       }
-      if (!res[key]) {
-        res[key] = [];
-      }
-      res[key].push(item);
-      return res;
-    };
-
-    history = history.reduce((res, item) => reduce(res, item, false), []);
-    if (detail > 1) {
-      history = history.map((entry) =>
-        entry.reduce((res, item) => reduce(res, item, true), [])
-      );
     }
 
-    if (!history.length) {
+    const totalPoints = Math.max(2, Math.ceil(hours * detail));
+    const msPerBucket = (3600 * 1000) / detail;
+    const buckets: any[][] = Array.from({ length: totalPoints }, () => []);
+
+    for (const item of history) {
+      const ageMs = now - item.last_changed;
+      const bucketIdx = Math.floor((hours * 3600 * 1000 - ageMs) / msPerBucket);
+      if (bucketIdx >= 0 && bucketIdx < totalPoints) {
+        buckets[bucketIdx].push(item);
+      }
+    }
+
+    if (initialValue) {
+      buckets[0].unshift(initialValue);
+    }
+
+    if (!buckets.length) {
       return undefined;
     }
 
-    return this._calcPoints(history, hours, width, detail, min, max);
+    return this._calcPoints(buckets, hours, width, detail, min, max);
   }
 
   private _average(items: any[]): number {
+    if (!Array.isArray(items) || items.length === 0) return 0;
     return items.reduce((sum, entry) => sum + parseFloat(entry.state), 0) / items.length;
   }
 
   private _lastValue(items: any[]): number {
+    if (!Array.isArray(items) || items.length === 0) return 0;
     return parseFloat(items[items.length - 1].state) || 0;
   }
 
@@ -229,43 +234,35 @@ export class ModernCircularGaugeGraph extends LitElement {
     const coords = [] as [number, number][];
     const height = 12;
     const strokeWidth = 4;
+    const totalPoints = Math.ceil(hours * detail);
     let yRatio = (max - min) / height;
     yRatio = yRatio !== 0 ? yRatio : height;
-    let xRatio = width / (hours - (detail === 1 ? 1 : 0));
+    let xRatio = width / Math.max(1, totalPoints - 1);
     xRatio = isFinite(xRatio) ? xRatio : width;
 
     let first = history.filter(Boolean)[0];
     if (detail > 1) {
       first = first.filter(Boolean)[0];
     }
-    let last = [this._average(first), this._lastValue(first)];
 
     // const getY = (value: number): number =>
     //   height + strokeWidth / 2 - (value - min) / yRatio;
     const getY = (value: number): number =>
       Math.abs(valueToPercentage(value, min, max) - 1) * height + strokeWidth / 2;
 
-    const getCoords = (item: any[], i: number, offset = 0, depth = 1) => {
-      if (depth > 1 && item) {
-        return item.forEach((subItem, index) =>
-          getCoords(subItem, i, index, depth - 1)
-        );
-      }
-
-      const x = xRatio * (i + offset / 6);
-
-      if (item) {
-        last = [this._average(item), this._lastValue(item)];
-      }
-      const y = getY(item ? last[0] : last[1]);
-      return coords.push([x, y]);
-    };
-
+    let lastValue = history.find(b => b.length)?.[0]?.state ?? min;
     for (let i = 0; i < history.length; i += 1) {
-      getCoords(history[i], i, 0, detail);
+      let value;
+      if (history[i].length) {
+        value = this._average(history[i]);
+        lastValue = value;
+      } else {
+        value = lastValue;
+      }
+      coords.push([xRatio * i, getY(value)]);
     }
 
-    coords.push([width, getY(last[1])]);
+    coords.push([width, getY(lastValue)]);
     return coords;
   }
 
