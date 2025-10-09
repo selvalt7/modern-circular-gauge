@@ -38,6 +38,12 @@
     "show_seconds": "Pokaż sekundy",
     "rotate_gauge": "Obróć wskaźnik",
     "combine_gauges": "Połącz encję pierwszorzędną i drugorzędną",
+    "show_in_graph": "Pokaż na wykresie",
+    "adaptive_graph_range": "Adaptywny zakres wykresu",
+    "graph": "Ustawienia wykresu",
+    "show_graph": "Pokaż wykres",
+    "graph_hours_to_show": "Godziny do wyświetlenia",
+    "graph_points_per_hour": "Punkty na godzinę",
     "helper": {
       "start_from_zero": "Wskaźnik rozpoczyna się od zera zamiast od minimum",
       "primary_label": "Tekst wyświetlony pod głównym stanem, gdy rozmiar stanu informacji drugorzędnej jest duży",
