@@ -24,6 +24,7 @@ import { getTimestampRemainingSeconds, getTimerRemainingSeconds } from "../utils
 import "../components/mcg-badge-state";
 import "../components/modern-circular-gauge-state";
 import { compareHass } from "../utils/compare-hass";
+import { computeCssColor } from "../ha/common/color/compute-color";
 
 const MAX_ANGLE = 270;
 const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
@@ -356,7 +357,7 @@ export class ModernCircularGaugeBadge extends LitElement {
         hasDoubleClick: hasAction(this._config.double_tap_action),
       })}
       .iconOnly=${content === undefined}
-      style=${styleMap({ "--gauge-color": gaugeForegroundStyle?.color && gaugeForegroundStyle?.color != "adaptive" ? gaugeForegroundStyle?.color : computeSegments(numberState, segments, this._config.smooth_segments, this), "--gauge-stroke-width": gaugeForegroundStyle?.width ? `${gaugeForegroundStyle?.width}px` : undefined })}
+      style=${styleMap({ "--gauge-color": gaugeForegroundStyle?.color && gaugeForegroundStyle?.color != "adaptive" ? computeCssColor(gaugeForegroundStyle?.color) : computeSegments(numberState, segments, this._config.smooth_segments, this), "--gauge-stroke-width": gaugeForegroundStyle?.width ? `${gaugeForegroundStyle?.width}px` : undefined })}
       .label=${label}
     >
       <div class=${classMap({ "container": true, "icon-only": content === undefined })} slot="icon">
@@ -379,7 +380,7 @@ export class ModernCircularGaugeBadge extends LitElement {
             <g mask="url(#needle-mask)">
               <g class="background" style=${styleMap({ "opacity": this._config.gauge_background_style?.opacity,
                 "--gauge-stroke-width": this._config.gauge_background_style?.width ? `${this._config.gauge_background_style?.width}px` : undefined })}>
-                ${renderPath("arc clear", path, undefined, styleMap({ "stroke": gaugeBackgroundStyle?.color && gaugeBackgroundStyle?.color != "adaptive" ? gaugeBackgroundStyle?.color : undefined }))}
+                ${renderPath("arc clear", path, undefined, styleMap({ "stroke": gaugeBackgroundStyle?.color && gaugeBackgroundStyle?.color != "adaptive" ? computeCssColor(gaugeBackgroundStyle?.color) : undefined }))}
                 ${this._config.segments && (this._config.needle || this._config.gauge_background_style?.color == "adaptive") ? svg`
                 <g class="segments" mask=${ifDefined(this._config.smooth_segments ? "url(#gradient-path)" : undefined)}>
                   ${renderColorSegments(segments, min, max, RADIUS, this._config?.smooth_segments)}

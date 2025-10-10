@@ -5,6 +5,7 @@ import { GaugeElementConfig, GaugeType, SegmentsConfig } from "../card/type";
 import { styleMap } from "lit/directives/style-map.js";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { svgArc, renderPath, currentDashArc, strokeDashArc, renderColorSegments, computeSegments } from "../utils/gauge";
+import { computeCssColor } from "../ha/common/color/compute-color";
 
 @customElement("modern-circular-gauge-element")
 export class ModernCircularGaugeElement extends LitElement {
@@ -94,11 +95,11 @@ export class ModernCircularGaugeElement extends LitElement {
       <svg viewBox="-50 -50 100 ${this.gaugeType == "half" ? 50 : 100}" preserveAspectRatio="xMidYMid"
         overflow="visible"
         style=${styleMap({ "--gauge-stroke-width": this.foregroundStyle?.width ? `${this.foregroundStyle?.width}px` : undefined,
-        "--gauge-color": this.foregroundStyle?.color && this.foregroundStyle?.color != "adaptive" ? this.foregroundStyle?.color : computeSegments(this.value, this.segments, this.smoothSegments, this) })}
+        "--gauge-color": this.foregroundStyle?.color && this.foregroundStyle?.color != "adaptive" ? computeCssColor(this.foregroundStyle?.color) : computeSegments(this.value, this.segments, this.smoothSegments, this) })}
       >
         <g transform="rotate(${this._rotateAngle})">
           ${!this.foregroundStyle?.color ? renderPath("dot border", this._path, current, styleMap({ "opacity": this.foregroundStyle?.opacity ?? 1, "stroke-width": this.foregroundStyle?.width })) : nothing}
-          ${renderPath("dot", this._path, current, styleMap({ "opacity": this.foregroundStyle?.opacity ?? 1, "stroke": this.foregroundStyle?.color, "stroke-width": this.foregroundStyle?.width }))}
+          ${renderPath("dot", this._path, current, styleMap({ "opacity": this.foregroundStyle?.opacity ?? 1, "stroke": computeCssColor(this.foregroundStyle?.color ?? ""), "stroke-width": this.foregroundStyle?.width }))}
         </g>
       </svg>
       `
@@ -112,7 +113,7 @@ export class ModernCircularGaugeElement extends LitElement {
         <svg viewBox="-50 -50 100 ${this.gaugeType == "half" ? 50 : 100}" preserveAspectRatio="xMidYMid"
           overflow="visible"
           style=${styleMap({ "--gauge-stroke-width": this.foregroundStyle?.width ? `${this.foregroundStyle?.width}px` : undefined,
-          "--gauge-color": this.foregroundStyle?.color && this.foregroundStyle?.color != "adaptive" ? this.foregroundStyle?.color : computeSegments(this.value, this.segments, this.smoothSegments, this) })}
+          "--gauge-color": this.foregroundStyle?.color && this.foregroundStyle?.color != "adaptive" ? computeCssColor(this.foregroundStyle?.color) : computeSegments(this.value, this.segments, this.smoothSegments, this) })}
         >
           <g transform="rotate(${this._rotateAngle})">
             <defs>
@@ -140,7 +141,7 @@ export class ModernCircularGaugeElement extends LitElement {
             ${!this.disableBackground ? svg`
             <g class="background" mask=${ifDefined(needle ? "url(#needle-border-mask)" : undefined)} style=${styleMap({ "opacity": this.backgroundStyle?.opacity,
               "--gauge-stroke-width": this.backgroundStyle?.width ? `${this.backgroundStyle?.width}px` : undefined })}>
-              ${renderPath("arc clear", this._path, undefined, styleMap({ "stroke": this.backgroundStyle?.color && this.backgroundStyle.color != "adaptive" ? this.backgroundStyle.color : undefined }))}
+              ${renderPath("arc clear", this._path, undefined, styleMap({ "stroke": this.backgroundStyle?.color && this.backgroundStyle.color != "adaptive" ? computeCssColor(this.backgroundStyle.color) : undefined }))}
               ${this.segments && (needle || this.backgroundStyle?.color == "adaptive") ? svg`
               <g class="segments" mask=${ifDefined(this.smoothSegments ? "url(#gradient-path)" : undefined)}>
                 ${renderColorSegments(this.segments, min, max, this.radius, this.smoothSegments, this._maxAngle)}

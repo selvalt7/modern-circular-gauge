@@ -6,6 +6,7 @@ import { DirectiveResult } from "lit/directive";
 import { styleMap, StyleMapDirective } from "lit/directives/style-map.js";
 import { ClassMapDirective } from "lit/directives/class-map";
 import { ifDefined } from "lit/directives/if-defined.js";
+import { computeCssColor } from "../ha/common/color/compute-color";
 
 type Vector = [number, number];
 type Matrix = [Vector, Vector];
@@ -141,7 +142,7 @@ export function renderSegmentsGradient(segments: SegmentsConfig[], min: number, 
     }
     sortedSegments.map((segment, index) => {
       const angle = getAngle(Number(segment.from), min, max, maxAngle) + angleOffset;
-      const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
+      const color = typeof segment.color === "object" ? rgbToHex(segment.color) : computeCssColor(segment.color);
       gradient += `${color} ${angle}deg${index != sortedSegments.length - 1 ? "," : ""}`;
     });
     return [svg`
@@ -163,7 +164,7 @@ export function renderSegments(segments: SegmentsConfig[], min: number, max: num
       let roundEnd: TemplateResult | undefined;
       const startAngle = index === 0 ? 0 : getAngle(Number(segment.from), min, max, maxAngle);
       const angle = index === sortedSegments.length - 1 ? maxAngle : getAngle(Number(sortedSegments[index + 1].from), min, max, maxAngle);
-      const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
+      const color = typeof segment.color === "object" ? rgbToHex(segment.color) : computeCssColor(segment.color);
       const segmentPath = svgArc({
         x: 0,
         y: 0,
@@ -200,14 +201,14 @@ export function computeSegments(numberState: number, segments: SegmentsConfig[] 
       if (segment && (numberState >= Number(segment.from) || i === 0) &&
         (i + 1 == sortedSegments?.length || numberState < Number(sortedSegments![i + 1].from))) {
           if (smooth_segments) {
-            let color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
+            let color = typeof segment.color === "object" ? rgbToHex(segment.color) : computeCssColor(segment.color);
 
             if (color.includes("var(--") && element) {
               color = getComputedStyle(element).getPropertyValue(color.replace(/(var\()|(\))/g, "").trim());
             }
 
             const nextSegment = sortedSegments[i + 1] ? sortedSegments[i + 1] : segment;
-            let nextColor = typeof nextSegment.color === "object" ? rgbToHex(nextSegment.color) : nextSegment.color;
+            let nextColor = typeof nextSegment.color === "object" ? rgbToHex(nextSegment.color) : computeCssColor(nextSegment.color);
 
             if (nextColor.includes("var(--") && element) {
               nextColor = getComputedStyle(element).getPropertyValue(nextColor.replace(/(var\()|(\))/g, "").trim());
@@ -215,7 +216,7 @@ export function computeSegments(numberState: number, segments: SegmentsConfig[] 
 
             return interpolateColor(color, nextColor, valueToPercentage(numberState, Number(segment.from), Number(nextSegment.from)));
           } else {
-            const color = typeof segment.color === "object" ? rgbToHex(segment.color) : segment.color;
+            const color = typeof segment.color === "object" ? rgbToHex(segment.color) : computeCssColor(segment.color);
             return color;
           }
       }

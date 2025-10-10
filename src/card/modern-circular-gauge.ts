@@ -25,6 +25,7 @@ import durationToSeconds from "../ha/common/datetime/duration_to_seconds";
 import { getTimerRemainingSeconds, getTimestampRemainingSeconds } from "../utils/timer_timestamp_utils";
 import { compareHass } from "../utils/compare-hass";
 import { MCGGraphConfig } from "../components/type";
+import { computeCssColor } from "../ha/common/color/compute-color";
 
 registerCustomCard({
   type: "modern-circular-gauge",
@@ -359,7 +360,7 @@ export class ModernCircularGauge extends LitElement {
         class="container${classMap({ "dual-gauge": (typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner") || (typeof this._config.tertiary != "string" && this._config.tertiary?.show_gauge == "inner"),
           "half-gauge": this._config.gauge_type == "half", "full-gauge": this._config.gauge_type == "full" })}"
         style=${styleMap({ "--full-gauge-padding": this._config.show_header ? undefined : "0",
-          "--gauge-color": this._config.gauge_foreground_style?.color && this._config.gauge_foreground_style?.color != "adaptive" ? this._config.gauge_foreground_style?.color : computeSegments(numberState, segments, this._config.smooth_segments, this) })}
+          "--gauge-color": this._config.gauge_foreground_style?.color && this._config.gauge_foreground_style?.color != "adaptive" ? computeCssColor(this._config.gauge_foreground_style?.color) : computeSegments(numberState, segments, this._config.smooth_segments, this) })}
       >
         <div class="gauge-container">
           <modern-circular-gauge-element
@@ -523,7 +524,7 @@ export class ModernCircularGauge extends LitElement {
     <div class="icon-container">
       <modern-circular-gauge-icon
         class=${classMap({ "adaptive": !!this._config?.adaptive_icon_color })}
-        style=${styleMap({ "--gauge-color": gaugeForegroundStyle?.color && gaugeForegroundStyle.color != "adaptive" ? gaugeForegroundStyle.color : computeSegments(value, segments, this._config?.smooth_segments, this) })}
+        style=${styleMap({ "--gauge-color": gaugeForegroundStyle?.color && gaugeForegroundStyle.color != "adaptive" ? computeCssColor(gaugeForegroundStyle.color) : computeSegments(value, segments, this._config?.smooth_segments, this) })}
         .hass=${this.hass}
         .stateObj=${stateObj}
         .icon=${iconOverride}
@@ -647,7 +648,7 @@ export class ModernCircularGauge extends LitElement {
 
       const min = Number(this._templateResults?.tertiaryMin?.result ?? tertiaryObj.min) || DEFAULT_MIN;
       const max = Number(this._templateResults?.tertiaryMax?.result ?? tertiaryObj.max ?? timerDuration) || DEFAULT_MAX;
-      const segments = (this._templateResults?.tertiarySegments as unknown) as SegmentsConfig[] ?? tertiaryObj.segments;
+      const segments = (this._templateResults?.tertiarySegments?.result as unknown) as SegmentsConfig[] ?? tertiaryObj.segments;
       const numberState = Number(templatedState ?? secondsUntil ?? stateObj.attributes[tertiaryObj.attribute!] ?? stateObj.state);
 
       return html`
@@ -750,7 +751,7 @@ export class ModernCircularGauge extends LitElement {
       
       const min = Number(this._templateResults?.secondaryMin?.result ?? secondaryObj.min) || DEFAULT_MIN;
       const max = Number(this._templateResults?.secondaryMax?.result ?? secondaryObj.max ?? calculatedMax) || DEFAULT_MAX;
-      const segments = (this._templateResults?.secondarySegments as unknown) as SegmentsConfig[] ?? secondaryObj.segments;
+      const segments = (this._templateResults?.secondarySegments?.result as unknown) as SegmentsConfig[] ?? secondaryObj.segments;
       const numberState = Number(templatedState ?? secondsUntil ?? stateObj.attributes[secondaryObj.attribute!] ?? stateObj.state);
 
       return html`
@@ -865,7 +866,7 @@ export class ModernCircularGauge extends LitElement {
       }
 
       if (secondary.gauge_foreground_style?.color && secondary.gauge_foreground_style?.color != "adaptive") {
-        secondaryColor = secondary.gauge_foreground_style?.color;
+        secondaryColor = computeCssColor(secondary.gauge_foreground_style?.color);
       }
     }
 
@@ -990,7 +991,7 @@ export class ModernCircularGauge extends LitElement {
       }
 
       if (tertiary.gauge_foreground_style?.color && tertiary.gauge_foreground_style?.color != "adaptive") {
-        adaptiveColor = tertiary.gauge_foreground_style?.color;
+        adaptiveColor = computeCssColor(tertiary.gauge_foreground_style?.color);
       }
     }
 
