@@ -19,10 +19,12 @@ import { isTemplate } from "../utils/template";
 import "../components/modern-circular-gauge-element";
 import "../components/modern-circular-gauge-state";
 import "../components/modern-circular-gauge-icon";
+import "../components/modern-circular-gauge-graph";
 import { computeStateDomain } from "../ha/common/entity/compute_state_domain";
 import durationToSeconds from "../ha/common/datetime/duration_to_seconds";
 import { getTimerRemainingSeconds, getTimestampRemainingSeconds } from "../utils/timer_timestamp_utils";
 import { compareHass } from "../utils/compare-hass";
+import { MCGGraphConfig } from "../components/type";
 import { computeCssColor } from "../ha/common/color/compute-color";
 
 registerCustomCard({
@@ -388,6 +390,7 @@ export class ModernCircularGauge extends LitElement {
           : nothing
           : nothing}
         </div>
+        ${this._config.show_graph ? this._renderGraph() : nothing}
         <div class="gauge-state">
           ${this._config.show_state || (this._config.combine_gauges && this._config.gauge_type === "full") ? html`
           <modern-circular-gauge-state
@@ -531,6 +534,58 @@ export class ModernCircularGauge extends LitElement {
         .showEntityPicture=${this._config?.show_entity_picture ?? false}
       ></modern-circular-gauge-icon>
     </div>
+    `;
+  }
+
+  private _renderGraph(): TemplateResult {
+    if (this._config?.gauge_type == "half") {
+      return html``;
+    }
+
+    if (this._config?.secondary && typeof this._config?.secondary != "string" && this._config.secondary.state_size == "big") {
+      return html``;
+    }
+
+    let graphConfig: MCGGraphConfig = { entitys: new Map(), hours_to_show: this._config?.graph_hours_to_show,
+      smooth_segments: this._config?.smooth_segments ?? false,
+      points_per_hour: this._config?.graph_points_per_hour
+    };
+    
+    if (this._config?.show_in_graph ?? true) {
+      graphConfig.entitys?.set("primary", { entity: this._config?.entity ?? "",
+        min: Number(this._templateResults?.min?.result ?? this._config?.min) || DEFAULT_MIN,
+        max: Number(this._templateResults?.max?.result ?? this._config?.max) || DEFAULT_MAX,
+        segments: (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config?.segments,
+        adaptive_range: this._config?.adaptive_graph_range
+      });
+    }
+    if (this._config?.secondary && typeof this._config?.secondary != "string" && this._config.secondary.show_in_graph) {
+      const secondaryEntity = this._config?.secondary?.entity;
+      if (secondaryEntity) {
+        graphConfig.entitys?.set("secondary", { entity: secondaryEntity,
+          min: Number(this._templateResults?.secondaryMin?.result ?? this._config?.secondary?.min) || DEFAULT_MIN,
+          max: Number(this._templateResults?.secondaryMax?.result ?? this._config?.secondary?.max) || DEFAULT_MAX,
+          segments: (this._templateResults?.secondarySegments?.result as unknown) as SegmentsConfig[] ?? this._config?.secondary?.segments,
+          adaptive_range: this._config.secondary.adaptive_graph_range
+        });
+      }
+    }
+    if (this._config?.tertiary && typeof this._config?.tertiary != "string" && this._config.tertiary.show_in_graph) {
+      const tertiaryEntity = this._config?.tertiary?.entity;
+      if (tertiaryEntity) {
+        graphConfig.entitys?.set("tertiary", { entity: tertiaryEntity,
+          min: Number(this._templateResults?.tertiaryMin?.result ?? this._config?.tertiary?.min) || DEFAULT_MIN,
+          max: Number(this._templateResults?.tertiaryMax?.result ?? this._config?.tertiary?.max) || DEFAULT_MAX,
+          segments: (this._templateResults?.tertiarySegments?.result as unknown) as SegmentsConfig[] ?? this._config?.tertiary?.segments,
+          adaptive_range: this._config.tertiary.adaptive_graph_range
+        });
+      }
+    }
+    return html`
+    <modern-circular-gauge-graph
+      .hass=${this.hass}
+      .config=${graphConfig}
+    ></modern-circular-gauge-graph>
     `;
   }
 
@@ -854,6 +909,9 @@ export class ModernCircularGauge extends LitElement {
   }
 
   private _renderTertiaryState(): TemplateResult {
+    if (this._config?.show_graph) {
+      return html``;
+    }
     const threeGauges = (typeof this._config?.secondary != "string" && this._config?.secondary?.show_gauge == "inner") && (typeof this._config?.tertiary != "string" && this._config?.tertiary?.show_gauge == "inner");
 
     if (this._config?.combine_gauges && this._config.gauge_type === "full") {
@@ -1282,7 +1340,7 @@ export class ModernCircularGauge extends LitElement {
       padding: inherit;
     }
 
-    modern-circular-gauge-state {
+    modern-circular-gauge-state, modern-circular-gauge-graph {
       position: absolute;
       top: 0;
       bottom: 0;

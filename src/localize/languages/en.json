@@ -38,6 +38,12 @@
     "show_seconds": "Show seconds",
     "rotate_gauge": "Rotate gauge",
     "combine_gauges": "Combine primary and secondary entity",
+    "show_in_graph": "Show in graph",
+    "adaptive_graph_range": "Adaptive graph range",
+    "graph": "Graph settings",
+    "show_graph": "Show graph",
+    "graph_hours_to_show": "Hours to show",
+    "graph_points_per_hour": "Points per hour",
     "helper": {
       "start_from_zero": "Gauge starts from zero instead of min",
       "primary_label": "Text displayed under the main state when secondary state size is set to big",

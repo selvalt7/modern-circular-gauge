@@ -100,6 +100,10 @@ export const valueToPercentage = (value: number, min: number, max: number) => {
   return (clamp(value, min, max) - min) / (max - min);
 }
 
+export const valueToPercentageUnclamped = (value: number, min: number, max: number) => {
+  return (value - min) / (max - min);
+}
+
 export const currentDashArc = (value: number, min: number, max: number, radius: number, startFromZero?: boolean, maxAngle: number = MAX_ANGLE, linePadding?: number, offset?: number): [string, string] => {
   if (startFromZero) {
     return strokeDashArc(value > 0 ? 0 : value, value > 0 ? value : 0, min, max, radius, maxAngle, linePadding, offset);

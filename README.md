@@ -85,6 +85,11 @@ Templates are supported on selected options, configurable via `yaml` or visual e
 | show_unit | `boolean` | `true` | Show state unit
 | show_header | `boolean` | `true` | Show card header
 | show_icon | `boolean` | `true` | Show card icon
+| show_graph | `boolean` | `false` | Show graph above main state
+| graph_hours_to_show | `number` | `24` | Hours to show on the graph
+| graph_points_per_hour | `number` | `2` | How detailed graph should be
+| show_in_graph | `boolean` | `true` | Show primary entity on the graph
+| adaptive_graph_range | `boolean` | `false` | Adapt y-axis range to min and max value of the entity history
 | show_seconds | `boolean` | `true` | Show seconds when displaying time based entities
 | needle | `boolean` | `false` | 
 | state_text | `string` | Entity state | Displayed state override. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)|✅
@@ -153,6 +158,8 @@ Templates are supported on selected options, configurable via `yaml` or visual e
 | state_size | `small` or `big` | `small` | Secondary state size 
 | show_state | `boolean` | `true` | Show secondary state
 | show_unit | `boolean` | `true` | Show secondary unit
+| show_in_graph | `boolean` | `false` | Show secondary entity on the graph
+| adaptive_graph_range | `boolean` | `false` | Adapt y-axis range to min and max value of the entity history
 | show_seconds | `boolean` | `true` | Show seconds when displaying time based entities
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min
 | state_font_size | `number` | `10` or `24` | State size in px
@@ -178,6 +185,8 @@ Templates are supported on selected options, configurable via `yaml` or visual e
 | label_font_size | `number` | `0.49em` | Label font size in px
 | show_state | `boolean` | `true` | Show secondary state
 | show_unit | `boolean` | `true` | Show secondary unit
+| show_in_graph | `boolean` | `false` | Show tertiary entity on the graph
+| adaptive_graph_range | `boolean` | `false` | Adapt y-axis range to min and max value of the entity history
 | show_seconds | `boolean` | `true` | Show seconds when displaying time based entities
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min
 | state_font_size | `number` | `10` | State size in px
