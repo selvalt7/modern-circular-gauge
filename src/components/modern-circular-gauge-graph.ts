@@ -240,13 +240,6 @@ export class ModernCircularGaugeGraph extends LitElement {
     let xRatio = width / Math.max(1, totalPoints - 1);
     xRatio = isFinite(xRatio) ? xRatio : width;
 
-    let first = history.filter(Boolean)[0];
-    if (detail > 1) {
-      first = first.filter(Boolean)[0];
-    }
-
-    // const getY = (value: number): number =>
-    //   height + strokeWidth / 2 - (value - min) / yRatio;
     const getY = (value: number): number =>
       Math.abs(valueToPercentage(value, min, max) - 1) * height + strokeWidth / 2;
 
