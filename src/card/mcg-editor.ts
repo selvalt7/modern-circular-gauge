@@ -191,6 +191,7 @@ export class ModernCircularGaugeEditor extends LitElement {
             name: "graph",
             type: "expandable",
             flatten: true,
+            disabled: gaugeType === "half",
             iconPath: mdiChartLineVariant,
             schema: [
               {

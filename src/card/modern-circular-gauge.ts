@@ -538,6 +538,10 @@ export class ModernCircularGauge extends LitElement {
   }
 
   private _renderGraph(): TemplateResult {
+    if (this._config?.gauge_type == "half") {
+      return html``;
+    }
+    
     let graphConfig: MCGGraphConfig = { entitys: new Map(), hours_to_show: this._config?.graph_hours_to_show ?? 24,
       smooth_segments: this._config?.smooth_segments ?? false,
       points_per_hour: this._config?.graph_points_per_hour ?? 1
