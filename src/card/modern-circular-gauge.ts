@@ -541,7 +541,7 @@ export class ModernCircularGauge extends LitElement {
     if (this._config?.gauge_type == "half") {
       return html``;
     }
-    
+
     let graphConfig: MCGGraphConfig = { entitys: new Map(), hours_to_show: this._config?.graph_hours_to_show ?? 24,
       smooth_segments: this._config?.smooth_segments ?? false,
       points_per_hour: this._config?.graph_points_per_hour ?? 1
@@ -905,6 +905,9 @@ export class ModernCircularGauge extends LitElement {
   }
 
   private _renderTertiaryState(): TemplateResult {
+    if (this._config?.show_graph) {
+      return html``;
+    }
     const threeGauges = (typeof this._config?.secondary != "string" && this._config?.secondary?.show_gauge == "inner") && (typeof this._config?.tertiary != "string" && this._config?.tertiary?.show_gauge == "inner");
 
     if (this._config?.combine_gauges && this._config.gauge_type === "full") {
