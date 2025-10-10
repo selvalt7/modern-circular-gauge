@@ -542,6 +542,10 @@ export class ModernCircularGauge extends LitElement {
       return html``;
     }
 
+    if (this._config?.secondary && typeof this._config?.secondary != "string" && this._config.secondary.state_size == "big") {
+      return html``;
+    }
+
     let graphConfig: MCGGraphConfig = { entitys: new Map(), hours_to_show: this._config?.graph_hours_to_show ?? 24,
       smooth_segments: this._config?.smooth_segments ?? false,
       points_per_hour: this._config?.graph_points_per_hour ?? 1
