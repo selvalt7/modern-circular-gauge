@@ -1064,8 +1064,12 @@ export class ModernCircularGauge extends LitElement {
       if (typeof value == "string") {
         this._tryConnectKey(key, value);
       } else if (key == "segments") {
-        const segmentsStringified = JSON.stringify(value);
-        this._tryConnectKey(key, segmentsStringified);
+        let segmentsStringified = JSON.stringify(value);
+        if (typeof segmentsStringified !== "undefined")
+        {
+          segmentsStringified = segmentsStringified.replace(/\\"/g, "'");
+          this._tryConnectKey(key, segmentsStringified);
+        }
       }
     });
 
@@ -1083,8 +1087,12 @@ export class ModernCircularGauge extends LitElement {
         if (typeof value == "string") {
           this._tryConnectKey(key, value);
         } else if (key == "secondarySegments") {
-          const segmentsStringified = JSON.stringify(value);
-          this._tryConnectKey(key, segmentsStringified);
+          let segmentsStringified = JSON.stringify(value);
+          if (typeof segmentsStringified !== "undefined")
+          {
+            segmentsStringified = segmentsStringified.replace(/\\"/g, "'");
+            this._tryConnectKey(key, segmentsStringified);
+          }
         }
       });
     }
@@ -1103,8 +1111,12 @@ export class ModernCircularGauge extends LitElement {
         if (typeof value == "string") {
           this._tryConnectKey(key, value);
         } else if (key == "tertiarySegments") {
-          const segmentsStringified = JSON.stringify(value);
-          this._tryConnectKey(key, segmentsStringified);
+          let segmentsStringified = JSON.stringify(value);
+          if (typeof segmentsStringified !== "undefined")
+          {
+            segmentsStringified = segmentsStringified.replace(/\\"/g, "'");
+            this._tryConnectKey(key, segmentsStringified);
+          }
         }
       });
     }
