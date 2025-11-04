@@ -19,6 +19,8 @@ export class ModernCircularGaugeState extends LitElement {
 
   @property() public unit?: string;
 
+  @property({ type: Boolean }) public unitSuperscript = true;
+
   @property({ type: Boolean }) public showUnit = true;
 
   @property() public label?: string;
@@ -97,7 +99,7 @@ export class ModernCircularGaugeState extends LitElement {
     <svg class="state ${classMap({ "small": this.small })}" overflow="visible" viewBox="${-50 + (this.horizontalOffset ?? 0)} -50 100 ${this.gaugeType == "half" ? 50 : 100}">
       <text x="0" y=${verticalOffset} class="value">
         ${state}
-        ${this.showUnit ? this.small ? this.unit : svg`
+        ${this.showUnit ? !this.unitSuperscript ? this.unit : svg` 
         <tspan class="unit" dx=${-4} dy=${-6}>${this.unit}</tspan>
         ` : nothing}
       </text>
