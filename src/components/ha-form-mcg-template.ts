@@ -4,7 +4,7 @@ import { HomeAssistant } from "../ha/types";
 import { HaFormMCGTemplateSchema } from "./type";
 import { HaFormBaseSchema, HaFormDataContainer } from "../ha/components/ha-form-types";
 import { fireEvent } from "../ha/common/dom/fire_event";
-import { isTemplate } from "../utils/template";
+import { isJSTemplate, isTemplate } from "../utils/template";
 import { mdiCodeBraces, mdiListBoxOutline } from "@mdi/js";
 import localize from "../localize/localize";
 
@@ -29,7 +29,7 @@ export class HaFormMCGTemplate extends LitElement {
     super.connectedCallback();
 
     const DATA = this.schema.flatten ? this.data : { [this.schema.name]: this.data };
-    this._templateMode = isTemplate(DATA[this.schema.name] as unknown as string);
+    this._templateMode = isTemplate(DATA[this.schema.name] as unknown as string) || isJSTemplate(DATA[this.schema.name] as unknown as string);
   }
 
   private _computeSelector(): any[] {
@@ -48,7 +48,7 @@ export class HaFormMCGTemplate extends LitElement {
   protected render() {
     const DATA = this.schema.flatten ? this.data : { [this.schema.name]: this.data };
     
-    const dataIsTemplate = this._templateMode ?? isTemplate(DATA[this.schema.name] as unknown as string);
+    const dataIsTemplate = this._templateMode ?? (isTemplate(DATA[this.schema.name] as unknown as string) || isJSTemplate(DATA[this.schema.name] as unknown as string));
     
     let schema = Array.isArray(this.schema.schema) ? this.schema.schema : this._computeSelector();
     

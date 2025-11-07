@@ -15,7 +15,7 @@ import { ifDefined } from "lit/directives/if-defined.js";
 import { actionHandler } from "../utils/action-handler-directive";
 import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS, GAUGE_TYPE_ANGLES, MAX_ANGLE, RADIUS, INNER_RADIUS, TERTIARY_RADIUS, TIMESTAMP_STATE_DOMAINS } from "../const";
 import { RenderTemplateResult, subscribeRenderTemplate } from "../ha/data/ws-templates";
-import { isTemplate } from "../utils/template";
+import { isJSTemplate, isJSTemplateRegex, isTemplate } from "../utils/template";
 import "../components/modern-circular-gauge-element";
 import "../components/modern-circular-gauge-state";
 import "../components/modern-circular-gauge-icon";
@@ -26,6 +26,7 @@ import { getTimerRemainingSeconds, getTimestampRemainingSeconds } from "../utils
 import { compareHass } from "../utils/compare-hass";
 import { MCGGraphConfig } from "../components/type";
 import { computeCssColor } from "../ha/common/color/compute-color";
+import HomeAssistantJavaScriptTemplates from "home-assistant-javascript-templates";
 
 registerCustomCard({
   type: "modern-circular-gauge",
@@ -55,6 +56,8 @@ export class ModernCircularGauge extends LitElement {
   private _isTimerOrTimestamp: boolean = false;
 
   private _interval?: any;
+
+  private haJsTemplates = new HomeAssistantJavaScriptTemplates(document.querySelector("home-assistant") as any);
 
   public static async getConfigElement(): Promise<HTMLElement> {
     await import("./mcg-editor");
@@ -1132,39 +1135,59 @@ export class ModernCircularGauge extends LitElement {
       return;
     }
 
-    try {
-      const sub = subscribeRenderTemplate(
-        this.hass.connection,
-        (result) => {
-          if ("error" in result) {
-            return;
+    if (isJSTemplate(templateValue)) {
+      this.haJsTemplates.getRenderer()
+      .then((renderer) => {
+        const untrack = renderer.trackTemplate(
+          templateValue.replace(isJSTemplateRegex, "$1"),
+          (result) => {
+            const templateResult = {
+              result: result as string || "",
+              listeners: { all: false, domains: [], entities: [], time: false },
+            };
+            this._templateResults = {
+              ...this._templateResults,
+              [key]: templateResult,
+            };
           }
-          this._templateResults = {
-            ...this._templateResults,
-            [key]: result,
-          };
-        },
-        {
-          template: templateValue as string || "",
-          variables: {
-            config: this._config,
-            user: this.hass.user!.name,
+        );
+        this._unsubRenderTemplates?.set(key, Promise.resolve(untrack));
+      });
+    } else {
+      try {
+        const sub = subscribeRenderTemplate(
+          this.hass.connection,
+          (result) => {
+            if ("error" in result) {
+              return;
+            }
+            this._templateResults = {
+              ...this._templateResults,
+              [key]: result,
+            };
           },
-          strict: true,
-        }
-      );
-      this._unsubRenderTemplates?.set(key, sub);
-      await sub;
-    } catch (e: any) {
-      const result = {
-        result: templateValue as string || "",
-        listeners: { all: false, domains: [], entities: [], time: false },
-      };
-      this._templateResults = {
-        ...this._templateResults,
-        [key]: result,
-      };
-      this._unsubRenderTemplates?.delete(key);
+          {
+            template: templateValue as string || "",
+            variables: {
+              config: this._config,
+              user: this.hass.user!.name,
+            },
+            strict: true,
+          }
+        );
+        this._unsubRenderTemplates?.set(key, sub);
+        await sub;
+      } catch (e: any) {
+        const result = {
+          result: templateValue as string || "",
+          listeners: { all: false, domains: [], entities: [], time: false },
+        };
+        this._templateResults = {
+          ...this._templateResults,
+          [key]: result,
+        };
+        this._unsubRenderTemplates?.delete(key);
+      }
     }
   }
 
