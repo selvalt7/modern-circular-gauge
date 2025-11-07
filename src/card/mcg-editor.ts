@@ -34,7 +34,7 @@ export class ModernCircularGaugeEditor extends LitElement {
   }
 
   private _schema = memoizeOne(
-    (showInnerGaugeOptions: boolean, showTertiaryGaugeOptions: boolean, disableTertiary: boolean, gaugeType: GaugeType, entities?: Map<EntityNames, string>) =>
+    (showInnerGaugeOptions: boolean, showTertiaryGaugeOptions: boolean, disableTertiary: boolean, gaugeType: GaugeType, entities?: Map<EntityNames, string>, defaultBackgroundOpacity?: Map<EntityNames, number>) =>
     [
       {
         name: "entity",
@@ -96,10 +96,10 @@ export class ModernCircularGaugeEditor extends LitElement {
         type: "expandable",
         flatten: true,
         iconPath: mdiGauge,
-        schema: getEntityStyleSchema(true, RADIUS, "primary_label"),
+        schema: getEntityStyleSchema(true, RADIUS, "primary_label", defaultBackgroundOpacity?.get("primary")),
       },
-        getSecondarySchema(showInnerGaugeOptions, entities),
-        getTertiarySchema(disableTertiary, showTertiaryGaugeOptions, entities),
+        getSecondarySchema(showInnerGaugeOptions, entities, defaultBackgroundOpacity?.get("secondary")),
+        getTertiarySchema(disableTertiary, showTertiaryGaugeOptions, entities, defaultBackgroundOpacity?.get("tertiary")),
       {
         name: "appearance",
         type: "expandable",
@@ -292,12 +292,22 @@ export class ModernCircularGaugeEditor extends LitElement {
     if (tertiary !== undefined) {
       entities.set("tertiary", tertiary);
     }
+    
+    const defaultBackgroundOpacity = new Map<EntityNames, number>();
+    defaultBackgroundOpacity.set("primary", this._config.segments && (this._config.needle || this._config.gauge_background_style?.color == "adaptive") ? 0.45 : 1);
+    if (this._config.secondary && typeof this._config.secondary != "string") {
+      defaultBackgroundOpacity.set("secondary", this._config.secondary.segments && (this._config.secondary.needle || this._config.secondary.gauge_background_style?.color == "adaptive") ? 0.45 : 1);
+    }
+    if (this._config.tertiary && typeof this._config.tertiary != "string") {
+      defaultBackgroundOpacity.set("tertiary", this._config.tertiary.segments && (this._config.tertiary.needle || this._config.tertiary.gauge_background_style?.color == "adaptive") ? 0.45 : 1);
+    }
 
     const schema = this._schema(typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner",
       typeof this._config.tertiary != "string" && this._config.tertiary?.show_gauge == "inner",
       this._config.combine_gauges === true && this._config.gauge_type === "full",
       this._config.gauge_type || "standard",
-      entities
+      entities,
+      defaultBackgroundOpacity
     );
 
     const DATA = {
