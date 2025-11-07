@@ -6,6 +6,7 @@ import { styleMap } from "lit/directives/style-map.js";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { svgArc, renderPath, currentDashArc, strokeDashArc, renderColorSegments, computeSegments } from "../utils/gauge";
 import { computeCssColor } from "../ha/common/color/compute-color";
+import { classMap } from "lit/directives/class-map.js";
 
 @customElement("modern-circular-gauge-element")
 export class ModernCircularGaugeElement extends LitElement {
@@ -141,13 +142,13 @@ export class ModernCircularGaugeElement extends LitElement {
             ${!this.disableBackground ? svg`
             <g class="background" mask=${ifDefined(needle ? "url(#needle-border-mask)" : undefined)} style=${styleMap({ "opacity": this.backgroundStyle?.opacity,
               "--gauge-stroke-width": this.backgroundStyle?.width ? `${this.backgroundStyle?.width}px` : undefined })}>
-              ${renderPath("arc clear", this._path, undefined, styleMap({ "stroke": this.backgroundStyle?.color && this.backgroundStyle.color != "adaptive" ? computeCssColor(this.backgroundStyle.color) : undefined }))}
               ${this.segments && (needle || this.backgroundStyle?.color == "adaptive") ? svg`
-              <g class="segments" mask=${ifDefined(this.smoothSegments ? "url(#gradient-path)" : undefined)}>
+              <g class=${classMap({ "segments": true, "segments-opaque": typeof this.backgroundStyle?.opacity != "undefined" })} mask=${ifDefined(this.smoothSegments ? "url(#gradient-path)" : undefined)}>
                 ${renderColorSegments(this.segments, min, max, this.radius, this.smoothSegments, this._maxAngle)}
               </g>`
-              : nothing
-              }
+              : svg`
+              ${renderPath("arc clear", this._path, undefined, styleMap({ "stroke": this.backgroundStyle?.color && this.backgroundStyle.color != "adaptive" ? computeCssColor(this.backgroundStyle.color) : undefined }))}
+              `}
             </g>
             `: nothing}
             ${current ? this.foregroundStyle?.color == "adaptive" && this.segments ? svg`
@@ -202,7 +203,11 @@ export class ModernCircularGaugeElement extends LitElement {
     }
 
     .segments {
-      opacity: 0.45;
+      opacity: var(--gauge-segments-opacity, 0.45);
+    }
+
+    .segments-opaque {
+      opacity: var(--gauge-segments-opacity, 1);
     }
 
     .needle {

@@ -384,12 +384,13 @@ export class ModernCircularGaugeBadge extends LitElement {
             <g mask="url(#needle-mask)">
               <g class="background" style=${styleMap({ "opacity": this._config.gauge_background_style?.opacity,
                 "--gauge-stroke-width": this._config.gauge_background_style?.width ? `${this._config.gauge_background_style?.width}px` : undefined })}>
-                ${renderPath("arc clear", path, undefined, styleMap({ "stroke": gaugeBackgroundStyle?.color && gaugeBackgroundStyle?.color != "adaptive" ? computeCssColor(gaugeBackgroundStyle?.color) : undefined }))}
                 ${this._config.segments && (this._config.needle || this._config.gauge_background_style?.color == "adaptive") ? svg`
-                <g class="segments" mask=${ifDefined(this._config.smooth_segments ? "url(#gradient-path)" : undefined)}>
+                <g class=${classMap({ "segments": true, "segments-opaque": typeof this._config.gauge_background_style?.opacity != "undefined" })} mask=${ifDefined(this._config.smooth_segments ? "url(#gradient-path)" : undefined)}>
                   ${renderColorSegments(segments, min, max, RADIUS, this._config?.smooth_segments)}
                 </g>`
-                : nothing
+                : svg`
+                ${renderPath("arc clear", path, undefined, styleMap({ "stroke": gaugeBackgroundStyle?.color && gaugeBackgroundStyle?.color != "adaptive" ? computeCssColor(gaugeBackgroundStyle?.color) : undefined }))}
+                `
                 }
               </g>
             </g>
@@ -547,11 +548,14 @@ export class ModernCircularGaugeBadge extends LitElement {
     .segment {
       fill: none;
       stroke-width: var(--gauge-stroke-width);
-      filter: brightness(100%);
     }
 
     .segments {
-      opacity: 0.45;
+      opacity: var(--gauge-segments-opacity, 0.45);
+    }
+
+    .segments-opaque {
+      opacity: var(--gauge-segments-opacity, 1);
     }
 
     ha-badge {
