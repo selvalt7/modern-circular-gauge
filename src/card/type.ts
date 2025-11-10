@@ -25,6 +25,7 @@ export interface BaseEntityConfig {
     state_text?: string;
     state_font_size?: number;
     start_from_zero?: boolean;
+    inverted_mode?: boolean;
     gauge_radius?: number;
     gauge_background_style?: GaugeElementConfig;
     gauge_foreground_style?: GaugeElementConfig;
@@ -91,6 +92,7 @@ export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     header_font_size?: number;
     header_offset?: number;
     start_from_zero?: boolean;
+    inverted_mode?: boolean;
     gauge_width?: number;
     gauge_radius?: number;
     gauge_background_style?: GaugeElementConfig;

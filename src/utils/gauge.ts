@@ -78,9 +78,9 @@ export const svgArc = (options: ArcOptions) => {
   ].join(" ");
 };
 
-export const strokeDashArc = (from: number, to: number, min: number, max: number, radius: number, maxAngle: number = MAX_ANGLE, linePadding?: number, offset?: number): [string, string] => {
+export const strokeDashArc = (from: number, to: number, min: number, max: number, radius: number, maxAngle: number = MAX_ANGLE, linePadding?: number, offset?: number, invertedMode?: boolean): [string, string] => {
   const start = valueToPercentage(from, min, max);
-  const end = valueToPercentage(to, min, max);
+  const end = valueToPercentage(to, min, max, invertedMode);
 
   const padding = linePadding ? linePadding : 0;
   const track = (radius * 2 * Math.PI * maxAngle) / 360;
@@ -96,19 +96,23 @@ export const getAngle = (value: number, min: number, max: number, maxAngle: numb
   return valueToPercentage(isNaN(value) ? min : value, min, max) * maxAngle;
 }
 
-export const valueToPercentage = (value: number, min: number, max: number) => {
-  return (clamp(value, min, max) - min) / (max - min);
+export const valueToPercentage = (value: number, min: number, max: number, invertedMode?: boolean) => {
+  if (invertedMode) {
+    return 1 - ((clamp(value, min, max) - min) / (max - min));
+  } else {
+    return (clamp(value, min, max) - min) / (max - min);
+  }
 }
 
 export const valueToPercentageUnclamped = (value: number, min: number, max: number) => {
   return (value - min) / (max - min);
 }
 
-export const currentDashArc = (value: number, min: number, max: number, radius: number, startFromZero?: boolean, maxAngle: number = MAX_ANGLE, linePadding?: number, offset?: number): [string, string] => {
+export const currentDashArc = (value: number, min: number, max: number, radius: number, startFromZero?: boolean, maxAngle: number = MAX_ANGLE, linePadding?: number, offset?: number, invertedMode?: boolean): [string, string] => {
   if (startFromZero) {
-    return strokeDashArc(value > 0 ? 0 : value, value > 0 ? value : 0, min, max, radius, maxAngle, linePadding, offset);
+    return strokeDashArc(value > 0 ? 0 : value, value > 0 ? value : 0, min, max, radius, maxAngle, linePadding, offset, invertedMode);
   } else {
-    return strokeDashArc(min, value, min, max, radius, maxAngle, linePadding, offset);
+    return strokeDashArc(min, value, min, max, radius, maxAngle, linePadding, offset, invertedMode);
   }
 }
 
