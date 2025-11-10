@@ -83,7 +83,7 @@ export class ModernCircularGaugeElement extends LitElement {
         overflow="visible"
       >
         <g transform="rotate(${this._rotateAngle})">
-          ${renderPath("arc clear", this._path)}
+          ${!this.disableBackground ? renderPath("arc clear", this._path) : nothing}
         </g>
       </svg>`;
     }

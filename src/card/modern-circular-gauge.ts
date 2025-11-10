@@ -636,6 +636,17 @@ export class ModernCircularGauge extends LitElement {
         `;
       }
 
+      if (stateObj?.state === "unavailable") {
+        return html`
+        <modern-circular-gauge-element
+          class="tertiary"
+          .radius=${secondaryInner ? TERTIARY_RADIUS : INNER_RADIUS}
+          .gaugeType=${this._config?.gauge_type}
+          error
+        ></modern-circular-gauge-element>
+        `;
+      }
+
       const domain = computeStateDomain(stateObj);
       let secondsUntil: number | undefined;
 
@@ -658,6 +669,17 @@ export class ModernCircularGauge extends LitElement {
       const max = Number(this._templateResults?.tertiaryMax?.result ?? tertiaryObj.max ?? timerDuration) || DEFAULT_MAX;
       const segments = (this._templateResults?.tertiarySegments?.result as unknown) as SegmentsConfig[] ?? tertiaryObj.segments;
       const numberState = Number(templatedState ?? secondsUntil ?? stateObj.attributes[tertiaryObj.attribute!] ?? stateObj.state);
+
+      if (isNaN(numberState)) {
+        return html`
+        <modern-circular-gauge-element
+          class="tertiary"
+          .radius=${secondaryInner ? TERTIARY_RADIUS : INNER_RADIUS}
+          .gaugeType=${this._config?.gauge_type}
+          error
+        ></modern-circular-gauge-element>
+        `;
+      }
 
       return html`
       <modern-circular-gauge-element
@@ -734,6 +756,18 @@ export class ModernCircularGauge extends LitElement {
         `;
       }
 
+      if (stateObj?.state === "unavailable") {
+        return html`
+        <modern-circular-gauge-element
+          class="secondary"
+          .radius=${this._config?.combine_gauges && this._config.gauge_type === "full" ? (this._config?.gauge_radius ?? RADIUS) : (secondaryObj.gauge_radius ?? INNER_RADIUS)}
+          .gaugeType=${this._config?.gauge_type}
+          .disableBackground=${this._config?.combine_gauges && this._config.gauge_type === "full"}
+          error
+        ></modern-circular-gauge-element>
+        `;
+      }
+
       const domain = computeStateDomain(stateObj);
       let secondsUntil: number | undefined;
 
@@ -761,6 +795,18 @@ export class ModernCircularGauge extends LitElement {
       const max = Number(this._templateResults?.secondaryMax?.result ?? secondaryObj.max ?? calculatedMax) || DEFAULT_MAX;
       const segments = (this._templateResults?.secondarySegments?.result as unknown) as SegmentsConfig[] ?? secondaryObj.segments;
       const numberState = Number(templatedState ?? secondsUntil ?? stateObj.attributes[secondaryObj.attribute!] ?? stateObj.state);
+
+      if (isNaN(numberState)) {
+        return html`
+        <modern-circular-gauge-element
+          class="secondary"
+          .radius=${this._config?.combine_gauges && this._config.gauge_type === "full" ? (this._config?.gauge_radius ?? RADIUS) : (secondaryObj.gauge_radius ?? INNER_RADIUS)}
+          .disableBackground=${this._config?.combine_gauges && this._config.gauge_type === "full"}
+          .gaugeType=${this._config?.gauge_type}
+          error
+        ></modern-circular-gauge-element>
+        `;
+      }
 
       return html`
       <modern-circular-gauge-element
@@ -852,6 +898,24 @@ export class ModernCircularGauge extends LitElement {
       return html``;
     }
 
+    const halfStateBig = this._config?.gauge_type == "half" && secondary.state_size == "big";
+
+    if (stateObj?.state === "unavailable") {
+      return html`
+      <modern-circular-gauge-state
+        class=${classMap({ "preview": this._inCardPicker!, "secondary": true })}
+        .hass=${this.hass}
+        .gaugeType=${this._config?.gauge_type}
+        .stateMargin=${this._stateMargin}
+        .verticalOffset=${secondary.state_size == "big" ? (this._config?.gauge_type == "half" ? -14 : 14) : iconCenter ? 22 : this._config?.gauge_type == "half" ? -1 : 17}
+        .horizontalOffset=${halfStateBig ? -16 : 0}
+        .small=${secondary.state_size != "big"}
+        .stateOverride=${this.hass.localize("state.default.unavailable")}
+        .label=${this._config?.gauge_type == "half" && secondary.state_size != "big" ? "" : secondary.label}
+      ></modern-circular-gauge-state>
+      `;
+    }
+
     this._hasSecondary = true;
 
     const attributes = stateObj?.attributes ?? undefined;
@@ -877,8 +941,6 @@ export class ModernCircularGauge extends LitElement {
         secondaryColor = computeCssColor(secondary.gauge_foreground_style?.color);
       }
     }
-
-    const halfStateBig = this._config?.gauge_type == "half" && secondary.state_size == "big";
 
     return html`
     <modern-circular-gauge-state
@@ -983,6 +1045,21 @@ export class ModernCircularGauge extends LitElement {
 
     if (!stateObj && templatedState === undefined) {
       return html``;
+    }
+
+    if (stateObj?.state === "unavailable") {
+      return html`
+      <modern-circular-gauge-state
+        class=${classMap({ "preview": this._inCardPicker!, "tertiary": true })}
+        .hass=${this.hass}
+        .gaugeType=${this._config?.gauge_type}
+        .verticalOffset=${this._config?.gauge_type == "half" ? (!this._hasSecondary ? -28 : (threeGauges ? -29 : -31)) : -19}
+        .stateMargin=${this._stateMargin}
+        .stateOverride=${this.hass.localize("state.default.unavailable")}
+        .label=${this._config?.gauge_type == "half" ? "" : tertiary.label}
+        small
+      ></modern-circular-gauge-state>
+      `;
     }
 
     const attributes = stateObj?.attributes ?? undefined;
