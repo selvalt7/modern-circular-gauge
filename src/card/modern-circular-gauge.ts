@@ -27,6 +27,7 @@ import { compareHass } from "../utils/compare-hass";
 import { MCGGraphConfig } from "../components/type";
 import { computeCssColor } from "../ha/common/color/compute-color";
 import HomeAssistantJavaScriptTemplates from "home-assistant-javascript-templates";
+import { compareTemplateResult } from "../utils/compare-template-result";
 
 registerCustomCard({
   type: "modern-circular-gauge",
@@ -121,6 +122,7 @@ export class ModernCircularGauge extends LitElement {
 
   public disconnectedCallback() {
     super.disconnectedCallback();
+    this._clearInterval();
     this._tryDisconnect();
   }
 
@@ -140,10 +142,14 @@ export class ModernCircularGauge extends LitElement {
 
   protected shouldUpdate(_changedProperties: PropertyValues): boolean {
     if (_changedProperties.has("_templateResults")) {
-      return true;
+      const oldTemplateResults = _changedProperties.get("_templateResults") as Partial<Record<string, RenderTemplateResult | undefined>> | undefined;
+      return compareTemplateResult(oldTemplateResults, this._templateResults);
     }
     if (_changedProperties.has("hass")) {
       if (this._trackedEntities.size <= 0) {
+        if (Object.keys(this._templateResults || {}).length > 0) {
+          return false;
+        }
         return true;
       }
       const oldHass = _changedProperties.get("hass") as HomeAssistant | undefined;
