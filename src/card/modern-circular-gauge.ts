@@ -2,7 +2,7 @@ import { html, LitElement, TemplateResult, css, nothing, PropertyValues } from "
 import { customElement, property, state } from "lit/decorators.js";
 import { ActionHandlerEvent } from "../ha/data/lovelace";
 import { hasAction } from "../ha/panels/lovelace/common/has-action";
-import { svgArc, computeSegments, renderPath, getAngle } from "../utils/gauge";
+import { computeSegments } from "../utils/gauge";
 import { registerCustomCard } from "../utils/custom-cards";
 import type { EntityNames, GaugeElementConfig, ModernCircularGaugeConfig, SecondaryEntity, SegmentsConfig, TertiaryEntity } from "./type";
 import { LovelaceLayoutOptions, LovelaceGridOptions } from "../ha/data/lovelace";
@@ -13,9 +13,9 @@ import { classMap } from "lit/directives/class-map.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { actionHandler } from "../utils/action-handler-directive";
-import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS, GAUGE_TYPE_ANGLES, MAX_ANGLE, RADIUS, INNER_RADIUS, TERTIARY_RADIUS, TIMESTAMP_STATE_DOMAINS } from "../const";
+import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS, RADIUS, INNER_RADIUS, TERTIARY_RADIUS, TIMESTAMP_STATE_DOMAINS } from "../const";
 import { RenderTemplateResult, subscribeRenderTemplate } from "../ha/data/ws-templates";
-import { isJSTemplate, isJSTemplateRegex, isTemplate } from "../utils/template";
+import { isJSTemplate, JSTemplateRegex, isTemplate } from "../utils/template";
 import "../components/modern-circular-gauge-element";
 import "../components/modern-circular-gauge-state";
 import "../components/modern-circular-gauge-icon";
@@ -1142,23 +1142,58 @@ export class ModernCircularGauge extends LitElement {
     }
 
     if (isJSTemplate(templateValue)) {
-      this.haJsTemplates.getRenderer()
-      .then((renderer) => {
-        const untrack = renderer.trackTemplate(
-          templateValue.replace(isJSTemplateRegex, "$1"),
-          (result) => {
-            const templateResult = {
-              result: result as string || "",
-              listeners: { all: false, domains: [], entities: [], time: false },
-            };
-            this._templateResults = {
-              ...this._templateResults,
-              [key]: templateResult,
-            };
-          }
-        );
-        this._unsubRenderTemplates?.set(key, Promise.resolve(untrack));
-      });
+      const isSegments = /segments$/i.test(key);
+      if (isSegments) {
+        this.haJsTemplates.getRenderer()
+        .then((renderer) => {
+          const untrack = renderer.trackTemplate(
+            `
+              const processedSegments = [];
+              for (let i = 0; i < segments.length; i++) {
+                const segment = segments[i];
+                const newSegment = { ...segment };
+                const keys = Object.keys(segment);
+                keys.forEach((k) => {
+                  if (typeof segment[k] === "string" && JSRegex.test(segment[k])) {
+                    const segmentValue = segment[k].replace(JSRegex, "$1");
+                    newSegment[k] = eval(segmentValue);
+                  }
+                });
+                processedSegments.push(newSegment);
+              }
+              return processedSegments;
+            `,
+            (result) => {
+              const templateResult = {
+                result: result as string || "",
+                listeners: { all: false, domains: [], entities: [], time: false },
+              };
+              this._templateResults = {
+                ...this._templateResults,
+                [key]: templateResult,
+              };
+            }, {"segments": JSON.parse(templateValue), "JSRegex": JSTemplateRegex});
+          this._unsubRenderTemplates?.set(key, Promise.resolve(untrack));
+        });
+      } else {
+        this.haJsTemplates.getRenderer()
+        .then((renderer) => {
+          const untrack = renderer.trackTemplate(
+            templateValue.replace(JSTemplateRegex, "$1"),
+            (result) => {
+              const templateResult = {
+                result: result as string || "",
+                listeners: { all: false, domains: [], entities: [], time: false },
+              };
+              this._templateResults = {
+                ...this._templateResults,
+                [key]: templateResult,
+              };
+            }
+          );
+          this._unsubRenderTemplates?.set(key, Promise.resolve(untrack));
+        });
+      }
     } else {
       try {
         const sub = subscribeRenderTemplate(

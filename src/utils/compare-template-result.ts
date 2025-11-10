@@ -4,7 +4,6 @@ export function compareTemplateResult(
   oldResult: Record<string, RenderTemplateResult | undefined> | undefined,
   newResult: Record<string, RenderTemplateResult | undefined> | undefined
 ): boolean {
-  console.log("Comparing template results", oldResult, newResult);
   if (!oldResult || !newResult) {
     return true;
   }
