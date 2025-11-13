@@ -92,7 +92,7 @@ export class ModernCircularGaugeElement extends LitElement {
 
     if (this.outter)
     {
-      const current = strokeDashArc(this.value, this.value, this.min, this.max, this.radius, this._maxAngle);
+      const current = strokeDashArc(this.value, this.value, this.min, this.max, this.radius, this._maxAngle, undefined, undefined, this.invertedMode);
 
       return html`
       <svg viewBox="-50 -50 100 ${this.gaugeType == "half" ? 50 : 100}" preserveAspectRatio="xMidYMid"
@@ -110,7 +110,7 @@ export class ModernCircularGaugeElement extends LitElement {
       const min = this.flipGauge ? -this.max : this.min;
       const max = this.flipGauge ? this.min : this.max;
       const current = this.needle ? undefined : currentDashArc(this.value * (this.flipGauge ? -1.0 : 1.0), min, max, this.radius, (this.startFromZero || this.flipGauge), this._maxAngle, this.linePadding, this.lineOffset, this.invertedMode);
-      const needle = this.needle ? strokeDashArc(this.value, this.value, min, max, this.radius, this._maxAngle) : undefined;
+      const needle = this.needle ? strokeDashArc(this.value, this.value, min, max, this.radius, this._maxAngle, undefined, undefined, this.invertedMode) : undefined;
       
       return html`
         <svg viewBox="-50 -50 100 ${this.gaugeType == "half" ? 50 : 100}" preserveAspectRatio="xMidYMid"

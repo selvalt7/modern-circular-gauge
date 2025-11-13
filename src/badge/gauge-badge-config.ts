@@ -19,6 +19,7 @@ export interface ModernCircularGaugeBadgeConfig extends LovelaceBadgeConfig {
   needle?: boolean;
   state_text?: string;
   start_from_zero?: boolean;
+  inverted_mode?: boolean;
   gauge_foreground_style?: GaugeElementConfig;
   gauge_background_style?: GaugeElementConfig;
   smooth_segments?: boolean;

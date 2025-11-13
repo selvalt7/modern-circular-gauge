@@ -79,7 +79,7 @@ export const svgArc = (options: ArcOptions) => {
 };
 
 export const strokeDashArc = (from: number, to: number, min: number, max: number, radius: number, maxAngle: number = MAX_ANGLE, linePadding?: number, offset?: number, invertedMode?: boolean): [string, string] => {
-  const start = valueToPercentage(from, min, max);
+  const start = valueToPercentage(from, min, max, from == to ? invertedMode : false);
   const end = valueToPercentage(to, min, max, invertedMode);
 
   const padding = linePadding ? linePadding : 0;
@@ -92,8 +92,8 @@ export const strokeDashArc = (from: number, to: number, min: number, max: number
   return [strokeDasharray, strokeDashOffset];
 }
 
-export const getAngle = (value: number, min: number, max: number, maxAngle: number = MAX_ANGLE) => {
-  return valueToPercentage(isNaN(value) ? min : value, min, max) * maxAngle;
+export const getAngle = (value: number, min: number, max: number, maxAngle: number = MAX_ANGLE, invertedMode?: boolean) => {
+  return valueToPercentage(isNaN(value) ? min : value, min, max, invertedMode) * maxAngle;
 }
 
 export const valueToPercentage = (value: number, min: number, max: number, invertedMode?: boolean) => {
