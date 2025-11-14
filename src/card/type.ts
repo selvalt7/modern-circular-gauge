@@ -24,6 +24,7 @@ export interface BaseEntityConfig {
     adaptive_graph_range?: boolean;
     state_text?: string;
     state_font_size?: number;
+    state_font_family?: string;
     start_from_zero?: boolean;
     gauge_radius?: number;
     gauge_background_style?: GaugeElementConfig;
@@ -88,6 +89,7 @@ export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     adaptive_state_color?: boolean;
     smooth_segments?: boolean;
     state_font_size?: number;
+    state_font_family?: string;
     header_font_size?: number;
     header_offset?: number;
     start_from_zero?: boolean;

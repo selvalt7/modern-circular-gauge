@@ -404,7 +404,9 @@ export class ModernCircularGauge extends LitElement {
           ${this._config.show_state || (this._config.combine_gauges && this._config.gauge_type === "full") ? html`
           <modern-circular-gauge-state
             class=${classMap({ "preview": this._inCardPicker! })}
-            style=${styleMap({ "--state-text-color": (this._config.adaptive_state_color && (!this._config.combine_gauges || this._config.gauge_type !== "full")) ? "var(--gauge-color)" : undefined , "--state-font-size-override": this._config.state_font_size ? `${this._config.state_font_size}px` : (halfStateBig ? `15px` : undefined) })}
+            style=${styleMap({ "--state-text-color": (this._config.adaptive_state_color && (!this._config.combine_gauges || this._config.gauge_type !== "full")) ? "var(--gauge-color)" : undefined ,
+              "--state-font-size-override": this._config.state_font_size ? `${this._config.state_font_size}px` : (halfStateBig ? `15px` : undefined),
+              "font-family": this._config.state_font_family ? this._config.state_font_family : undefined })}
             .hass=${this.hass}
             .stateObj=${stateObj}
             .entityAttribute=${this._config.attribute}
@@ -959,7 +961,8 @@ export class ModernCircularGauge extends LitElement {
         hasDoubleClick: hasAction(secondary.double_tap_action),
       })}
       class=${classMap({ "preview": this._inCardPicker!, "secondary": true })}
-      style=${styleMap({ "--state-text-color-override": secondaryColor ?? (secondary.state_size == "big" ? "var(--secondary-text-color)" : undefined), "--state-font-size-override": secondary.state_font_size ? `${secondary.state_font_size}px` : (halfStateBig ? `15px` : undefined) })}
+      style=${styleMap({ "--state-text-color-override": secondaryColor ?? (secondary.state_size == "big" ? "var(--secondary-text-color)" : undefined), "--state-font-size-override": secondary.state_font_size ? `${secondary.state_font_size}px` : (halfStateBig ? `15px` : undefined),
+        "font-family": secondary.state_font_family ? secondary.state_font_family : undefined })}
       .hass=${this.hass}
       .stateObj=${stateObj}
       .entityAttribute=${secondary.attribute}
@@ -1006,7 +1009,8 @@ export class ModernCircularGauge extends LitElement {
           hasDoubleClick: hasAction(this._config.double_tap_action),
         })}
         class=${classMap({ "preview": this._inCardPicker! })}
-        style=${styleMap({ "--state-text-color-override": this._config.adaptive_state_color ? "var(--gauge-color)" : undefined , "--state-font-size-override": this._config.state_font_size ? `${this._config.state_font_size}px` : undefined })}
+        style=${styleMap({ "--state-text-color-override": this._config.adaptive_state_color ? "var(--gauge-color)" : undefined , "--state-font-size-override": this._config.state_font_size ? `${this._config.state_font_size}px` : undefined,
+          "font-family": this._config.state_font_family ? this._config.state_font_family : undefined })}
         .hass=${this.hass}
         .stateObj=${stateObj}
         .entityAttribute=${this._config.attribute}
@@ -1100,7 +1104,8 @@ export class ModernCircularGauge extends LitElement {
         hasDoubleClick: hasAction(tertiary.double_tap_action),
       })}
       class=${classMap({ "preview": this._inCardPicker!, "tertiary": true })}
-      style=${styleMap({ "--state-text-color-override": adaptiveColor ?? undefined , "--state-font-size-override": tertiary.state_font_size ? `${tertiary.state_font_size}px` : (this._config?.gauge_type == "half" && threeGauges ? "6px" : undefined) })}
+      style=${styleMap({ "--state-text-color-override": adaptiveColor ?? undefined , "--state-font-size-override": tertiary.state_font_size ? `${tertiary.state_font_size}px` : (this._config?.gauge_type == "half" && threeGauges ? "6px" : undefined),
+        "font-family": tertiary.state_font_family ? tertiary.state_font_family : undefined })}
       .hass=${this.hass}
       .stateObj=${stateObj}
       .entityAttribute=${tertiary.attribute}
