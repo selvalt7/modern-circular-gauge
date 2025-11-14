@@ -938,7 +938,7 @@ export class ModernCircularGauge extends LitElement {
 
     let secondaryColor;
 
-    if (secondary.adaptive_state_color) {
+    if (secondary.adaptive_state_color || secondary.adaptive_label_color) {
       secondaryColor = "var(--gauge-color)";
       if (secondary.show_gauge == "outter") {
         secondaryColor = computeSegments(state, (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config?.segments, this._config?.smooth_segments, this);
@@ -959,7 +959,9 @@ export class ModernCircularGauge extends LitElement {
         hasDoubleClick: hasAction(secondary.double_tap_action),
       })}
       class=${classMap({ "preview": this._inCardPicker!, "secondary": true })}
-      style=${styleMap({ "--state-text-color-override": secondaryColor ?? (secondary.state_size == "big" ? "var(--secondary-text-color)" : undefined), "--state-font-size-override": secondary.state_font_size ? `${secondary.state_font_size}px` : (halfStateBig ? `15px` : undefined) })}
+      style=${styleMap({ "--state-text-color-override": secondary.adaptive_state_color ? secondaryColor ?? (secondary.state_size == "big" ? "var(--secondary-text-color)" : undefined) : (secondary.state_size == "big" ? "var(--secondary-text-color)" : undefined),
+        "--state-font-size-override": secondary.state_font_size ? `${secondary.state_font_size}px` : (halfStateBig ? `15px` : undefined),
+        "--state-label-color-override": secondary.adaptive_label_color ? (secondaryColor ?? "var(--gauge-color)") : undefined })}
       .hass=${this.hass}
       .stateObj=${stateObj}
       .entityAttribute=${secondary.attribute}
@@ -1006,7 +1008,9 @@ export class ModernCircularGauge extends LitElement {
           hasDoubleClick: hasAction(this._config.double_tap_action),
         })}
         class=${classMap({ "preview": this._inCardPicker! })}
-        style=${styleMap({ "--state-text-color-override": this._config.adaptive_state_color ? "var(--gauge-color)" : undefined , "--state-font-size-override": this._config.state_font_size ? `${this._config.state_font_size}px` : undefined })}
+        style=${styleMap({ "--state-text-color-override": this._config.adaptive_state_color ? "var(--gauge-color)" : undefined,
+          "--state-font-size-override": this._config.state_font_size ? `${this._config.state_font_size}px` : undefined,
+          "--state-label-color-override": this._config.adaptive_label_color ? "var(--gauge-color)" : undefined })}
         .hass=${this.hass}
         .stateObj=${stateObj}
         .entityAttribute=${this._config.attribute}
@@ -1080,7 +1084,7 @@ export class ModernCircularGauge extends LitElement {
 
     let adaptiveColor;
 
-    if (tertiary.adaptive_state_color) {
+    if (tertiary.adaptive_state_color || tertiary.adaptive_label_color) {
       if (tertiary.show_gauge == "outter") {
         adaptiveColor = computeSegments(state, (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config?.segments, this._config?.smooth_segments, this);
       } else {
@@ -1100,7 +1104,9 @@ export class ModernCircularGauge extends LitElement {
         hasDoubleClick: hasAction(tertiary.double_tap_action),
       })}
       class=${classMap({ "preview": this._inCardPicker!, "tertiary": true })}
-      style=${styleMap({ "--state-text-color-override": adaptiveColor ?? undefined , "--state-font-size-override": tertiary.state_font_size ? `${tertiary.state_font_size}px` : (this._config?.gauge_type == "half" && threeGauges ? "6px" : undefined) })}
+      style=${styleMap({ "--state-text-color-override": tertiary.adaptive_state_color ? adaptiveColor : undefined,
+        "--state-font-size-override": tertiary.state_font_size ? `${tertiary.state_font_size}px` : (this._config?.gauge_type == "half" && threeGauges ? "6px" : undefined),
+        "--state-label-color-override": tertiary.adaptive_label_color ? (adaptiveColor ?? "var(--gauge-color)") : undefined })}
       .hass=${this.hass}
       .stateObj=${stateObj}
       .entityAttribute=${tertiary.attribute}

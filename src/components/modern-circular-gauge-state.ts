@@ -161,7 +161,7 @@ export class ModernCircularGaugeState extends LitElement {
 
     .state-label {
       font-size: 0.49em;
-      fill: var(--secondary-text-color);
+      fill: var(--state-label-color-override, var(--secondary-text-color));
       dominant-baseline: middle;
     }
     `;

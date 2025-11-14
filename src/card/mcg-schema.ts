@@ -132,6 +132,11 @@ export const getEntityStyleSchema = (showGaugeOptions: boolean, gaugeDefaultRadi
         selector: { boolean: {} },
       },
       {
+        name: "adaptive_label_color",
+        default: false,
+        selector: { boolean: {} },
+      },
+      {
         name: "decimals",
         selector: { number: { step: 1, min: 0 } },
       },
