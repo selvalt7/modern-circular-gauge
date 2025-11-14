@@ -141,6 +141,11 @@ export const getEntityStyleSchema = (showGaugeOptions: boolean, gaugeDefaultRadi
         selector: { number: { step: 1, min: 0 } },
       },
       {
+        name: "inverted_mode",
+        default: false,
+        selector: { boolean: {} },
+      },
+      {
         name: "show_in_graph",
         default: labelHelper === "primary_label",
         selector: { boolean: {} },

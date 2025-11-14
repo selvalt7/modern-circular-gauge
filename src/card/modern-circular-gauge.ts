@@ -387,6 +387,7 @@ export class ModernCircularGauge extends LitElement {
             .rotateGauge=${this._config.rotate_gauge}
             .linePadding=${this._config.combine_gauges && this._config.gauge_type === "full" ? 7.5 : 0}
             .lineOffset=${this._config.combine_gauges && this._config.gauge_type === "full" ?  3.25 : 0}
+            .invertedMode=${this._config.inverted_mode}
           ></modern-circular-gauge-element>
           ${typeof this._config.secondary != "string" ? 
           (this._config.secondary?.show_gauge && this._config.secondary?.show_gauge != "none") || (this._config.combine_gauges && this._config.gauge_type === "full") ?
@@ -406,7 +407,8 @@ export class ModernCircularGauge extends LitElement {
             class=${classMap({ "preview": this._inCardPicker! })}
             style=${styleMap({ "--state-text-color": (this._config.adaptive_state_color && (!this._config.combine_gauges || this._config.gauge_type !== "full")) ? "var(--gauge-color)" : undefined,
               "--state-font-size-override": this._config.state_font_size ? `${this._config.state_font_size}px` : (halfStateBig ? `15px` : undefined),
-              "--state-label-color-override": (this._config.adaptive_label_color && (!this._config.combine_gauges || this._config.gauge_type !== "full")) ? "var(--gauge-color)" : undefined })}
+              "--state-label-color-override": (this._config.adaptive_label_color && (!this._config.combine_gauges || this._config.gauge_type !== "full")) ? "var(--gauge-color)" : undefined,
+              "font-family": this._config.state_font_family ? this._config.state_font_family : undefined })}
             .hass=${this.hass}
             .stateObj=${stateObj}
             .entityAttribute=${this._config.attribute}
@@ -707,6 +709,7 @@ export class ModernCircularGauge extends LitElement {
         .needle=${tertiaryObj?.needle}
         .startFromZero=${tertiaryObj?.start_from_zero}
         .rotateGauge=${this._config?.rotate_gauge}
+        .invertedMode=${tertiaryObj?.inverted_mode}
       ></modern-circular-gauge-element>
       `;
     } else {
@@ -738,6 +741,7 @@ export class ModernCircularGauge extends LitElement {
         .foregroundStyle=${tertiaryObj?.gauge_foreground_style}
         .backgroundStyle=${tertiaryObj?.gauge_background_style}
         .rotateGauge=${this._config?.rotate_gauge}
+        .invertedMode=${tertiaryObj?.inverted_mode}
         .outter=${true}
       ></modern-circular-gauge-element>
       `;
@@ -838,6 +842,7 @@ export class ModernCircularGauge extends LitElement {
         .flipGauge=${this._config?.combine_gauges && this._config.gauge_type === "full"}
         .linePadding=${this._config?.combine_gauges && this._config.gauge_type === "full" ? 7.5 : 0}
         .lineOffset=${this._config?.combine_gauges && this._config.gauge_type === "full" ? 3.25 : 0}
+        .invertedMode=${secondaryObj?.inverted_mode}
       ></modern-circular-gauge-element>
       `;
     } else {
@@ -870,6 +875,7 @@ export class ModernCircularGauge extends LitElement {
         .backgroundStyle=${secondaryObj?.gauge_background_style}
         .outter=${true}
         .rotateGauge=${this._config?.rotate_gauge}
+        .invertedMode=${secondaryObj?.inverted_mode}
       ></modern-circular-gauge-element>
       `;
     }
@@ -963,7 +969,8 @@ export class ModernCircularGauge extends LitElement {
       class=${classMap({ "preview": this._inCardPicker!, "secondary": true })}
       style=${styleMap({ "--state-text-color-override": secondary.adaptive_state_color ? secondaryColor ?? (secondary.state_size == "big" ? "var(--secondary-text-color)" : undefined) : (secondary.state_size == "big" ? "var(--secondary-text-color)" : undefined),
         "--state-font-size-override": secondary.state_font_size ? `${secondary.state_font_size}px` : (halfStateBig ? `15px` : undefined),
-        "--state-label-color-override": secondary.adaptive_label_color ? (secondaryColor ?? "var(--gauge-color)") : undefined })}
+        "--state-label-color-override": secondary.adaptive_label_color ? (secondaryColor ?? "var(--gauge-color)") : undefined,
+        "font-family": secondary.state_font_family ? secondary.state_font_family : undefined })}
       .hass=${this.hass}
       .stateObj=${stateObj}
       .entityAttribute=${secondary.attribute}
@@ -1012,7 +1019,8 @@ export class ModernCircularGauge extends LitElement {
         class=${classMap({ "preview": this._inCardPicker! })}
         style=${styleMap({ "--state-text-color-override": this._config.adaptive_state_color ? "var(--gauge-color)" : undefined,
           "--state-font-size-override": this._config.state_font_size ? `${this._config.state_font_size}px` : undefined,
-          "--state-label-color-override": this._config.adaptive_label_color ? "var(--gauge-color)" : undefined })}
+          "--state-label-color-override": this._config.adaptive_label_color ? "var(--gauge-color)" : undefined,
+          "font-family": this._config.state_font_family ? this._config.state_font_family : undefined })}
         .hass=${this.hass}
         .stateObj=${stateObj}
         .entityAttribute=${this._config.attribute}
@@ -1108,7 +1116,8 @@ export class ModernCircularGauge extends LitElement {
       class=${classMap({ "preview": this._inCardPicker!, "tertiary": true })}
       style=${styleMap({ "--state-text-color-override": tertiary.adaptive_state_color ? adaptiveColor : undefined,
         "--state-font-size-override": tertiary.state_font_size ? `${tertiary.state_font_size}px` : (this._config?.gauge_type == "half" && threeGauges ? "6px" : undefined),
-        "--state-label-color-override": tertiary.adaptive_label_color ? (adaptiveColor ?? "var(--gauge-color)") : undefined })}
+        "--state-label-color-override": tertiary.adaptive_label_color ? (adaptiveColor ?? "var(--gauge-color)") : undefined,
+        "font-family": tertiary.state_font_family ? tertiary.state_font_family : undefined })}
       .hass=${this.hass}
       .stateObj=${stateObj}
       .entityAttribute=${tertiary.attribute}
