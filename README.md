@@ -95,6 +95,7 @@ Both [Jinja](#jinja-templates) and [JavaScript](#javascript-templates) templates
 | state_text | `string` | Entity state | Displayed state override. May contain [templates](#templates)|✅
 | adaptive_icon_color | `boolean` | `false` | Makes icon color adaptive to current color segment
 | adaptive_state_color | `boolean` | `false` | Makes state color adaptive to current color segment
+| adaptive_label_color | `boolean` | `false` | Makes label color adaptive to current color segment
 | smooth_segments | `boolean` | `false` | Smooth color segments
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min
 | state_font_size | `number` | `24` | Initial state size in px
@@ -169,6 +170,7 @@ Both [Jinja](#jinja-templates) and [JavaScript](#javascript-templates) templates
 | gauge_foreground_style | `object` | Optional | Gauge foreground style, see [gauge element style object](#gauge-element-style-object)
 | needle | `boolean` | `false` |
 | adaptive_state_color | `boolean` | `false` | Makes state color adaptive to current color segment based on `show_gauge` config
+| adaptive_label_color | `boolean` | `false` | Makes label color adaptive to current color segment based on `show_gauge` config
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
 
 #### Tertiary entity object
@@ -196,6 +198,7 @@ Both [Jinja](#jinja-templates) and [JavaScript](#javascript-templates) templates
 | gauge_foreground_style | `object` | Optional | Gauge foreground style, see [gauge element style object](#gauge-element-style-object)
 | needle | `boolean` | `false` |
 | adaptive_state_color | `boolean` | `false` | Makes state color adaptive to current color segment based on `show_gauge` config
+| adaptive_label_color | `boolean` | `false` | Makes label color adaptive to current color segment based on `show_gauge` config
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
 
 #### Gauge element style object
