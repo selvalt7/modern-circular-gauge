@@ -53,7 +53,7 @@ export class ModernCircularGaugeBadge extends LitElement {
 
   @state() private _templateResults?: Partial<Record<string, RenderTemplateResult | undefined>> = {};
 
-  @state() private _unsubRenderTemplates?: Map<string, Promise<UnsubscribeFunc>> = new Map();
+  @state() private _unsubRenderTemplates?: Map<string, Promise<UnsubscribeFunc> | UnsubscribeFunc> = new Map();
 
   private _trackedEntities: Set<string> = new Set();
 
@@ -211,7 +211,10 @@ export class ModernCircularGaugeBadge extends LitElement {
                 keys.forEach((k) => {
                   if (typeof segment[k] === "string" && JSRegex.test(segment[k])) {
                     const segmentValue = segment[k].replace(JSRegex, "$1");
-                    newSegment[k] = eval(segmentValue);
+                    const functionBody = segmentValue.includes('return')
+                    ? segmentValue
+                    : 'return ' + segmentValue;
+                    newSegment[k] = eval('(function(){' + functionBody + '})()');
                   }
                 });
                 processedSegments.push(newSegment);
@@ -228,7 +231,7 @@ export class ModernCircularGaugeBadge extends LitElement {
                 [key]: templateResult,
               };
             }, {"segments": JSON.parse(templateValue), "JSRegex": JSTemplateRegex});
-          this._unsubRenderTemplates?.set(key, Promise.resolve(untrack));
+          this._unsubRenderTemplates?.set(key, untrack);
         });
       } else {
         this.haJsTemplates.getRenderer()
@@ -246,7 +249,7 @@ export class ModernCircularGaugeBadge extends LitElement {
               };
             }
           );
-          this._unsubRenderTemplates?.set(key, Promise.resolve(untrack));
+          this._unsubRenderTemplates?.set(key, untrack);
         });
       }
     } else {
@@ -301,11 +304,22 @@ export class ModernCircularGaugeBadge extends LitElement {
     Object.entries(templates).forEach(([key, _]) => {
       this._tryDisconnectKey(key);
     });
+
+    this.haJsTemplates.getRenderer()
+    .then((renderer) => {
+      renderer.cleanTracked();
+    });
   }
 
   private async _tryDisconnectKey(key: string): Promise<void> {
     const unsubRenderTemplate = this._unsubRenderTemplates?.get(key);
     if (!unsubRenderTemplate) {
+      return;
+    }
+
+    if (unsubRenderTemplate instanceof Promise === false) {
+      unsubRenderTemplate();
+      this._unsubRenderTemplates?.delete(key);
       return;
     }
 
