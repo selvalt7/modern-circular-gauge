@@ -132,6 +132,11 @@ export const getEntityStyleSchema = (showGaugeOptions: boolean, gaugeDefaultRadi
         selector: { boolean: {} },
       },
       {
+        name: "adaptive_label_color",
+        default: false,
+        selector: { boolean: {} },
+      },
+      {
         name: "decimals",
         selector: { number: { step: 1, min: 0 } },
       },
@@ -166,14 +171,12 @@ export const getEntityStyleSchema = (showGaugeOptions: boolean, gaugeDefaultRadi
   {
     name: "gauge_foreground_style",
     type: "expandable",
-    disabled: !showGaugeOptions,
     iconPath: mdiFlipToFront,
     schema: getGaugeStyleSchema(gaugeDefaultRadius == RADIUS ? 6 : 4)
   },
   {
     name: "gauge_background_style",
     type: "expandable",
-    disabled: !showGaugeOptions,
     iconPath: mdiFlipToBack,
     schema: getGaugeStyleSchema(gaugeDefaultRadius == RADIUS ? 6 : 4, gaugeDefaultBackgroundOpacity)
   }

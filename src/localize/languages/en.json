@@ -12,6 +12,7 @@
     "adaptive_icon_color": "Adaptive icon color",
     "icon_entity": "Icon entity",
     "adaptive_state_color": "Adaptive state color",
+    "adaptive_label_color": "Adaptive label color",
     "show_unit": "Show unit",
     "smooth_segments": "Smooth segments",
     "segments": "Color segments",
