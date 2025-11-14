@@ -109,7 +109,7 @@ export const valueToPercentageUnclamped = (value: number, min: number, max: numb
 }
 
 export const currentDashArc = (value: number, min: number, max: number, radius: number, startFromZero?: boolean, maxAngle: number = MAX_ANGLE, linePadding?: number, offset?: number, invertedMode?: boolean): [string, string] => {
-  if (startFromZero) {
+  if (startFromZero && !invertedMode) {
     return strokeDashArc(value > 0 ? 0 : value, value > 0 ? value : 0, min, max, radius, maxAngle, linePadding, offset, invertedMode);
   } else {
     return strokeDashArc(min, value, min, max, radius, maxAngle, linePadding, offset, invertedMode);
