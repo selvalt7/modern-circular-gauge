@@ -136,6 +136,11 @@ export class ModernCircularGaugeBadgeEditor extends LitElement {
                 name: "decimals",
                 selector: { number: { step: 1, min: 0 } },
               },
+              {
+                name: "inverted_mode",
+                default: false,
+                selector: { boolean: {} },
+              }
             ]
           },
           {

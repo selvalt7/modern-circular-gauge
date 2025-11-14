@@ -399,7 +399,7 @@ export class ModernCircularGaugeBadge extends LitElement {
     const min = Number(this._templateResults?.min?.result ?? this._config.min) || DEFAULT_MIN;
     const max = Number(this._templateResults?.max?.result ?? this._config.max ?? timerDuration) || DEFAULT_MAX;
 
-    const current = this._config.needle ? undefined : currentDashArc(numberState, min, max, RADIUS, this._config.start_from_zero);
+    const current = this._config.needle ? undefined : currentDashArc(numberState, min, max, RADIUS, this._config.start_from_zero, undefined, undefined, undefined, this._config.inverted_mode);
 
     const stateOverride = this._templateResults?.stateText?.result ?? (isTemplate(String(this._config.state_text)) ? "" : (this._config.state_text || undefined));
     const unit = this._config.show_unit ?? true ? (this._config.unit ?? stateObj?.attributes.unit_of_measurement) || "" : "";
@@ -430,6 +430,8 @@ export class ModernCircularGaugeBadge extends LitElement {
     const gaugeBackgroundStyle = this._config.gauge_background_style;
     const gaugeForegroundStyle = this._config.gauge_foreground_style;
 
+    const needleAngle = getAngle(numberState, min, max, undefined, this._config.inverted_mode);
+
     return html`
     <ha-badge
       .type=${this.hasAction ? "button" : "badge"}
@@ -449,7 +451,7 @@ export class ModernCircularGaugeBadge extends LitElement {
             ${this._config.needle ? svg`
               <mask id="needle-mask">
                 ${renderPath("arc", path, undefined, styleMap({ "stroke": "white", "stroke-width": gaugeBackgroundStyle?.width ? `${gaugeBackgroundStyle?.width}px` : undefined  }))}
-                <circle cx="42" cy="0" r=${gaugeForegroundStyle?.width ? gaugeForegroundStyle?.width - 2 : 12} fill="black" transform="rotate(${getAngle(numberState, min, max)})"/>
+                <circle cx="42" cy="0" r=${gaugeForegroundStyle?.width ? gaugeForegroundStyle?.width - 2 : 12} fill="black" transform="rotate(${needleAngle})"/>
               </mask>
               ` : nothing}
               <mask id="gradient-path">
@@ -473,7 +475,7 @@ export class ModernCircularGaugeBadge extends LitElement {
               </g>
             </g>
           ${this._config.needle ? svg`
-            <circle class="needle" cx="42" cy="0" r=${gaugeForegroundStyle?.width ? gaugeForegroundStyle?.width / 2 : 7} transform="rotate(${getAngle(numberState, min, max)})"/>
+            <circle class="needle" cx="42" cy="0" r=${gaugeForegroundStyle?.width ? gaugeForegroundStyle?.width / 2 : 7} transform="rotate(${needleAngle})"/>
           ` : nothing}
           ${current ? gaugeForegroundStyle?.color == "adaptive" ? svg`
             <g class="foreground-segments" mask="url(#gradient-current-path)" style=${styleMap({ "opacity": gaugeForegroundStyle?.opacity })}>

@@ -97,6 +97,7 @@ Both [Jinja](#jinja-templates) and [JavaScript](#javascript-templates) templates
 | adaptive_state_color | `boolean` | `false` | Makes state color adaptive to current color segment
 | smooth_segments | `boolean` | `false` | Smooth color segments
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min
+| inverted_mode | `boolean` | `false` | Inverts gauge fill logic and ignores start_from_zero, 0 -> full gauge, 100 -> empty gauge
 | state_font_size | `number` | `24` | Initial state size in px
 | state_font_family | `string` | Optional | State font family
 | header_font_size | `number` | `14` | Gauge header font size in px
@@ -131,6 +132,7 @@ Both [Jinja](#jinja-templates) and [JavaScript](#javascript-templates) templates
 | show_seconds | `boolean` | `true` | Show seconds when displaying time based entities
 | needle | `bool` | `false` | 
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min
+| inverted_mode | `boolean` | `false` | Inverts gauge fill logic and ignores start_from_zero, 0 -> full gauge, 100 -> empty gauge
 | gauge_background_style | `object` | Optional | Gauge background style, see [gauge element style object](#gauge-element-style-object)
 | gauge_foreground_style | `object` | Optional | Gauge foreground style, see [gauge element style object](#gauge-element-style-object)
 | state_text | `string` | Entity state | Displayed state override. May contain [templates](#templates)|✅
@@ -163,6 +165,7 @@ Both [Jinja](#jinja-templates) and [JavaScript](#javascript-templates) templates
 | adaptive_graph_range | `boolean` | `false` | Adapt y-axis range to min and max value of the entity history
 | show_seconds | `boolean` | `true` | Show seconds when displaying time based entities
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min
+| inverted_mode | `boolean` | `false` | Inverts gauge fill logic and ignores start_from_zero, 0 -> full gauge, 100 -> empty gauge
 | state_font_size | `number` | `10` or `24` | State size in px
 | state_font_family | `string` | Optional | State font family
 | state_text | `string` | Entity state | Displayed state override. May contain [templates](#templates)|✅
@@ -191,6 +194,7 @@ Both [Jinja](#jinja-templates) and [JavaScript](#javascript-templates) templates
 | adaptive_graph_range | `boolean` | `false` | Adapt y-axis range to min and max value of the entity history
 | show_seconds | `boolean` | `true` | Show seconds when displaying time based entities
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min
+| inverted_mode | `boolean` | `false` | Inverts gauge fill logic and ignores start_from_zero, 0 -> full gauge, 100 -> empty gauge
 | state_font_size | `number` | `10` | State size in px
 | state_font_family | `string` | Optional | State font family
 | state_text | `string` | Entity state | Displayed state override. May contain [templates](#templates)|✅

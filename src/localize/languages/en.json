@@ -44,6 +44,7 @@
     "show_graph": "Show graph",
     "graph_hours_to_show": "Hours to show",
     "graph_points_per_hour": "Points per hour",
+    "inverted_mode": "Inverted mode",
     "helper": {
       "start_from_zero": "Gauge starts from zero instead of min",
       "primary_label": "Text displayed under the main state when secondary state size is set to big",

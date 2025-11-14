@@ -34,6 +34,8 @@ export class ModernCircularGaugeElement extends LitElement {
 
   @property({ type: Boolean }) public startFromZero = false;
 
+  @property({ type: Boolean }) public invertedMode = false;
+
   @property({ type: Boolean }) public outter = false;
 
   @property({ type: Boolean }) public error = false;
@@ -90,7 +92,7 @@ export class ModernCircularGaugeElement extends LitElement {
 
     if (this.outter)
     {
-      const current = strokeDashArc(this.value, this.value, this.min, this.max, this.radius, this._maxAngle);
+      const current = strokeDashArc(this.value, this.value, this.min, this.max, this.radius, this._maxAngle, undefined, undefined, this.invertedMode);
 
       return html`
       <svg viewBox="-50 -50 100 ${this.gaugeType == "half" ? 50 : 100}" preserveAspectRatio="xMidYMid"
@@ -107,8 +109,8 @@ export class ModernCircularGaugeElement extends LitElement {
     } else {
       const min = this.flipGauge ? -this.max : this.min;
       const max = this.flipGauge ? this.min : this.max;
-      const current = this.needle ? undefined : currentDashArc(this.value * (this.flipGauge ? -1.0 : 1.0), min, max, this.radius, (this.startFromZero || this.flipGauge), this._maxAngle, this.linePadding, this.lineOffset);
-      const needle = this.needle ? strokeDashArc(this.value, this.value, min, max, this.radius, this._maxAngle) : undefined;
+      const current = this.needle ? undefined : currentDashArc(this.value * (this.flipGauge ? -1.0 : 1.0), min, max, this.radius, (this.startFromZero || this.flipGauge), this._maxAngle, this.linePadding, this.lineOffset, this.invertedMode);
+      const needle = this.needle ? strokeDashArc(this.value, this.value, min, max, this.radius, this._maxAngle, undefined, undefined, this.invertedMode) : undefined;
       
       return html`
         <svg viewBox="-50 -50 100 ${this.gaugeType == "half" ? 50 : 100}" preserveAspectRatio="xMidYMid"
@@ -155,7 +157,7 @@ export class ModernCircularGaugeElement extends LitElement {
             <g class="foreground-segments" mask="url(#gradient-current-path)" style=${styleMap({ "opacity": this.foregroundStyle?.opacity })}>
               ${renderColorSegments(this.segments, min, max, this.radius, this.smoothSegments, this._maxAngle)}
             </g>
-            ` : renderPath("arc current", this._path, current, styleMap({ "visibility": (this.value <= min && min >= 0) || (this.flipGauge && this.value <= this.min) ? "hidden" : "visible", "opacity": this.foregroundStyle?.opacity }))
+            ` : renderPath("arc current", this._path, current, styleMap({ "visibility": (this.invertedMode ? (this.value >= max) : (this.value <= min && min >= 0)) || (this.flipGauge && this.value <= this.min) ? "hidden" : "visible", "opacity": this.foregroundStyle?.opacity }))
             : nothing}
             ${needle ? svg`
             ${renderPath("needle", this._path, needle)}

@@ -387,6 +387,7 @@ export class ModernCircularGauge extends LitElement {
             .rotateGauge=${this._config.rotate_gauge}
             .linePadding=${this._config.combine_gauges && this._config.gauge_type === "full" ? 7.5 : 0}
             .lineOffset=${this._config.combine_gauges && this._config.gauge_type === "full" ?  3.25 : 0}
+            .invertedMode=${this._config.inverted_mode}
           ></modern-circular-gauge-element>
           ${typeof this._config.secondary != "string" ? 
           (this._config.secondary?.show_gauge && this._config.secondary?.show_gauge != "none") || (this._config.combine_gauges && this._config.gauge_type === "full") ?
@@ -707,6 +708,7 @@ export class ModernCircularGauge extends LitElement {
         .needle=${tertiaryObj?.needle}
         .startFromZero=${tertiaryObj?.start_from_zero}
         .rotateGauge=${this._config?.rotate_gauge}
+        .invertedMode=${tertiaryObj?.inverted_mode}
       ></modern-circular-gauge-element>
       `;
     } else {
@@ -738,6 +740,7 @@ export class ModernCircularGauge extends LitElement {
         .foregroundStyle=${tertiaryObj?.gauge_foreground_style}
         .backgroundStyle=${tertiaryObj?.gauge_background_style}
         .rotateGauge=${this._config?.rotate_gauge}
+        .invertedMode=${tertiaryObj?.inverted_mode}
         .outter=${true}
       ></modern-circular-gauge-element>
       `;
@@ -838,6 +841,7 @@ export class ModernCircularGauge extends LitElement {
         .flipGauge=${this._config?.combine_gauges && this._config.gauge_type === "full"}
         .linePadding=${this._config?.combine_gauges && this._config.gauge_type === "full" ? 7.5 : 0}
         .lineOffset=${this._config?.combine_gauges && this._config.gauge_type === "full" ? 3.25 : 0}
+        .invertedMode=${secondaryObj?.inverted_mode}
       ></modern-circular-gauge-element>
       `;
     } else {
@@ -870,6 +874,7 @@ export class ModernCircularGauge extends LitElement {
         .backgroundStyle=${secondaryObj?.gauge_background_style}
         .outter=${true}
         .rotateGauge=${this._config?.rotate_gauge}
+        .invertedMode=${secondaryObj?.inverted_mode}
       ></modern-circular-gauge-element>
       `;
     }
