@@ -15,7 +15,7 @@ import { actionHandler } from "../utils/action-handler-directive";
 import { mdiAlertCircle } from "@mdi/js";
 import { RenderTemplateResult, subscribeRenderTemplate } from "../ha/data/ws-templates";
 import { ifDefined } from "lit/directives/if-defined.js";
-import { isTemplate } from "../utils/template";
+import { isJSTemplate, isTemplate, JSTemplateRegex } from "../utils/template";
 import { SegmentsConfig } from "../card/type";
 import getEntityPictureUrl from "../utils/entity-picture";
 import durationToSeconds from "../ha/common/datetime/duration_to_seconds";
@@ -25,6 +25,8 @@ import "../components/mcg-badge-state";
 import "../components/modern-circular-gauge-state";
 import { compareHass } from "../utils/compare-hass";
 import { computeCssColor } from "../ha/common/color/compute-color";
+import HomeAssistantJavaScriptTemplates from "home-assistant-javascript-templates";
+import { compareTemplateResult } from "../utils/compare-template-result";
 
 const MAX_ANGLE = 270;
 const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
@@ -51,13 +53,15 @@ export class ModernCircularGaugeBadge extends LitElement {
 
   @state() private _templateResults?: Partial<Record<string, RenderTemplateResult | undefined>> = {};
 
-  @state() private _unsubRenderTemplates?: Map<string, Promise<UnsubscribeFunc>> = new Map();
+  @state() private _unsubRenderTemplates?: Map<string, Promise<UnsubscribeFunc> | UnsubscribeFunc> = new Map();
 
   private _trackedEntities: Set<string> = new Set();
 
   private _isTimerOrTimestamp: boolean = false;
 
   private _interval?: any;
+
+  private haJsTemplates = new HomeAssistantJavaScriptTemplates(document.querySelector("home-assistant") as any);
 
   public static async getStubConfig(hass: HomeAssistant): Promise<ModernCircularGaugeBadgeConfig> {
     const entities = Object.keys(hass.states);
@@ -107,6 +111,7 @@ export class ModernCircularGaugeBadge extends LitElement {
   public disconnectedCallback() {
     super.disconnectedCallback();
     this._tryDisconnect();
+    this._clearInterval();
   }
 
   private _startInterval() {
@@ -125,10 +130,14 @@ export class ModernCircularGaugeBadge extends LitElement {
 
   protected shouldUpdate(_changedProperties: PropertyValues): boolean {
     if (_changedProperties.has("_templateResults")) {
-      return true;
+      const oldTemplateResults = _changedProperties.get("_templateResults") as Partial<Record<string, RenderTemplateResult | undefined>> | undefined;
+      return compareTemplateResult(oldTemplateResults, this._templateResults);
     }
     if (_changedProperties.has("hass")) {
       if (this._trackedEntities.size <= 0) {
+        if (Object.keys(this._templateResults || {}).length > 0) {
+          return false;
+        }
         return true;
       }
       const oldHass = _changedProperties.get("hass") as HomeAssistant | undefined;
@@ -187,39 +196,97 @@ export class ModernCircularGaugeBadge extends LitElement {
       return;
     }
 
-    try {
-      const sub = subscribeRenderTemplate(
-        this.hass.connection,
-        (result) => {
-          if ("error" in result) {
-            return;
-          }
-          this._templateResults = {
-            ...this._templateResults,
-            [key]: result,
-          };
-        },
-        {
-          template: templateValue as string || "",
-          variables: {
-            config: this._config,
-            user: this.hass.user!.name,
+    if (isJSTemplate(templateValue)) {
+      const isSegments = /segments$/i.test(key);
+      if (isSegments) {
+        this.haJsTemplates.getRenderer()
+        .then((renderer) => {
+          const untrack = renderer.trackTemplate(
+            `
+              const processedSegments = [];
+              for (let i = 0; i < segments.length; i++) {
+                const segment = segments[i];
+                const newSegment = { ...segment };
+                const keys = Object.keys(segment);
+                keys.forEach((k) => {
+                  if (typeof segment[k] === "string" && JSRegex.test(segment[k])) {
+                    const segmentValue = segment[k].replace(JSRegex, "$1");
+                    const functionBody = segmentValue.includes('return')
+                    ? segmentValue
+                    : 'return ' + segmentValue;
+                    newSegment[k] = eval('(function(){' + functionBody + '})()');
+                  }
+                });
+                processedSegments.push(newSegment);
+              }
+              return processedSegments;
+            `,
+            (result) => {
+              const templateResult = {
+                result: result as string || "",
+                listeners: { all: false, domains: [], entities: [], time: false },
+              };
+              this._templateResults = {
+                ...this._templateResults,
+                [key]: templateResult,
+              };
+            }, {"segments": JSON.parse(templateValue), "JSRegex": JSTemplateRegex});
+          this._unsubRenderTemplates?.set(key, untrack);
+        });
+      } else {
+        this.haJsTemplates.getRenderer()
+        .then((renderer) => {
+          const untrack = renderer.trackTemplate(
+            templateValue.replace(JSTemplateRegex, "$1"),
+            (result) => {
+              const templateResult = {
+                result: result as string || "",
+                listeners: { all: false, domains: [], entities: [], time: false },
+              };
+              this._templateResults = {
+                ...this._templateResults,
+                [key]: templateResult,
+              };
+            }
+          );
+          this._unsubRenderTemplates?.set(key, untrack);
+        });
+      }
+    } else {
+      try {
+        const sub = subscribeRenderTemplate(
+          this.hass.connection,
+          (result) => {
+            if ("error" in result) {
+              return;
+            }
+            this._templateResults = {
+              ...this._templateResults,
+              [key]: result,
+            };
           },
-          strict: true,
-        }
-      );
-      this._unsubRenderTemplates?.set(key, sub);
-      await sub;
-    } catch (e: any) {
-      const result = {
-        result: templateValue as string || "",
-        listeners: { all: false, domains: [], entities: [], time: false },
-      };
-      this._templateResults = {
-        ...this._templateResults,
-        [key]: result,
-      };
-      this._unsubRenderTemplates?.delete(key);
+          {
+            template: templateValue as string || "",
+            variables: {
+              config: this._config,
+              user: this.hass.user!.name,
+            },
+            strict: true,
+          }
+        );
+        this._unsubRenderTemplates?.set(key, sub);
+        await sub;
+      } catch (e: any) {
+        const result = {
+          result: templateValue as string || "",
+          listeners: { all: false, domains: [], entities: [], time: false },
+        };
+        this._templateResults = {
+          ...this._templateResults,
+          [key]: result,
+        };
+        this._unsubRenderTemplates?.delete(key);
+      }
     }
   }
 
@@ -237,11 +304,22 @@ export class ModernCircularGaugeBadge extends LitElement {
     Object.entries(templates).forEach(([key, _]) => {
       this._tryDisconnectKey(key);
     });
+
+    this.haJsTemplates.getRenderer()
+    .then((renderer) => {
+      renderer.cleanTracked();
+    });
   }
 
   private async _tryDisconnectKey(key: string): Promise<void> {
     const unsubRenderTemplate = this._unsubRenderTemplates?.get(key);
     if (!unsubRenderTemplate) {
+      return;
+    }
+
+    if (unsubRenderTemplate instanceof Promise === false) {
+      unsubRenderTemplate();
+      this._unsubRenderTemplates?.delete(key);
       return;
     }
 
