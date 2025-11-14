@@ -98,6 +98,7 @@ Templates are supported on selected options, configurable via `yaml` or visual e
 | smooth_segments | `boolean` | `false` | Smooth color segments
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min
 | state_font_size | `number` | `24` | Initial state size in px
+| state_font_family | `string` | Optional | State font family
 | header_font_size | `number` | `14` | Gauge header font size in px
 | header_offset | `number` | `0` | Gauge header vertical offset in px
 | gauge_type | `standard`, `half`, `full` | `standard` | Gauge style type, standard for 270°, half for 180° and full for 360° style
@@ -163,6 +164,7 @@ Templates are supported on selected options, configurable via `yaml` or visual e
 | show_seconds | `boolean` | `true` | Show seconds when displaying time based entities
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min
 | state_font_size | `number` | `10` or `24` | State size in px
+| state_font_family | `string` | Optional | State font family
 | state_text | `string` | Entity state | Displayed state override. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)|✅
 | gauge_radius | `number` | `42` | Gauge radius
 | gauge_background_style | `object` | Optional | Gauge background style, see [gauge element style object](#gauge-element-style-object)
@@ -190,6 +192,7 @@ Templates are supported on selected options, configurable via `yaml` or visual e
 | show_seconds | `boolean` | `true` | Show seconds when displaying time based entities
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min
 | state_font_size | `number` | `10` | State size in px
+| state_font_family | `string` | Optional | State font family
 | state_text | `string` | Entity state | Displayed state override. May contain [templates](https://www.home-assistant.io/docs/configuration/templating/)|✅
 | gauge_radius | `number` | `37` | Gauge radius
 | gauge_background_style | `object` | Optional | Gauge background style, see [gauge element style object](#gauge-element-style-object)
