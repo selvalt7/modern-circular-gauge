@@ -166,14 +166,12 @@ export const getEntityStyleSchema = (showGaugeOptions: boolean, gaugeDefaultRadi
   {
     name: "gauge_foreground_style",
     type: "expandable",
-    disabled: !showGaugeOptions,
     iconPath: mdiFlipToFront,
     schema: getGaugeStyleSchema(gaugeDefaultRadius == RADIUS ? 6 : 4)
   },
   {
     name: "gauge_background_style",
     type: "expandable",
-    disabled: !showGaugeOptions,
     iconPath: mdiFlipToBack,
     schema: getGaugeStyleSchema(gaugeDefaultRadius == RADIUS ? 6 : 4, gaugeDefaultBackgroundOpacity)
   }
