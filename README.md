@@ -26,6 +26,7 @@ Modern look at the default Home Assistant gauge card
 - Color segments with gradient
 - Dual gauge or triple gauge
 - Dual value representing as a dot on the same gauge
+- Small history graph
 - Visual editor with template support
 
 ## Install
