@@ -948,7 +948,7 @@ export class ModernCircularGauge extends LitElement {
 
     if (secondary.adaptive_state_color || secondary.adaptive_label_color) {
       secondaryColor = "var(--gauge-color)";
-      if (secondary.show_gauge == "outter") {
+      if (secondary.show_gauge == "outter" || secondary.show_gauge == "outer") {
         secondaryColor = computeSegments(state, (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config?.segments, this._config?.smooth_segments, this);
       } else if (segments) {
         secondaryColor = computeSegments(state, segments, this._config?.smooth_segments, this);
@@ -1095,7 +1095,7 @@ export class ModernCircularGauge extends LitElement {
     let adaptiveColor;
 
     if (tertiary.adaptive_state_color || tertiary.adaptive_label_color) {
-      if (tertiary.show_gauge == "outter") {
+      if (tertiary.show_gauge == "outter" || tertiary.show_gauge == "outer") {
         adaptiveColor = computeSegments(state, (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config?.segments, this._config?.smooth_segments, this);
       } else {
         adaptiveColor = computeSegments(state, segments, this._config?.smooth_segments, this);
