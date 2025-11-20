@@ -729,6 +729,8 @@ export class ModernCircularGauge extends LitElement {
   
       const min = Number(this._templateResults?.min?.result ?? this._config?.min) || DEFAULT_MIN; 
       const max = Number(this._templateResults?.max?.result ?? this._config?.max) || DEFAULT_MAX;
+
+      const segments = (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config?.segments;
   
       return html`
       <modern-circular-gauge-element
@@ -743,6 +745,7 @@ export class ModernCircularGauge extends LitElement {
         .rotateGauge=${this._config?.rotate_gauge}
         .invertedMode=${tertiaryObj?.inverted_mode}
         .outter=${true}
+        .segments=${segments}
       ></modern-circular-gauge-element>
       `;
     }
@@ -862,6 +865,8 @@ export class ModernCircularGauge extends LitElement {
   
       const min = Number(this._templateResults?.min?.result ?? this._config?.min) || DEFAULT_MIN; 
       const max = Number(this._templateResults?.max?.result ?? this._config?.max) || DEFAULT_MAX;
+
+      const segments = (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config?.segments;
   
       return html`
       <modern-circular-gauge-element
@@ -876,6 +881,7 @@ export class ModernCircularGauge extends LitElement {
         .outter=${true}
         .rotateGauge=${this._config?.rotate_gauge}
         .invertedMode=${secondaryObj?.inverted_mode}
+        .segments=${segments}
       ></modern-circular-gauge-element>
       `;
     }
