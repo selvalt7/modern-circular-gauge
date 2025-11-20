@@ -746,6 +746,7 @@ export class ModernCircularGauge extends LitElement {
         .invertedMode=${tertiaryObj?.inverted_mode}
         .outter=${true}
         .segments=${segments}
+        .smoothSegments=${this._config?.smooth_segments}
       ></modern-circular-gauge-element>
       `;
     }
@@ -882,6 +883,7 @@ export class ModernCircularGauge extends LitElement {
         .rotateGauge=${this._config?.rotate_gauge}
         .invertedMode=${secondaryObj?.inverted_mode}
         .segments=${segments}
+        .smoothSegments=${this._config?.smooth_segments}
       ></modern-circular-gauge-element>
       `;
     }
