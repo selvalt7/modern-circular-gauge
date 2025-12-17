@@ -12,6 +12,7 @@
     "adaptive_icon_color": "Adaptywny kolor ikony",
     "icon_entity": "Encja ikony",
     "adaptive_state_color": "Adaptywny kolor stanu",
+    "adaptive_label_color": "Adaptywny kolor etykiety",
     "show_unit": "Pokaż jednostkę",
     "smooth_segments": "Wygładzone segmenty",
     "segments": "Segmenty kolorów",
@@ -44,6 +45,7 @@
     "show_graph": "Pokaż wykres",
     "graph_hours_to_show": "Godziny do wyświetlenia",
     "graph_points_per_hour": "Punkty na godzinę",
+    "inverted_mode": "Tryb odwrócony",
     "helper": {
       "start_from_zero": "Wskaźnik rozpoczyna się od zera zamiast od minimum",
       "primary_label": "Tekst wyświetlony pod głównym stanem, gdy rozmiar stanu informacji drugorzędnej jest duży",

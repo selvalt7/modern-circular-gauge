@@ -65,7 +65,7 @@ const getSegmentsSchema = () => [
   },
 ]
 
-export const getGaugeStyleSchema = (gaugeDefaultWidth: number = 6) => [
+export const getGaugeStyleSchema = (gaugeDefaultWidth: number = 6, gaugeDefaultOpacity: number = 1) => [
   {
     name: "",
     type: "grid",
@@ -82,14 +82,14 @@ export const getGaugeStyleSchema = (gaugeDefaultWidth: number = 6) => [
       },
       {
         name: "opacity",
-        default: 1,
+        default: gaugeDefaultOpacity,
         selector: { number: { step: "any", min: 0, max: 1 } }
       }
     ]
   }
 ];
 
-export const getEntityStyleSchema = (showGaugeOptions: boolean, gaugeDefaultRadius: number = RADIUS, labelHelper: string = "label") => [
+export const getEntityStyleSchema = (showGaugeOptions: boolean, gaugeDefaultRadius: number = RADIUS, labelHelper: string = "label", gaugeDefaultBackgroundOpacity: number = 1) => [
   {
     name: "label",
     helper: labelHelper,
@@ -132,8 +132,18 @@ export const getEntityStyleSchema = (showGaugeOptions: boolean, gaugeDefaultRadi
         selector: { boolean: {} },
       },
       {
+        name: "adaptive_label_color",
+        default: false,
+        selector: { boolean: {} },
+      },
+      {
         name: "decimals",
         selector: { number: { step: 1, min: 0 } },
+      },
+      {
+        name: "inverted_mode",
+        default: false,
+        selector: { boolean: {} },
       },
       {
         name: "show_in_graph",
@@ -161,20 +171,18 @@ export const getEntityStyleSchema = (showGaugeOptions: boolean, gaugeDefaultRadi
   {
     name: "gauge_foreground_style",
     type: "expandable",
-    disabled: !showGaugeOptions,
     iconPath: mdiFlipToFront,
     schema: getGaugeStyleSchema(gaugeDefaultRadius == RADIUS ? 6 : 4)
   },
   {
     name: "gauge_background_style",
     type: "expandable",
-    disabled: !showGaugeOptions,
     iconPath: mdiFlipToBack,
-    schema: getGaugeStyleSchema(gaugeDefaultRadius == RADIUS ? 6 : 4)
+    schema: getGaugeStyleSchema(gaugeDefaultRadius == RADIUS ? 6 : 4, gaugeDefaultBackgroundOpacity)
   }
 ];
 
-export function getSecondarySchema(showGaugeOptions: boolean, entities?: Map<EntityNames, string>) {
+export function getSecondarySchema(showGaugeOptions: boolean, entities?: Map<EntityNames, string>, gaugeDefaultBackgroundOpacity: number = 1) {
   return {
     name: "secondary",
     type: "expandable",
@@ -223,7 +231,7 @@ export function getSecondarySchema(showGaugeOptions: boolean, entities?: Map<Ent
         type: "expandable",
         flatten: true,
         iconPath: mdiGauge,
-        schema: getEntityStyleSchema(showGaugeOptions, INNER_RADIUS, "label")
+        schema: getEntityStyleSchema(showGaugeOptions, INNER_RADIUS, "label", gaugeDefaultBackgroundOpacity)
       },
       ...getSegmentsSchema(),
       {
@@ -234,7 +242,7 @@ export function getSecondarySchema(showGaugeOptions: boolean, entities?: Map<Ent
   }
 }
 
-export function getTertiarySchema(disableTertiary: boolean, showGaugeOptions: boolean, entities?: Map<EntityNames, string>) {
+export function getTertiarySchema(disableTertiary: boolean, showGaugeOptions: boolean, entities?: Map<EntityNames, string>, gaugeDefaultBackgroundOpacity: number = 1) {
   return {
     name: "tertiary",
     type: "expandable",
@@ -268,7 +276,7 @@ export function getTertiarySchema(disableTertiary: boolean, showGaugeOptions: bo
         type: "expandable",
         flatten: true,
         iconPath: mdiGauge,
-        schema: getEntityStyleSchema(showGaugeOptions, TERTIARY_RADIUS, "label")
+        schema: getEntityStyleSchema(showGaugeOptions, TERTIARY_RADIUS, "label", gaugeDefaultBackgroundOpacity)
       },
       ...getSegmentsSchema(),
       {

@@ -25,11 +25,14 @@ export interface BaseEntityConfig {
     adaptive_graph_range?: boolean;
     state_text?: string;
     state_font_size?: number;
+    state_font_family?: string;
     start_from_zero?: boolean;
+    inverted_mode?: boolean;
     gauge_radius?: number;
     gauge_background_style?: GaugeElementConfig;
     gauge_foreground_style?: GaugeElementConfig;
     adaptive_state_color?: boolean;
+    adaptive_label_color?: boolean;
     segments?: SegmentsConfig[];
 }
 
@@ -88,11 +91,14 @@ export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     state_text?: string;
     adaptive_icon_color?: boolean;
     adaptive_state_color?: boolean;
+    adaptive_label_color?: boolean;
     smooth_segments?: boolean;
     state_font_size?: number;
+    state_font_family?: string;
     header_font_size?: number;
     header_offset?: number;
     start_from_zero?: boolean;
+    inverted_mode?: boolean;
     gauge_width?: number;
     gauge_radius?: number;
     gauge_background_style?: GaugeElementConfig;

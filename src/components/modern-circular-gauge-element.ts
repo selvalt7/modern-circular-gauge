@@ -6,6 +6,7 @@ import { styleMap } from "lit/directives/style-map.js";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { svgArc, renderPath, currentDashArc, strokeDashArc, renderColorSegments, computeSegments } from "../utils/gauge";
 import { computeCssColor } from "../ha/common/color/compute-color";
+import { classMap } from "lit/directives/class-map.js";
 
 @customElement("modern-circular-gauge-element")
 export class ModernCircularGaugeElement extends LitElement {
@@ -32,6 +33,8 @@ export class ModernCircularGaugeElement extends LitElement {
   @property({ type: Boolean }) public needle = false;
 
   @property({ type: Boolean }) public startFromZero = false;
+
+  @property({ type: Boolean }) public invertedMode = false;
 
   @property({ type: Boolean }) public outter = false;
 
@@ -82,14 +85,14 @@ export class ModernCircularGaugeElement extends LitElement {
         overflow="visible"
       >
         <g transform="rotate(${this._rotateAngle})">
-          ${renderPath("arc clear", this._path)}
+          ${!this.disableBackground ? renderPath("arc clear", this._path) : nothing}
         </g>
       </svg>`;
     }
 
     if (this.outter)
     {
-      const current = strokeDashArc(this.value, this.value, this.min, this.max, this.radius, this._maxAngle);
+      const current = strokeDashArc(this.value, this.value, this.min, this.max, this.radius, this._maxAngle, undefined, undefined, this.invertedMode);
 
       return html`
       <svg viewBox="-50 -50 100 ${this.gaugeType == "half" ? 50 : 100}" preserveAspectRatio="xMidYMid"
@@ -106,8 +109,8 @@ export class ModernCircularGaugeElement extends LitElement {
     } else {
       const min = this.flipGauge ? -this.max : this.min;
       const max = this.flipGauge ? this.min : this.max;
-      const current = this.needle ? undefined : currentDashArc(this.value * (this.flipGauge ? -1.0 : 1.0), min, max, this.radius, (this.startFromZero || this.flipGauge), this._maxAngle, this.linePadding, this.lineOffset);
-      const needle = this.needle ? strokeDashArc(this.value, this.value, min, max, this.radius, this._maxAngle) : undefined;
+      const current = this.needle ? undefined : currentDashArc(this.value * (this.flipGauge ? -1.0 : 1.0), min, max, this.radius, (this.startFromZero || this.flipGauge), this._maxAngle, this.linePadding, this.lineOffset, this.invertedMode);
+      const needle = this.needle ? strokeDashArc(this.value, this.value, min, max, this.radius, this._maxAngle, undefined, undefined, this.invertedMode) : undefined;
       
       return html`
         <svg viewBox="-50 -50 100 ${this.gaugeType == "half" ? 50 : 100}" preserveAspectRatio="xMidYMid"
@@ -141,20 +144,20 @@ export class ModernCircularGaugeElement extends LitElement {
             ${!this.disableBackground ? svg`
             <g class="background" mask=${ifDefined(needle ? "url(#needle-border-mask)" : undefined)} style=${styleMap({ "opacity": this.backgroundStyle?.opacity,
               "--gauge-stroke-width": this.backgroundStyle?.width ? `${this.backgroundStyle?.width}px` : undefined })}>
-              ${renderPath("arc clear", this._path, undefined, styleMap({ "stroke": this.backgroundStyle?.color && this.backgroundStyle.color != "adaptive" ? computeCssColor(this.backgroundStyle.color) : undefined }))}
               ${this.segments && (needle || this.backgroundStyle?.color == "adaptive") ? svg`
-              <g class="segments" mask=${ifDefined(this.smoothSegments ? "url(#gradient-path)" : undefined)}>
+              <g class=${classMap({ "segments": true, "segments-opaque": typeof this.backgroundStyle?.opacity != "undefined" })} mask=${ifDefined(this.smoothSegments ? "url(#gradient-path)" : undefined)}>
                 ${renderColorSegments(this.segments, min, max, this.radius, this.smoothSegments, this._maxAngle)}
               </g>`
-              : nothing
-              }
+              : svg`
+              ${renderPath("arc clear", this._path, undefined, styleMap({ "stroke": this.backgroundStyle?.color && this.backgroundStyle.color != "adaptive" ? computeCssColor(this.backgroundStyle.color) : undefined }))}
+              `}
             </g>
             `: nothing}
             ${current ? this.foregroundStyle?.color == "adaptive" && this.segments ? svg`
             <g class="foreground-segments" mask="url(#gradient-current-path)" style=${styleMap({ "opacity": this.foregroundStyle?.opacity })}>
               ${renderColorSegments(this.segments, min, max, this.radius, this.smoothSegments, this._maxAngle)}
             </g>
-            ` : renderPath("arc current", this._path, current, styleMap({ "visibility": (this.value <= min && min >= 0) || (this.flipGauge && this.value <= this.min) ? "hidden" : "visible", "opacity": this.foregroundStyle?.opacity }))
+            ` : renderPath("arc current", this._path, current, styleMap({ "visibility": (this.invertedMode ? (this.value >= max) : (this.value <= min && min >= 0)) || (this.flipGauge && this.value <= this.min) ? "hidden" : "visible", "opacity": this.foregroundStyle?.opacity }))
             : nothing}
             ${needle ? svg`
             ${renderPath("needle", this._path, needle)}
@@ -202,7 +205,11 @@ export class ModernCircularGaugeElement extends LitElement {
     }
 
     .segments {
-      opacity: 0.45;
+      opacity: var(--gauge-segments-opacity, 0.45);
+    }
+
+    .segments-opaque {
+      opacity: var(--gauge-segments-opacity, 1);
     }
 
     .needle {

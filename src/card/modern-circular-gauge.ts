@@ -2,7 +2,7 @@ import { html, LitElement, TemplateResult, css, nothing, PropertyValues } from "
 import { customElement, property, state } from "lit/decorators.js";
 import { ActionHandlerEvent } from "../ha/data/lovelace";
 import { hasAction } from "../ha/panels/lovelace/common/has-action";
-import { svgArc, computeSegments, renderPath, getAngle } from "../utils/gauge";
+import { computeSegments } from "../utils/gauge";
 import { registerCustomCard } from "../utils/custom-cards";
 import type { EntityNames, GaugeElementConfig, ModernCircularGaugeConfig, SecondaryEntity, SegmentsConfig, TertiaryEntity } from "./type";
 import { LovelaceLayoutOptions, LovelaceGridOptions } from "../ha/data/lovelace";
@@ -13,9 +13,9 @@ import { classMap } from "lit/directives/class-map.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { actionHandler } from "../utils/action-handler-directive";
-import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS, GAUGE_TYPE_ANGLES, MAX_ANGLE, RADIUS, INNER_RADIUS, TERTIARY_RADIUS, TIMESTAMP_STATE_DOMAINS } from "../const";
+import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS, RADIUS, INNER_RADIUS, TERTIARY_RADIUS, TIMESTAMP_STATE_DOMAINS } from "../const";
 import { RenderTemplateResult, subscribeRenderTemplate } from "../ha/data/ws-templates";
-import { isTemplate } from "../utils/template";
+import { isJSTemplate, JSTemplateRegex, isTemplate } from "../utils/template";
 import "../components/modern-circular-gauge-element";
 import "../components/modern-circular-gauge-state";
 import "../components/modern-circular-gauge-icon";
@@ -26,6 +26,8 @@ import { getTimerRemainingSeconds, getTimestampRemainingSeconds } from "../utils
 import { compareHass } from "../utils/compare-hass";
 import { MCGGraphConfig } from "../components/type";
 import { computeCssColor } from "../ha/common/color/compute-color";
+import HomeAssistantJavaScriptTemplates from "home-assistant-javascript-templates";
+import { compareTemplateResult } from "../utils/compare-template-result";
 
 registerCustomCard({
   type: "modern-circular-gauge",
@@ -42,7 +44,7 @@ export class ModernCircularGauge extends LitElement {
 
   @state() private _templateResults?: Partial<Record<string, RenderTemplateResult | undefined>> = {};
 
-  @state() private _unsubRenderTemplates?: Map<string, Promise<UnsubscribeFunc>> = new Map();
+  @state() private _unsubRenderTemplates?: Map<string, Promise<UnsubscribeFunc> | UnsubscribeFunc> = new Map();
 
   @state() private _stateMargin?: number;
 
@@ -55,6 +57,8 @@ export class ModernCircularGauge extends LitElement {
   private _isTimerOrTimestamp: boolean = false;
 
   private _interval?: any;
+
+  private haJsTemplates = new HomeAssistantJavaScriptTemplates(document.querySelector("home-assistant") as any);
 
   public static async getConfigElement(): Promise<HTMLElement> {
     await import("./mcg-editor");
@@ -118,6 +122,7 @@ export class ModernCircularGauge extends LitElement {
 
   public disconnectedCallback() {
     super.disconnectedCallback();
+    this._clearInterval();
     this._tryDisconnect();
   }
 
@@ -137,10 +142,14 @@ export class ModernCircularGauge extends LitElement {
 
   protected shouldUpdate(_changedProperties: PropertyValues): boolean {
     if (_changedProperties.has("_templateResults")) {
-      return true;
+      const oldTemplateResults = _changedProperties.get("_templateResults") as Partial<Record<string, RenderTemplateResult | undefined>> | undefined;
+      return compareTemplateResult(oldTemplateResults, this._templateResults);
     }
     if (_changedProperties.has("hass")) {
       if (this._trackedEntities.size <= 0) {
+        if (Object.keys(this._templateResults || {}).length > 0) {
+          return false;
+        }
         return true;
       }
       const oldHass = _changedProperties.get("hass") as HomeAssistant | undefined;
@@ -378,6 +387,7 @@ export class ModernCircularGauge extends LitElement {
             .rotateGauge=${this._config.rotate_gauge}
             .linePadding=${this._config.combine_gauges && this._config.gauge_type === "full" ? 7.5 : 0}
             .lineOffset=${this._config.combine_gauges && this._config.gauge_type === "full" ?  3.25 : 0}
+            .invertedMode=${this._config.inverted_mode}
           ></modern-circular-gauge-element>
           ${typeof this._config.secondary != "string" ? 
           (this._config.secondary?.show_gauge && this._config.secondary?.show_gauge != "none") || (this._config.combine_gauges && this._config.gauge_type === "full") ?
@@ -395,7 +405,10 @@ export class ModernCircularGauge extends LitElement {
           ${this._config.show_state || (this._config.combine_gauges && this._config.gauge_type === "full") ? html`
           <modern-circular-gauge-state
             class=${classMap({ "preview": this._inCardPicker! })}
-            style=${styleMap({ "--state-text-color": (this._config.adaptive_state_color && (!this._config.combine_gauges || this._config.gauge_type !== "full")) ? "var(--gauge-color)" : undefined , "--state-font-size-override": this._config.state_font_size ? `${this._config.state_font_size}px` : (halfStateBig ? `15px` : undefined) })}
+            style=${styleMap({ "--state-text-color": (this._config.adaptive_state_color && (!this._config.combine_gauges || this._config.gauge_type !== "full")) ? "var(--gauge-color)" : undefined,
+              "--state-font-size-override": this._config.state_font_size ? `${this._config.state_font_size}px` : (halfStateBig ? `15px` : undefined),
+              "--state-label-color-override": (this._config.adaptive_label_color && (!this._config.combine_gauges || this._config.gauge_type !== "full")) ? "var(--gauge-color)" : undefined,
+              "font-family": this._config.state_font_family ? this._config.state_font_family : undefined })}
             .hass=${this.hass}
             .stateObj=${stateObj}
             .entityAttribute=${this._config.attribute}
@@ -636,6 +649,17 @@ export class ModernCircularGauge extends LitElement {
         `;
       }
 
+      if (stateObj?.state === "unavailable") {
+        return html`
+        <modern-circular-gauge-element
+          class="tertiary"
+          .radius=${secondaryInner ? TERTIARY_RADIUS : INNER_RADIUS}
+          .gaugeType=${this._config?.gauge_type}
+          error
+        ></modern-circular-gauge-element>
+        `;
+      }
+
       const domain = computeStateDomain(stateObj);
       let secondsUntil: number | undefined;
 
@@ -659,6 +683,17 @@ export class ModernCircularGauge extends LitElement {
       const segments = (this._templateResults?.tertiarySegments?.result as unknown) as SegmentsConfig[] ?? tertiaryObj.segments;
       const numberState = Number(templatedState ?? secondsUntil ?? stateObj.attributes[tertiaryObj.attribute!] ?? stateObj.state);
 
+      if (isNaN(numberState)) {
+        return html`
+        <modern-circular-gauge-element
+          class="tertiary"
+          .radius=${secondaryInner ? TERTIARY_RADIUS : INNER_RADIUS}
+          .gaugeType=${this._config?.gauge_type}
+          error
+        ></modern-circular-gauge-element>
+        `;
+      }
+
       return html`
       <modern-circular-gauge-element
         class="tertiary"
@@ -674,6 +709,7 @@ export class ModernCircularGauge extends LitElement {
         .needle=${tertiaryObj?.needle}
         .startFromZero=${tertiaryObj?.start_from_zero}
         .rotateGauge=${this._config?.rotate_gauge}
+        .invertedMode=${tertiaryObj?.inverted_mode}
       ></modern-circular-gauge-element>
       `;
     } else {
@@ -705,6 +741,7 @@ export class ModernCircularGauge extends LitElement {
         .foregroundStyle=${tertiaryObj?.gauge_foreground_style}
         .backgroundStyle=${tertiaryObj?.gauge_background_style}
         .rotateGauge=${this._config?.rotate_gauge}
+        .invertedMode=${tertiaryObj?.inverted_mode}
         .outter=${true}
       ></modern-circular-gauge-element>
       `;
@@ -730,6 +767,18 @@ export class ModernCircularGauge extends LitElement {
           class="secondary"
           .radius=${INNER_RADIUS}
           .gaugeType=${this._config?.gauge_type}
+        ></modern-circular-gauge-element>
+        `;
+      }
+
+      if (stateObj?.state === "unavailable") {
+        return html`
+        <modern-circular-gauge-element
+          class="secondary"
+          .radius=${this._config?.combine_gauges && this._config.gauge_type === "full" ? (this._config?.gauge_radius ?? RADIUS) : (secondaryObj.gauge_radius ?? INNER_RADIUS)}
+          .gaugeType=${this._config?.gauge_type}
+          .disableBackground=${this._config?.combine_gauges && this._config.gauge_type === "full"}
+          error
         ></modern-circular-gauge-element>
         `;
       }
@@ -762,6 +811,18 @@ export class ModernCircularGauge extends LitElement {
       const segments = (this._templateResults?.secondarySegments?.result as unknown) as SegmentsConfig[] ?? secondaryObj.segments;
       const numberState = Number(templatedState ?? secondsUntil ?? stateObj.attributes[secondaryObj.attribute!] ?? stateObj.state);
 
+      if (isNaN(numberState)) {
+        return html`
+        <modern-circular-gauge-element
+          class="secondary"
+          .radius=${this._config?.combine_gauges && this._config.gauge_type === "full" ? (this._config?.gauge_radius ?? RADIUS) : (secondaryObj.gauge_radius ?? INNER_RADIUS)}
+          .disableBackground=${this._config?.combine_gauges && this._config.gauge_type === "full"}
+          .gaugeType=${this._config?.gauge_type}
+          error
+        ></modern-circular-gauge-element>
+        `;
+      }
+
       return html`
       <modern-circular-gauge-element
         class="secondary"
@@ -781,6 +842,7 @@ export class ModernCircularGauge extends LitElement {
         .flipGauge=${this._config?.combine_gauges && this._config.gauge_type === "full"}
         .linePadding=${this._config?.combine_gauges && this._config.gauge_type === "full" ? 7.5 : 0}
         .lineOffset=${this._config?.combine_gauges && this._config.gauge_type === "full" ? 3.25 : 0}
+        .invertedMode=${secondaryObj?.inverted_mode}
       ></modern-circular-gauge-element>
       `;
     } else {
@@ -813,6 +875,7 @@ export class ModernCircularGauge extends LitElement {
         .backgroundStyle=${secondaryObj?.gauge_background_style}
         .outter=${true}
         .rotateGauge=${this._config?.rotate_gauge}
+        .invertedMode=${secondaryObj?.inverted_mode}
       ></modern-circular-gauge-element>
       `;
     }
@@ -852,6 +915,24 @@ export class ModernCircularGauge extends LitElement {
       return html``;
     }
 
+    const halfStateBig = this._config?.gauge_type == "half" && secondary.state_size == "big";
+
+    if (stateObj?.state === "unavailable") {
+      return html`
+      <modern-circular-gauge-state
+        class=${classMap({ "preview": this._inCardPicker!, "secondary": true })}
+        .hass=${this.hass}
+        .gaugeType=${this._config?.gauge_type}
+        .stateMargin=${this._stateMargin}
+        .verticalOffset=${secondary.state_size == "big" ? (this._config?.gauge_type == "half" ? -14 : 14) : iconCenter ? 22 : this._config?.gauge_type == "half" ? -1 : 17}
+        .horizontalOffset=${halfStateBig ? -16 : 0}
+        .small=${secondary.state_size != "big"}
+        .stateOverride=${this.hass.localize("state.default.unavailable")}
+        .label=${this._config?.gauge_type == "half" && secondary.state_size != "big" ? "" : secondary.label}
+      ></modern-circular-gauge-state>
+      `;
+    }
+
     this._hasSecondary = true;
 
     const attributes = stateObj?.attributes ?? undefined;
@@ -865,9 +946,9 @@ export class ModernCircularGauge extends LitElement {
 
     let secondaryColor;
 
-    if (secondary.adaptive_state_color) {
+    if (secondary.adaptive_state_color || secondary.adaptive_label_color) {
       secondaryColor = "var(--gauge-color)";
-      if (secondary.show_gauge == "outter") {
+      if (secondary.show_gauge == "outter" || secondary.show_gauge == "outer") {
         secondaryColor = computeSegments(state, (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config?.segments, this._config?.smooth_segments, this);
       } else if (segments) {
         secondaryColor = computeSegments(state, segments, this._config?.smooth_segments, this);
@@ -878,8 +959,6 @@ export class ModernCircularGauge extends LitElement {
       }
     }
 
-    const halfStateBig = this._config?.gauge_type == "half" && secondary.state_size == "big";
-
     return html`
     <modern-circular-gauge-state
       @action=${this._handleSecondaryAction}
@@ -888,7 +967,10 @@ export class ModernCircularGauge extends LitElement {
         hasDoubleClick: hasAction(secondary.double_tap_action),
       })}
       class=${classMap({ "preview": this._inCardPicker!, "secondary": true })}
-      style=${styleMap({ "--state-text-color-override": secondaryColor ?? (secondary.state_size == "big" ? "var(--secondary-text-color)" : undefined), "--state-font-size-override": secondary.state_font_size ? `${secondary.state_font_size}px` : (halfStateBig ? `15px` : undefined) })}
+      style=${styleMap({ "--state-text-color-override": secondary.adaptive_state_color ? secondaryColor ?? (secondary.state_size == "big" ? "var(--secondary-text-color)" : undefined) : (secondary.state_size == "big" ? "var(--secondary-text-color)" : undefined),
+        "--state-font-size-override": secondary.state_font_size ? `${secondary.state_font_size}px` : (halfStateBig ? `15px` : undefined),
+        "--state-label-color-override": secondary.adaptive_label_color ? (secondaryColor ?? "var(--gauge-color)") : undefined,
+        "font-family": secondary.state_font_family ? secondary.state_font_family : undefined })}
       .hass=${this.hass}
       .stateObj=${stateObj}
       .entityAttribute=${secondary.attribute}
@@ -935,7 +1017,10 @@ export class ModernCircularGauge extends LitElement {
           hasDoubleClick: hasAction(this._config.double_tap_action),
         })}
         class=${classMap({ "preview": this._inCardPicker! })}
-        style=${styleMap({ "--state-text-color-override": this._config.adaptive_state_color ? "var(--gauge-color)" : undefined , "--state-font-size-override": this._config.state_font_size ? `${this._config.state_font_size}px` : undefined })}
+        style=${styleMap({ "--state-text-color-override": this._config.adaptive_state_color ? "var(--gauge-color)" : undefined,
+          "--state-font-size-override": this._config.state_font_size ? `${this._config.state_font_size}px` : undefined,
+          "--state-label-color-override": this._config.adaptive_label_color ? "var(--gauge-color)" : undefined,
+          "font-family": this._config.state_font_family ? this._config.state_font_family : undefined })}
         .hass=${this.hass}
         .stateObj=${stateObj}
         .entityAttribute=${this._config.attribute}
@@ -985,6 +1070,21 @@ export class ModernCircularGauge extends LitElement {
       return html``;
     }
 
+    if (stateObj?.state === "unavailable") {
+      return html`
+      <modern-circular-gauge-state
+        class=${classMap({ "preview": this._inCardPicker!, "tertiary": true })}
+        .hass=${this.hass}
+        .gaugeType=${this._config?.gauge_type}
+        .verticalOffset=${this._config?.gauge_type == "half" ? (!this._hasSecondary ? -28 : (threeGauges ? -29 : -31)) : -19}
+        .stateMargin=${this._stateMargin}
+        .stateOverride=${this.hass.localize("state.default.unavailable")}
+        .label=${this._config?.gauge_type == "half" ? "" : tertiary.label}
+        small
+      ></modern-circular-gauge-state>
+      `;
+    }
+
     const attributes = stateObj?.attributes ?? undefined;
     const unit = tertiary.unit ?? attributes?.unit_of_measurement;
     const state = Number(templatedState ?? attributes[tertiary.attribute!] ?? stateObj.state);
@@ -994,8 +1094,8 @@ export class ModernCircularGauge extends LitElement {
 
     let adaptiveColor;
 
-    if (tertiary.adaptive_state_color) {
-      if (tertiary.show_gauge == "outter") {
+    if (tertiary.adaptive_state_color || tertiary.adaptive_label_color) {
+      if (tertiary.show_gauge == "outter" || tertiary.show_gauge == "outer") {
         adaptiveColor = computeSegments(state, (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config?.segments, this._config?.smooth_segments, this);
       } else {
         adaptiveColor = computeSegments(state, segments, this._config?.smooth_segments, this);
@@ -1014,7 +1114,10 @@ export class ModernCircularGauge extends LitElement {
         hasDoubleClick: hasAction(tertiary.double_tap_action),
       })}
       class=${classMap({ "preview": this._inCardPicker!, "tertiary": true })}
-      style=${styleMap({ "--state-text-color-override": adaptiveColor ?? undefined , "--state-font-size-override": tertiary.state_font_size ? `${tertiary.state_font_size}px` : (this._config?.gauge_type == "half" && threeGauges ? "6px" : undefined) })}
+      style=${styleMap({ "--state-text-color-override": tertiary.adaptive_state_color ? adaptiveColor : undefined,
+        "--state-font-size-override": tertiary.state_font_size ? `${tertiary.state_font_size}px` : (this._config?.gauge_type == "half" && threeGauges ? "6px" : undefined),
+        "--state-label-color-override": tertiary.adaptive_label_color ? (adaptiveColor ?? "var(--gauge-color)") : undefined,
+        "font-family": tertiary.state_font_family ? tertiary.state_font_family : undefined })}
       .hass=${this.hass}
       .stateObj=${stateObj}
       .entityAttribute=${tertiary.attribute}
@@ -1064,8 +1167,12 @@ export class ModernCircularGauge extends LitElement {
       if (typeof value == "string") {
         this._tryConnectKey(key, value);
       } else if (key == "segments") {
-        const segmentsStringified = JSON.stringify(value);
-        this._tryConnectKey(key, segmentsStringified);
+        let segmentsStringified = JSON.stringify(value);
+        if (typeof segmentsStringified !== "undefined")
+        {
+          segmentsStringified = segmentsStringified.replace(/\\"/g, "'");
+          this._tryConnectKey(key, segmentsStringified);
+        }
       }
     });
 
@@ -1083,8 +1190,12 @@ export class ModernCircularGauge extends LitElement {
         if (typeof value == "string") {
           this._tryConnectKey(key, value);
         } else if (key == "secondarySegments") {
-          const segmentsStringified = JSON.stringify(value);
-          this._tryConnectKey(key, segmentsStringified);
+          let segmentsStringified = JSON.stringify(value);
+          if (typeof segmentsStringified !== "undefined")
+          {
+            segmentsStringified = segmentsStringified.replace(/\\"/g, "'");
+            this._tryConnectKey(key, segmentsStringified);
+          }
         }
       });
     }
@@ -1103,8 +1214,12 @@ export class ModernCircularGauge extends LitElement {
         if (typeof value == "string") {
           this._tryConnectKey(key, value);
         } else if (key == "tertiarySegments") {
-          const segmentsStringified = JSON.stringify(value);
-          this._tryConnectKey(key, segmentsStringified);
+          let segmentsStringified = JSON.stringify(value);
+          if (typeof segmentsStringified !== "undefined")
+          {
+            segmentsStringified = segmentsStringified.replace(/\\"/g, "'");
+            this._tryConnectKey(key, segmentsStringified);
+          }
         }
       });
     }
@@ -1120,39 +1235,97 @@ export class ModernCircularGauge extends LitElement {
       return;
     }
 
-    try {
-      const sub = subscribeRenderTemplate(
-        this.hass.connection,
-        (result) => {
-          if ("error" in result) {
-            return;
-          }
-          this._templateResults = {
-            ...this._templateResults,
-            [key]: result,
-          };
-        },
-        {
-          template: templateValue as string || "",
-          variables: {
-            config: this._config,
-            user: this.hass.user!.name,
+    if (isJSTemplate(templateValue)) {
+      const isSegments = /segments$/i.test(key);
+      if (isSegments) {
+        this.haJsTemplates.getRenderer()
+        .then((renderer) => {
+          const untrack = renderer.trackTemplate(
+            `
+              const processedSegments = [];
+              for (let i = 0; i < segments.length; i++) {
+                const segment = segments[i];
+                const newSegment = { ...segment };
+                const keys = Object.keys(segment);
+                keys.forEach((k) => {
+                  if (typeof segment[k] === "string" && JSRegex.test(segment[k])) {
+                    const segmentValue = segment[k].replace(JSRegex, "$1");
+                    const functionBody = segmentValue.includes('return')
+                    ? segmentValue
+                    : 'return ' + segmentValue;
+                    newSegment[k] = eval('(function(){' + functionBody + '})()');
+                  }
+                });
+                processedSegments.push(newSegment);
+              }
+              return processedSegments;
+            `,
+            (result) => {
+              const templateResult = {
+                result: result as string || "",
+                listeners: { all: false, domains: [], entities: [], time: false },
+              };
+              this._templateResults = {
+                ...this._templateResults,
+                [key]: templateResult,
+              };
+            }, {"segments": JSON.parse(templateValue), "JSRegex": JSTemplateRegex});
+          this._unsubRenderTemplates?.set(key, untrack);
+        });
+      } else {
+        this.haJsTemplates.getRenderer()
+        .then((renderer) => {
+          const untrack = renderer.trackTemplate(
+            templateValue.replace(JSTemplateRegex, "$1"),
+            (result) => {
+              const templateResult = {
+                result: result as string || "",
+                listeners: { all: false, domains: [], entities: [], time: false },
+              };
+              this._templateResults = {
+                ...this._templateResults,
+                [key]: templateResult,
+              };
+            }
+          );
+          this._unsubRenderTemplates?.set(key, untrack);
+        });
+      }
+    } else {
+      try {
+        const sub = subscribeRenderTemplate(
+          this.hass.connection,
+          (result) => {
+            if ("error" in result) {
+              return;
+            }
+            this._templateResults = {
+              ...this._templateResults,
+              [key]: result,
+            };
           },
-          strict: true,
-        }
-      );
-      this._unsubRenderTemplates?.set(key, sub);
-      await sub;
-    } catch (e: any) {
-      const result = {
-        result: templateValue as string || "",
-        listeners: { all: false, domains: [], entities: [], time: false },
-      };
-      this._templateResults = {
-        ...this._templateResults,
-        [key]: result,
-      };
-      this._unsubRenderTemplates?.delete(key);
+          {
+            template: templateValue as string || "",
+            variables: {
+              config: this._config,
+              user: this.hass.user!.name,
+            },
+            strict: true,
+          }
+        );
+        this._unsubRenderTemplates?.set(key, sub);
+        await sub;
+      } catch (e: any) {
+        const result = {
+          result: templateValue as string || "",
+          listeners: { all: false, domains: [], entities: [], time: false },
+        };
+        this._templateResults = {
+          ...this._templateResults,
+          [key]: result,
+        };
+        this._unsubRenderTemplates?.delete(key);
+      }
     }
   }
 
@@ -1202,11 +1375,22 @@ export class ModernCircularGauge extends LitElement {
         this._tryDisconnectKey(key);
       });
     }
+
+    this.haJsTemplates.getRenderer()
+    .then((renderer) => {
+      renderer.cleanTracked();
+    })
   }
 
   private async _tryDisconnectKey(key: string): Promise<void> {
     const unsubRenderTemplate = this._unsubRenderTemplates?.get(key);
     if (!unsubRenderTemplate) {
+      return;
+    }
+
+    if (unsubRenderTemplate instanceof Promise === false) {
+      unsubRenderTemplate();
+      this._unsubRenderTemplates?.delete(key);
       return;
     }
 
