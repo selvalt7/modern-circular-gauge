@@ -121,6 +121,11 @@ export const getEntityStyleSchema = (showGaugeOptions: boolean, gaugeDefaultRadi
         selector: { boolean: {} },
       },
       {
+        name: "unit_superscript",
+        default: gaugeDefaultRadius == RADIUS,
+        selector: { boolean: {} },
+      },
+      {
         name: "show_seconds",
         default: true,
         helper: "show_seconds",
