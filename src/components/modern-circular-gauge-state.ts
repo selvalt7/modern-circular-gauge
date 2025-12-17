@@ -19,7 +19,7 @@ export class ModernCircularGaugeState extends LitElement {
 
   @property() public unit?: string;
 
-  @property({ type: Boolean }) public unitSuperscript = true;
+  @property({ type: Boolean }) public unitSuperscript?: boolean;
 
   @property({ type: Boolean }) public showUnit = true;
 
@@ -99,8 +99,8 @@ export class ModernCircularGaugeState extends LitElement {
     <svg class="state ${classMap({ "small": this.small })}" overflow="visible" viewBox="${-50 + (this.horizontalOffset ?? 0)} -50 100 ${this.gaugeType == "half" ? 50 : 100}">
       <text x="0" y=${verticalOffset} class="value">
         ${state}
-        ${this.showUnit ? !this.unitSuperscript ? this.unit : svg` 
-        <tspan class="unit" dx=${-4} dy=${-6}>${this.unit}</tspan>
+        ${this.showUnit ? !(this.unitSuperscript ?? !this.small) ? this.unit : svg`
+        <tspan class="unit" dx=${this.small ? "-2" : "-4"} dy=${this.small ? "-0.3em" : "-0.8em"}>${this.unit}</tspan>
         ` : nothing}
       </text>
       <text class="state-label" style=${styleMap({ "font-size": this.labelFontSize ? `${this.labelFontSize}px` : undefined })} y=${verticalOffset + (this.small ? (9 * Math.sign(verticalOffset)) : 13)}>
@@ -153,7 +153,7 @@ export class ModernCircularGaugeState extends LitElement {
 
     .small .unit {
       opacity: 1;
-      font-size: inherit;
+      font-size: var(--unit-font-size, .7em);
     }
 
     .small .value {
