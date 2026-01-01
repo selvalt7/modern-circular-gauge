@@ -26,7 +26,7 @@ import { getTimerRemainingSeconds, getTimestampRemainingSeconds } from "../utils
 import { compareHass } from "../utils/compare-hass";
 import { MCGGraphConfig } from "../components/type";
 import { computeCssColor } from "../ha/common/color/compute-color";
-import HomeAssistantJavaScriptTemplates from "home-assistant-javascript-templates";
+import { getHaJsTemplates } from "../utils/js-templates";
 import { compareTemplateResult } from "../utils/compare-template-result";
 
 registerCustomCard({
@@ -58,7 +58,7 @@ export class ModernCircularGauge extends LitElement {
 
   private _interval?: any;
 
-  private haJsTemplates = new HomeAssistantJavaScriptTemplates(document.querySelector("home-assistant") as any);
+  private haJsTemplates = getHaJsTemplates();
 
   public static async getConfigElement(): Promise<HTMLElement> {
     await import("./mcg-editor");
