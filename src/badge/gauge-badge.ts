@@ -304,11 +304,6 @@ export class ModernCircularGaugeBadge extends LitElement {
     Object.entries(templates).forEach(([key, _]) => {
       this._tryDisconnectKey(key);
     });
-
-    this.haJsTemplates.getRenderer()
-    .then((renderer) => {
-      renderer.cleanTracked();
-    });
   }
 
   private async _tryDisconnectKey(key: string): Promise<void> {

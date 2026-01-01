@@ -1375,11 +1375,6 @@ export class ModernCircularGauge extends LitElement {
         this._tryDisconnectKey(key);
       });
     }
-
-    this.haJsTemplates.getRenderer()
-    .then((renderer) => {
-      renderer.cleanTracked();
-    })
   }
 
   private async _tryDisconnectKey(key: string): Promise<void> {
