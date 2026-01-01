@@ -25,7 +25,7 @@ import "../components/mcg-badge-state";
 import "../components/modern-circular-gauge-state";
 import { compareHass } from "../utils/compare-hass";
 import { computeCssColor } from "../ha/common/color/compute-color";
-import HomeAssistantJavaScriptTemplates from "home-assistant-javascript-templates";
+import { getHaJsTemplates } from "../utils/js-templates";
 import { compareTemplateResult } from "../utils/compare-template-result";
 
 const MAX_ANGLE = 270;
@@ -61,7 +61,7 @@ export class ModernCircularGaugeBadge extends LitElement {
 
   private _interval?: any;
 
-  private haJsTemplates = new HomeAssistantJavaScriptTemplates(document.querySelector("home-assistant") as any);
+  private haJsTemplates = getHaJsTemplates();
 
   public static async getStubConfig(hass: HomeAssistant): Promise<ModernCircularGaugeBadgeConfig> {
     const entities = Object.keys(hass.states);
