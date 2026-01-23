@@ -29,6 +29,7 @@ export interface BaseEntityConfig {
     start_from_zero?: boolean;
     inverted_mode?: boolean;
     gauge_radius?: number;
+    smooth_segments?: boolean;
     gauge_background_style?: GaugeElementConfig;
     gauge_foreground_style?: GaugeElementConfig;
     adaptive_state_color?: boolean;
