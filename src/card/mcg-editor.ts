@@ -125,10 +125,6 @@ export class ModernCircularGaugeEditor extends LitElement {
             type: "grid",
             schema: [
               {
-                name: "smooth_segments",
-                selector: { boolean: {} },
-              },
-              {
                 name: "show_header",
                 default: true,
                 selector: { boolean: {} },

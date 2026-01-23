@@ -97,7 +97,7 @@ Both [Jinja](#jinja-templates) and [JavaScript](#javascript-templates) templates
 | adaptive_icon_color | `boolean` | `false` | Makes icon color adaptive to current color segment
 | adaptive_state_color | `boolean` | `false` | Makes state color adaptive to current color segment
 | adaptive_label_color | `boolean` | `false` | Makes label color adaptive to current color segment
-| smooth_segments | `boolean` | `false` | Smooth color segments
+| smooth_segments | `boolean` | `false` | Smooth color segments for primary gauge
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min
 | inverted_mode | `boolean` | `false` | Inverts gauge fill logic and ignores start_from_zero, 0 -> full gauge, 100 -> empty gauge
 | state_font_size | `number` | `24` | Initial state size in px
@@ -165,6 +165,7 @@ Both [Jinja](#jinja-templates) and [JavaScript](#javascript-templates) templates
 | show_unit | `boolean` | `true` | Show secondary unit
 | show_in_graph | `boolean` | `false` | Show secondary entity on the graph
 | adaptive_graph_range | `boolean` | `false` | Adapt y-axis range to min and max value of the entity history
+| smooth_segments | `boolean` | `false` | Smooth color segments for secondary gauge
 | show_seconds | `boolean` | `true` | Show seconds when displaying time based entities
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min
 | inverted_mode | `boolean` | `false` | Inverts gauge fill logic and ignores start_from_zero, 0 -> full gauge, 100 -> empty gauge
@@ -195,6 +196,7 @@ Both [Jinja](#jinja-templates) and [JavaScript](#javascript-templates) templates
 | show_unit | `boolean` | `true` | Show secondary unit
 | show_in_graph | `boolean` | `false` | Show tertiary entity on the graph
 | adaptive_graph_range | `boolean` | `false` | Adapt y-axis range to min and max value of the entity history
+| smooth_segments | `boolean` | `false` | Smooth color segments for tertiary gauge
 | show_seconds | `boolean` | `true` | Show seconds when displaying time based entities
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min
 | inverted_mode | `boolean` | `false` | Inverts gauge fill logic and ignores start_from_zero, 0 -> full gauge, 100 -> empty gauge

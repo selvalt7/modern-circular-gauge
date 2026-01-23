@@ -703,7 +703,7 @@ export class ModernCircularGauge extends LitElement {
         .radius=${tertiaryObj.gauge_radius ?? (secondaryInner ? TERTIARY_RADIUS : INNER_RADIUS)}
         .gaugeType=${this._config?.gauge_type}
         .segments=${segments}
-        .smoothSegments=${this._config?.smooth_segments}
+        .smoothSegments=${tertiaryObj.smooth_segments}
         .foregroundStyle=${tertiaryObj?.gauge_foreground_style}
         .backgroundStyle=${tertiaryObj?.gauge_background_style}
         .needle=${tertiaryObj?.needle}
@@ -832,7 +832,7 @@ export class ModernCircularGauge extends LitElement {
         .radius=${this._config?.combine_gauges && this._config.gauge_type === "full" ? (this._config?.gauge_radius ?? RADIUS) : (secondaryObj.gauge_radius ?? INNER_RADIUS)}
         .gaugeType=${this._config?.gauge_type}
         .segments=${segments}
-        .smoothSegments=${this._config?.smooth_segments}
+        .smoothSegments=${secondaryObj.smooth_segments}
         .foregroundStyle=${secondaryObj?.gauge_foreground_style}
         .backgroundStyle=${secondaryObj?.gauge_background_style}
         .needle=${secondaryObj?.needle}

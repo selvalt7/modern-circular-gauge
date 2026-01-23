@@ -100,6 +100,10 @@ export const getEntityStyleSchema = (showGaugeOptions: boolean, gaugeDefaultRadi
     type: "grid",
     schema: [
       {
+        name: "smooth_segments",
+        selector: { boolean: {} },
+      },
+      {
         name: "needle",
         disabled: !showGaugeOptions,
         selector: { boolean: {} },
