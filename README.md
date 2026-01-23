@@ -78,6 +78,7 @@ Both [Jinja](#jinja-templates) and [JavaScript](#javascript-templates) templates
 | max | `number` or `string` | `100` | Maximum gauge value. May contain [templates](#templates) see [example](#gauge-with-templated-additional-info-and-segments)|✅
 | combine_gauges | `boolean` | Optional | Combines primary and secondary entity into one gauge, useful for comparing two values. Only available in full gauge type. Tertiary entity is not supported
 | unit | `string` | Optional | Custom unit
+| unit_superscript | `boolean` | `true` | Superscripted unit
 | decimals | `number` | Optional | Adjusts decimal places
 | label | `string` | Optional | Label under the state, only used when `state_size` is set to `big`, see [secondary](#secondary-entity-object)
 | label_font_size | `number` | `0.49em` | Label font size in px
@@ -154,6 +155,7 @@ Both [Jinja](#jinja-templates) and [JavaScript](#javascript-templates) templates
 | entity | `string` | Optional | Secondary entity. May contain [templates](#templates)|✅
 | attribute | `string` | Optional | Use entity attribute instead of state
 | unit | `string` | Optional | Custom unit
+| unit_superscript | `boolean` | `false` | Superscripted unit
 | show_gauge | `none`, `inner`, `outer` | `none` | Display secondary info as dot on main gauge or on inner gauge
 | min | `number` | Optional | Minimum inner gauge value. May contain [templates](#templates)|✅
 | max | `number` | Optional | Maximum inner gauge value. May contain [templates](#templates)|✅
@@ -185,6 +187,7 @@ Both [Jinja](#jinja-templates) and [JavaScript](#javascript-templates) templates
 | entity | `string` | Optional | Secondary entity. May contain [templates](#templates)|✅
 | attribute | `string` | Optional | Use entity attribute instead of state
 | unit | `string` | Optional | Custom unit
+| unit_superscript | `boolean` | `false` | Superscripted unit
 | decimals | `number` | Optional | Adjusts decimal places
 | show_gauge | `none`, `inner`, `outer` | `none` | Display secondary info as dot on main gauge or on inner gauge
 | min | `number` | Optional | Minimum inner gauge value. May contain [templates](#templates)|✅

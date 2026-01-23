@@ -10,6 +10,7 @@ export interface BaseEntityConfig {
     entity?: string;
     attribute?: string;
     unit?: string;
+    unit_superscript?: boolean;
     label?: string;
     label_font_size?: number;
     min?: number | string;
@@ -72,6 +73,7 @@ export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     gauge_type?: GaugeType;
     rotate_gauge?: boolean;
     unit?: string;
+    unit_superscript?: boolean;
     decimals?: number;
     label?: string;
     label_font_size?: number;
