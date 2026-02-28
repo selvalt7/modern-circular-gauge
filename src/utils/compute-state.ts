@@ -16,9 +16,19 @@ export function computeState(hass: HomeAssistant, stateObj: HassEntity, entityAt
 
   if (stateObj) {
     const domain = computeStateDomain(stateObj);
+    const deviceClass = stateObj.attributes?.device_class;
     let secondsUntil: number | undefined;
 
-    if (stateObj?.attributes?.device_class === "timestamp" ||
+    if (stateOverride !== undefined && (deviceClass === "timestamp" ||
+      TIMESTAMP_STATE_DOMAINS.includes(domain) || domain === "timer")) {
+      if (!Number.isNaN(Number(stateOverride))) {
+        const formatOptions = getDefaultFormatOptions(stateOverride, { maximumFractionDigits: decimals, minimumFractionDigits: decimals });
+        return formatNumber(stateOverride, hass?.locale, formatOptions);
+      }
+      return stateOverride;
+    }
+
+    if (deviceClass === "timestamp" ||
       TIMESTAMP_STATE_DOMAINS.includes(domain)
     ) {
       const timestamp = new Date(stateObj.state);
