@@ -93,7 +93,7 @@ export const getEntityStyleSchema = (showGaugeOptions: boolean, gaugeDefaultRadi
   {
     name: "label",
     helper: labelHelper,
-    selector: { text: {} }
+    selector: { template: {} }
   },
   {
     name: "",

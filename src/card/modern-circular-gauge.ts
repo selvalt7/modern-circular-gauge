@@ -417,7 +417,7 @@ export class ModernCircularGauge extends LitElement {
             .gaugeType=${this._config.gauge_type}
             .verticalOffset=${typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big" ? -14 : this._config.gauge_type == "half" ? (this._hasSecondary ? -15 : -10) : 0}
             .horizontalOffset=${this._config?.gauge_type == "half" && typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big" ? 16 : 0}
-            .label=${typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big" ? this._config?.label : ""}
+            .label=${typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big" ? this._templateResults?.label?.result ?? (isTemplate(String(this._config.label)) ? "" : this._config.label) : ""}
             .stateMargin=${this._stateMargin}
             .labelFontSize=${this._config.label_font_size}
             .showUnit=${this._config.show_unit ?? true}
@@ -929,7 +929,7 @@ export class ModernCircularGauge extends LitElement {
         .horizontalOffset=${halfStateBig ? -16 : 0}
         .small=${secondary.state_size != "big"}
         .stateOverride=${this.hass.localize("state.default.unavailable")}
-        .label=${this._config?.gauge_type == "half" && secondary.state_size != "big" ? "" : secondary.label}
+        .label=${this._config?.gauge_type == "half" && secondary.state_size != "big" ? "" : this._templateResults?.secondaryLabel?.result ?? (isTemplate(String(secondary.label)) ? "" : secondary.label)}
       ></modern-circular-gauge-state>
       `;
     }
@@ -980,7 +980,7 @@ export class ModernCircularGauge extends LitElement {
       .verticalOffset=${secondary.state_size == "big" ? (this._config?.gauge_type == "half" ? -14 : 14) : iconCenter ? 22 : this._config?.gauge_type == "half" ? -1 : 17}
       .horizontalOffset=${halfStateBig ? -16 : 0}
       .small=${secondary.state_size != "big"}
-      .label=${this._config?.gauge_type == "half" && secondary.state_size != "big" ? "" : secondary.label}
+      .label=${this._config?.gauge_type == "half" && secondary.state_size != "big" ? "" : this._templateResults?.secondaryLabel?.result ?? (isTemplate(String(secondary.label)) ? "" : secondary.label)}
       .gaugeType=${this._config?.gauge_type}
       .stateMargin=${this._stateMargin}
       .labelFontSize=${secondary.label_font_size}
@@ -1031,7 +1031,7 @@ export class ModernCircularGauge extends LitElement {
         .verticalOffset=${-19}
         .stateMargin=${this._stateMargin}
         .showUnit=${this._config.show_unit ?? true}
-        .label=${this._config.label}
+        .label=${this._templateResults?.label?.result ?? (isTemplate(String(this._config.label)) ? "" : this._config.label)}
         .gaugeType=${this._config?.gauge_type}
         .labelFontSize=${this._config.label_font_size}
         .showSeconds=${this._config.show_seconds}
@@ -1082,7 +1082,7 @@ export class ModernCircularGauge extends LitElement {
         .verticalOffset=${this._config?.gauge_type == "half" ? (!this._hasSecondary ? -28 : (threeGauges ? -29 : -31)) : -19}
         .stateMargin=${this._stateMargin}
         .stateOverride=${this.hass.localize("state.default.unavailable")}
-        .label=${this._config?.gauge_type == "half" ? "" : tertiary.label}
+        .label=${this._config?.gauge_type == "half" ? "" : this._templateResults?.tertiaryLabel?.result ?? (isTemplate(String(tertiary.label)) ? "" : tertiary.label)}
         small
       ></modern-circular-gauge-state>
       `;
@@ -1130,7 +1130,7 @@ export class ModernCircularGauge extends LitElement {
       .verticalOffset=${this._config?.gauge_type == "half" ? (!this._hasSecondary ? -28 : (threeGauges ? -29 : -31)) : -19}
       .stateMargin=${this._stateMargin}
       .showUnit=${tertiary.show_unit ?? true}
-      .label=${this._config?.gauge_type == "half" ? "" : tertiary.label}
+      .label=${this._config?.gauge_type == "half" ? "" : this._templateResults?.tertiaryLabel?.result ?? (isTemplate(String(tertiary.label)) ? "" : tertiary.label)}
       .gaugeType=${this._config?.gauge_type}
       .labelFontSize=${tertiary.label_font_size}
       .showSeconds=${tertiary.show_seconds}
@@ -1162,6 +1162,7 @@ export class ModernCircularGauge extends LitElement {
       icon: this._config?.icon,
       min: this._config?.min,
       max: this._config?.max,
+      label: this._config?.label,
       segments: this._config?.segments,
       stateText: this._config?.state_text,
       secondary: this._config?.secondary,
@@ -1188,7 +1189,8 @@ export class ModernCircularGauge extends LitElement {
         secondaryMax: secondary?.max,
         secondaryEntity: secondary?.entity,
         secondaryStateText: secondary?.state_text,
-        secondarySegments: secondary?.segments
+        secondarySegments: secondary?.segments,
+        secondaryLabel: secondary?.label
       };
 
       Object.entries(secondaryTemplates).forEach(([key, value]) => {
@@ -1212,7 +1214,8 @@ export class ModernCircularGauge extends LitElement {
         tertiaryMax: tertiary?.max,
         tertiaryEntity: tertiary?.entity,
         tertiaryStateText: tertiary?.state_text,
-        tertiarySegments: tertiary?.segments
+        tertiarySegments: tertiary?.segments,
+        tertiaryLabel: tertiary?.label
       };
 
       Object.entries(tertiaryTemplates).forEach(([key, value]) => {
@@ -1344,7 +1347,8 @@ export class ModernCircularGauge extends LitElement {
       segments: this._config?.segments,
       stateText: this._config?.state_text,
       secondary: this._config?.secondary,
-      tertiary: this._config?.tertiary
+      tertiary: this._config?.tertiary,
+      label: this._config?.label
     };
     
     Object.entries(templates).forEach(([key, _]) => {
@@ -1358,7 +1362,8 @@ export class ModernCircularGauge extends LitElement {
         secondaryMax: secondary?.max,
         secondaryEntity: secondary?.entity,
         secondaryStateText: secondary?.state_text,
-        secondarySegments: secondary?.segments
+        secondarySegments: secondary?.segments,
+        secondaryLabel: secondary?.label
       };
 
       Object.entries(secondaryTemplates).forEach(([key, _]) => {
@@ -1373,7 +1378,8 @@ export class ModernCircularGauge extends LitElement {
         tertiaryMax: tertiary?.max,
         tertiaryEntity: tertiary?.entity,
         tertiaryStateText: tertiary?.state_text,
-        tertiarySegments: tertiary?.segments
+        tertiarySegments: tertiary?.segments,
+        tertiaryLabel: tertiary?.label
       };
 
       Object.entries(tertiaryTemplates).forEach(([key, _]) => {

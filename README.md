@@ -22,7 +22,7 @@ Modern look at the default Home Assistant gauge card
 - Timer and timestamp support
 - Sections support
 - Needle
-- Jinja and JavaScript Template support for `min`, `max`, `entity`, `name`, `icon`, `secondary`, `tertiary` and `state_text`
+- Jinja and JavaScript Template support for `min`, `max`, `entity`, `name`, `label`, `icon`, `secondary`, `tertiary` and `state_text`
 - Color segments with gradient
 - Dual gauge or triple gauge
 - Dual value representing as a dot on the same gauge
@@ -80,7 +80,7 @@ Both [Jinja](#jinja-templates) and [JavaScript](#javascript-templates) templates
 | unit | `string` | Optional | Custom unit
 | unit_superscript | `boolean` | `true` | Superscripted unit
 | decimals | `number` | Optional | Adjusts decimal places
-| label | `string` | Optional | Label under the state, only used when `state_size` is set to `big`, see [secondary](#secondary-entity-object)
+| label | `string` | Optional | Label under the state, only used when `state_size` is set to `big`, see [secondary](#secondary-entity-object). May contain [templates](#templates)|✅
 | label_font_size | `number` | `0.49em` | Label font size in px
 | header_position | `top` or `bottom` | `bottom` | Header position
 | show_state | `boolean` | `true` | Show entity state
@@ -160,7 +160,7 @@ Both [Jinja](#jinja-templates) and [JavaScript](#javascript-templates) templates
 | min | `number` | Optional | Minimum inner gauge value. May contain [templates](#templates)|✅
 | max | `number` | Optional | Maximum inner gauge value. May contain [templates](#templates)|✅
 | decimals | `number` | Optional | Adjusts decimal places
-| label | `string` | Optional | Label under the state
+| label | `string` | Optional | Label under the state. May contain [templates](#templates)|✅
 | label_font_size | `number` | `0.49em` | Label font size in px
 | state_size | `small` or `big` | `small` | Secondary state size 
 | show_state | `boolean` | `true` | Show secondary state
@@ -193,7 +193,7 @@ Both [Jinja](#jinja-templates) and [JavaScript](#javascript-templates) templates
 | show_gauge | `none`, `inner`, `outer` | `none` | Display secondary info as dot on main gauge or on inner gauge
 | min | `number` | Optional | Minimum inner gauge value. May contain [templates](#templates)|✅
 | max | `number` | Optional | Maximum inner gauge value. May contain [templates](#templates)|✅
-| label | `string` | Optional | Label above the state
+| label | `string` | Optional | Label above the state. May contain [templates](#templates)|✅
 | label_font_size | `number` | `0.49em` | Label font size in px
 | show_state | `boolean` | `true` | Show secondary state
 | show_unit | `boolean` | `true` | Show secondary unit
