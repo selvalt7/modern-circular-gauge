@@ -1098,9 +1098,10 @@ export class ModernCircularGauge extends LitElement {
     let adaptiveColor;
 
     if (tertiary.adaptive_state_color || tertiary.adaptive_label_color) {
+      adaptiveColor = "var(--gauge-color)";
       if (tertiary.show_gauge == "outter" || tertiary.show_gauge == "outer") {
         adaptiveColor = computeSegments(state, (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config?.segments, this._config?.smooth_segments, this);
-      } else {
+      } else if (segments) {
         adaptiveColor = computeSegments(state, segments, this._config?.smooth_segments, this);
       }
 
