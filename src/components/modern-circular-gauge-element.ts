@@ -113,12 +113,13 @@ export class ModernCircularGaugeElement extends LitElement {
       const needle = this.needle ? strokeDashArc(this.value, this.value, min, max, this.radius, this._maxAngle, undefined, undefined, this.invertedMode) : undefined;
       
       return html`
-        <svg viewBox="-50 -50 100 ${this.gaugeType == "half" ? 50 : 100}" preserveAspectRatio="xMidYMid"
+        <svg viewBox="-50 ${this.gaugeType == "half" ? 0 : -50} 100 ${this.gaugeType == "half" ? 50 : 100}" preserveAspectRatio="xMidYMid"
           overflow="visible"
           style=${styleMap({ "--gauge-stroke-width": this.foregroundStyle?.width ? `${this.foregroundStyle?.width}px` : undefined,
-          "--gauge-color": this.foregroundStyle?.color && this.foregroundStyle?.color != "adaptive" ? computeCssColor(this.foregroundStyle?.color) : computeSegments(this.value, this.segments, this.smoothSegments, this) })}
+          "--gauge-color": this.foregroundStyle?.color && this.foregroundStyle?.color != "adaptive" ? computeCssColor(this.foregroundStyle?.color) : computeSegments(this.value, this.segments, this.smoothSegments, this),
+          "transform": `rotate(${this._rotateAngle}deg)` })}
         >
-          <g transform="rotate(${this._rotateAngle})">
+          <g>
             <defs>
               <mask id="needle-border-mask">
                 <rect x="-70" y="-70" width="140" height="140" fill="white"/>
