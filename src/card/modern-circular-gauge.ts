@@ -28,6 +28,7 @@ import { MCGGraphConfig } from "../components/type";
 import { computeCssColor } from "../ha/common/color/compute-color";
 import { getHaJsTemplates } from "../utils/js-templates";
 import { compareTemplateResult } from "../utils/compare-template-result";
+import { ModernCircularGaugeState } from "../components/modern-circular-gauge-state";
 
 registerCustomCard({
   type: "modern-circular-gauge",
@@ -962,11 +963,6 @@ export class ModernCircularGauge extends LitElement {
 
     return html`
     <modern-circular-gauge-state
-      @action=${this._handleSecondaryAction}
-      .actionHandler=${actionHandler({
-        hasHold: hasAction(secondary.hold_action),
-        hasDoubleClick: hasAction(secondary.double_tap_action),
-      })}
       class=${classMap({ "preview": this._inCardPicker!, "secondary": true })}
       style=${styleMap({ "--state-text-color-override": secondary.adaptive_state_color ? secondaryColor ?? (secondary.state_size == "big" ? "var(--secondary-text-color)" : undefined) : (secondary.state_size == "big" ? "var(--secondary-text-color)" : undefined),
         "--state-font-size-override": secondary.state_font_size ? `${secondary.state_font_size}px` : (halfStateBig ? `15px` : undefined),
@@ -1013,11 +1009,6 @@ export class ModernCircularGauge extends LitElement {
 
       return html`
       <modern-circular-gauge-state
-        @action=${this._handleAction}
-        .actionHandler=${actionHandler({
-          hasHold: hasAction(this._config.hold_action),
-          hasDoubleClick: hasAction(this._config.double_tap_action),
-        })}
         class=${classMap({ "preview": this._inCardPicker! })}
         style=${styleMap({ "--state-text-color-override": this._config.adaptive_state_color ? "var(--gauge-color)" : undefined,
           "--state-font-size-override": this._config.state_font_size ? `${this._config.state_font_size}px` : undefined,
@@ -1112,11 +1103,6 @@ export class ModernCircularGauge extends LitElement {
 
     return html`
     <modern-circular-gauge-state
-      @action=${this._handleTertiaryAction}
-      .actionHandler=${actionHandler({
-        hasHold: hasAction(tertiary.hold_action),
-        hasDoubleClick: hasAction(tertiary.double_tap_action),
-      })}
       class=${classMap({ "preview": this._inCardPicker!, "tertiary": true })}
       style=${styleMap({ "--state-text-color-override": tertiary.adaptive_state_color ? adaptiveColor : undefined,
         "--state-font-size-override": tertiary.state_font_size ? `${tertiary.state_font_size}px` : (this._config?.gauge_type == "half" && threeGauges ? "6px" : undefined),
@@ -1415,39 +1401,26 @@ export class ModernCircularGauge extends LitElement {
 
   private _handleAction(ev: ActionHandlerEvent) {
     ev.stopPropagation();
-    const targetEntity = this._config?.entity;
+    let targetEntity = this._config?.entity;
+    let entityConfig = this._config as any;
+
+    if (ev.target instanceof ModernCircularGaugeState) {
+      if (ev.target.classList.contains("secondary")) {
+        targetEntity = typeof this._config?.secondary == "string" ? this._config?.secondary : this._config?.secondary?.entity;
+        entityConfig = typeof this._config?.secondary == "string" ? {} : this._config?.secondary ?? {};
+      }
+      if (ev.target.classList.contains("tertiary")) {
+        targetEntity = typeof this._config?.tertiary == "string" ? this._config?.tertiary : this._config?.tertiary?.entity;
+        entityConfig = typeof this._config?.tertiary == "string" ? {} : this._config?.tertiary ?? {};
+      }
+    }
+
     const config = {
-      ...this._config,
+      ...entityConfig,
       entity: isTemplate(targetEntity ?? "") ? "" : targetEntity
     };
 
     handleAction(this, this.hass!, config, ev.detail.action!);
-  }
-
-  private _handleSecondaryAction(ev: ActionHandlerEvent) {
-    ev.stopPropagation();
-    if (typeof this._config?.secondary != "string") {
-      const entity = typeof this._config?.secondary != "string" ? this._config?.secondary?.entity : "";
-      const config = {
-        ...this._config?.secondary,
-        entity: isTemplate(entity ?? "") ? "" : entity
-      }
-      
-      handleAction(this, this.hass!, config, ev.detail.action!);
-    }
-  }
-
-  private _handleTertiaryAction(ev: ActionHandlerEvent) {
-    ev.stopPropagation();
-    if (typeof this._config?.tertiary != "string") {
-      const entity = typeof this._config?.tertiary != "string" ? this._config?.tertiary?.entity : "";
-      const config = {
-        ...this._config?.tertiary,
-        entity: isTemplate(entity ?? "") ? "" : entity
-      }
-      
-      handleAction(this, this.hass!, config, ev.detail.action!);
-    }
   }
 
   public getGridOptions(): LovelaceGridOptions {
