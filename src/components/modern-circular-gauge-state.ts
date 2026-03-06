@@ -5,8 +5,6 @@ import { HassEntity } from "home-assistant-js-websocket";
 import { classMap } from "lit/directives/class-map.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { GaugeType } from "../card/type";
-import { TIMESTAMP_STATE_DOMAINS } from "../const";
-import { computeStateDomain } from "../ha/common/entity/compute_state_domain";
 import { computeState } from "../utils/compute-state";
 
 @customElement("modern-circular-gauge-state")
