@@ -230,7 +230,7 @@ export class ModernCircularGaugeBadge extends LitElement {
                 ...this._templateResults,
                 [key]: templateResult,
               };
-            }, {"segments": JSON.parse(templateValue), "JSRegex": JSTemplateRegex});
+            }, {variables: {"segments": JSON.parse(templateValue), "JSRegex": JSTemplateRegex}});
           this._unsubRenderTemplates?.set(key, untrack);
         });
       } else {
