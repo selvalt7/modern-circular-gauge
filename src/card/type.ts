@@ -56,6 +56,8 @@ export interface GaugeElementConfig {
 
 export type GaugeType = "standard" | "half" | "full";
 
+export type NeedleType = "default" | "arrow" | "custom";
+
 export type EntityNames = "primary" | "secondary" | "tertiary";
 
 export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
@@ -89,6 +91,7 @@ export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     graph_hours_to_show?: number;
     graph_points_per_hour?: number;
     needle?: boolean;
+    needle_type?: NeedleType;
     state_text?: string;
     adaptive_icon_color?: boolean;
     adaptive_state_color?: boolean;
