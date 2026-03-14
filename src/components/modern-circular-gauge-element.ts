@@ -1,7 +1,7 @@
 import { html, LitElement, css, svg, nothing, TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { DEFAULT_MAX, DEFAULT_MIN, GAUGE_TYPE_ANGLES, MAX_ANGLE } from "../const";
-import { GaugeElementConfig, GaugeType, NeedleType, SegmentsConfig } from "../card/type";
+import { GaugeElementConfig, GaugeType, NeedleConfig, NeedleType, SegmentsConfig } from "../card/type";
 import { styleMap } from "lit/directives/style-map.js";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { svgArc, renderPath, currentDashArc, strokeDashArc, renderColorSegments, computeSegments, getAngle, renderPathNeedle } from "../utils/gauge";
@@ -33,7 +33,7 @@ export class ModernCircularGaugeElement extends LitElement {
 
   @property({ type: Boolean }) public needle = false;
 
-  @property({ type: String }) public needleType: NeedleType = "default";
+  @property({ type: Object }) public needleConfig?: NeedleConfig;
 
   @property({ type: String }) public customNeedlePath = "";
 
@@ -173,7 +173,7 @@ export class ModernCircularGaugeElement extends LitElement {
       return svg``;
     }
 
-    if (this.needleType === "default") {
+    if (this.needleConfig?.type === "default" || !this.needleConfig?.type) {
       const needleStrokeDash = strokeDashArc(
         this.value,
         this.value,
@@ -186,7 +186,7 @@ export class ModernCircularGaugeElement extends LitElement {
         this.invertedMode
       );
       const cls = border ? "needle-border" : "needle";
-      const extra = border ? styleMap({ stroke: "black" }) : undefined;
+      const extra = border ? styleMap({ stroke: "black", "--gauge-needle-width": this.needleConfig?.border_width != undefined ? `${this.needleConfig.border_width}px` : undefined }) : undefined;
       return renderPath(cls, this._path!, needleStrokeDash, extra);
     }
 
@@ -198,28 +198,27 @@ export class ModernCircularGaugeElement extends LitElement {
       this.invertedMode
     );
     const cls = border
-      ? "needle-border"
-      : `needle-${this.needleType.toLowerCase()}`;
-    const width = border ? 0.35 : 0.3;
-    const style = border ? styleMap({ stroke: "black" }) : undefined;
+      ? `needle-${this.needleConfig?.type?.toLowerCase() || "default"}-border`
+      : `needle-${this.needleConfig?.type?.toLowerCase() || "default"}`;
+    const style = border ? styleMap({ stroke: "black", "--gauge-needle-width": this.needleConfig?.border_width != undefined ? `${this.needleConfig.border_width}px` : undefined }) : undefined;
     return renderPathNeedle(
       cls,
       this._getNeedlePath(),
       this.radius,
       needleAngle,
-      width,
+      1,
       style
     );
   }
 
   private _getNeedlePath(): string {
-    if (this.needleType == "custom" && this.customNeedlePath) {
-      return this.customNeedlePath;
+    if (this.needleConfig?.type == "custom" && this.needleConfig.custom_path) {
+      return String(this.needleConfig.custom_path);
     }
-    if (this.needleType == "default") {
+    if (this.needleConfig?.type == "default" || !this.needleConfig?.type) {
       return "";
     }
-    return NEEDLE_PATHS[this.needleType] || "";
+    return NEEDLE_PATHS[this.needleConfig?.type] || "";
   }
 
   static get styles() {
@@ -229,6 +228,7 @@ export class ModernCircularGaugeElement extends LitElement {
 
       --gauge-color: var(--gauge-primary-color);
       --gauge-stroke-width: 6px;
+      --gauge-needle-width: 4px;
     }
     svg {
       width: 100%;
@@ -274,16 +274,36 @@ export class ModernCircularGaugeElement extends LitElement {
       transition: all 1s ease 0s;
     }
 
+    .needle-custom {
+      stroke: var(--gauge-color);
+      fill: var(--gauge-color);
+      stroke-linejoin: miter;
+    }
+
+    .needle-custom-border {
+      stroke: black;
+      fill: black;
+      stroke-linejoin: miter;
+      stroke-width: var(--gauge-needle-width);
+    }
+
     .needle-arrow {
       stroke: var(--gauge-color);
       fill: var(--gauge-color);
       stroke-linejoin: miter;
     }
 
+    .needle-arrow-border {
+      stroke: black;
+      fill: black;
+      stroke-linejoin: miter;
+      stroke-width: var(--gauge-needle-width);
+    }
+
     .needle-border {
       fill: none;
       stroke-linecap: round;
-      stroke-width: calc(var(--gauge-stroke-width) + 4px);
+      stroke-width: calc(var(--gauge-stroke-width) + var(--gauge-needle-width));
       transition: all 1s ease 0s, stroke 0.3s ease-out;
     }
     

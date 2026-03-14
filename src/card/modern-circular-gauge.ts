@@ -389,7 +389,7 @@ export class ModernCircularGauge extends LitElement {
             .linePadding=${this._config.combine_gauges && this._config.gauge_type === "full" ? 7.5 : 0}
             .lineOffset=${this._config.combine_gauges && this._config.gauge_type === "full" ?  3.25 : 0}
             .invertedMode=${this._config.inverted_mode}
-            .needleType=${this._config.needle_type ?? "default"}
+            .needleConfig=${this._config.needle_config}
           ></modern-circular-gauge-element>
           ${typeof this._config.secondary != "string" ? 
           (this._config.secondary?.show_gauge && this._config.secondary?.show_gauge != "none") || (this._config.combine_gauges && this._config.gauge_type === "full") ?

@@ -2,5 +2,5 @@ import { NeedleType } from "../card/type";
 
 
 export const NEEDLE_PATHS: Partial<Record<NeedleType, string>> = {
-  "arrow": "M 15 0 L -15 -10 L -10 0 L -15 10 Z"
+  "arrow": "M 4.5 0 L -4.5 -3 L -3 0 L -4.5 3 Z"
 };
