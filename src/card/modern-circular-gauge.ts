@@ -1672,6 +1672,7 @@ export class ModernCircularGauge extends LitElement {
 
     .dual-gauge modern-circular-gauge-element {
       --gauge-stroke-width: 4px;
+      --gauge-default-stroke-width: 4px;
     }
 
     .dot {

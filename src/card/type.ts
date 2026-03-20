@@ -56,12 +56,13 @@ export interface GaugeElementConfig {
 
 export type GaugeType = "standard" | "half" | "full";
 
-export type NeedleType = "default" | "arrow" | "custom";
+export type NeedleType = "default" | "arrow" | "line" | "custom";
 
 export interface NeedleConfig {
     type?: NeedleType;
     rotate?: number;
     border_width?: number;
+    scale?: number;
     custom_path?: string;
 }
 

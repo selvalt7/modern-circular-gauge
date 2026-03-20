@@ -200,13 +200,15 @@ export class ModernCircularGaugeElement extends LitElement {
     const cls = border
       ? `needle-${this.needleConfig?.type?.toLowerCase() || "default"}-border`
       : `needle-${this.needleConfig?.type?.toLowerCase() || "default"}`;
-    const style = border ? styleMap({ stroke: "black", "--gauge-needle-width": this.needleConfig?.border_width != undefined ? `${this.needleConfig.border_width}px` : undefined, transform: `rotate(${this.needleConfig.rotate || 0}deg)` }) : styleMap({transform: `rotate(${this.needleConfig.rotate || 0}deg)`});
+    const style = border ? styleMap({ stroke: "black", "--gauge-needle-width": this.needleConfig?.border_width != undefined ? `${this.needleConfig.border_width}px` : undefined, transform: `rotate(${this.needleConfig.rotate || 0}deg)` })
+      : styleMap({transform: `rotate(${this.needleConfig.rotate || 0}deg)`});
+    
     return renderPathNeedle(
       cls,
       this._getNeedlePath(),
       this.radius,
       needleAngle,
-      1,
+      this.needleConfig?.scale || 1,
       style
     );
   }
@@ -228,6 +230,7 @@ export class ModernCircularGaugeElement extends LitElement {
 
       --gauge-color: var(--gauge-primary-color);
       --gauge-stroke-width: 6px;
+      --gauge-default-stroke-width: 6px;
       --gauge-needle-width: 4px;
     }
     svg {
@@ -274,6 +277,10 @@ export class ModernCircularGaugeElement extends LitElement {
       transition: all 1s ease 0s;
     }
 
+    .needle-path-group {
+      --needle-scale: calc(var(--gauge-stroke-width) / var(--gauge-default-stroke-width));
+    }
+
     .needle-custom {
       stroke: var(--gauge-color);
       fill: var(--gauge-color);
@@ -298,6 +305,22 @@ export class ModernCircularGaugeElement extends LitElement {
       fill: black;
       stroke-linejoin: miter;
       stroke-width: var(--gauge-needle-width);
+    }
+
+    .needle-line {
+      stroke: var(--gauge-color);
+      fill: none;
+      stroke-linecap: round;
+      stroke-width: calc(var(--gauge-stroke-width) * 0.7);
+      vector-effect: non-scaling-stroke;
+    }
+
+    .needle-line-border {
+      stroke: black;
+      fill: black;
+      stroke-linejoin: miter;
+      stroke-width: calc(var(--gauge-needle-width) + (var(--gauge-stroke-width) * 0.7));
+      vector-effect: non-scaling-stroke;
     }
 
     .needle-border {
