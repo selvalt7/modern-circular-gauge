@@ -60,7 +60,7 @@ export type NeedleType = "default" | "arrow" | "custom";
 
 export interface NeedleConfig {
     type?: NeedleType;
-    rotate?: boolean;
+    rotate?: number;
     border_width?: number;
     custom_path?: string;
 }
