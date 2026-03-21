@@ -209,7 +209,7 @@ export class ModernCircularGaugeElement extends LitElement {
       ? `needle-${this.needleConfig?.type?.toLowerCase() || "default"}-border`
       : `needle-${this.needleConfig?.type?.toLowerCase() || "default"}`;
     const style = border ? styleMap({ stroke: "black", "--gauge-needle-width": this.needleConfig?.border_width != undefined ? `${this.needleConfig.border_width}px` : undefined, transform: `rotate(${this.needleConfig.rotate || 0}deg)` })
-      : styleMap({transform: `rotate(${this.needleConfig.rotate || 0}deg)`});
+      : `transform: rotate(${this.needleConfig.rotate || 0}deg); ${this.needleConfig.type === "custom" ? this.needleConfig.custom_path_style : ""}`;
     
     return renderPathNeedle(
       cls,

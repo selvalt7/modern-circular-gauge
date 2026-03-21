@@ -129,7 +129,7 @@ export function renderPath(pathClass: DirectiveResult<typeof ClassMapDirective>,
 
 export function renderPathNeedle(pathClass: DirectiveResult<typeof ClassMapDirective>, d: string, radius: number, angle: number, scale: number, style: DirectiveResult<typeof StyleMapDirective> | undefined = undefined): TemplateResult {
   return svg`
-    <g class="needle-path-group" style="transform: rotate(${angle}deg) translate(${radius}px, 0) scale(var(--needle-scale)) scale(${scale}) rotate(180deg);">
+    <g class="needle-path-group" style="transform: rotate(${angle}deg) translate(${radius}px, 0) scale(var(--needle-scale)) scale(${scale})">
       ${renderPath(pathClass, d, undefined, style)}
     </g>
   `;

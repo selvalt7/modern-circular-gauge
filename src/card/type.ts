@@ -64,6 +64,7 @@ export interface NeedleConfig {
     border_width?: number;
     scale?: number;
     custom_path?: string;
+    custom_path_style?: string;
 }
 
 export type EntityNames = "primary" | "secondary" | "tertiary";

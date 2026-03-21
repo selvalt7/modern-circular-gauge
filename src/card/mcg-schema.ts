@@ -128,6 +128,10 @@ export const getNeedleConfigSchema = [
       }
     ]
   },
+  {
+    name: "custom_path_style",
+    selector: { text: { multiline: true } },
+  }
 ];
 
 export const getEntityStyleSchema = (showGaugeOptions: boolean, gaugeDefaultRadius: number = RADIUS, labelHelper: string = "label", gaugeDefaultBackgroundOpacity: number = 1) => [
