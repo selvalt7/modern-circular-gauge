@@ -121,12 +121,12 @@ export const getNeedleConfigSchema = [
         name: "scale",
         default: 1,
         selector: { number: { step: "any", min: 0 } }
-      },
-      {
-        name: "custom_path",
-        selector: { text: {} },
       }
     ]
+  },
+  {
+    name: "custom_path",
+    selector: { text: {} },
   },
   {
     name: "custom_path_style",
