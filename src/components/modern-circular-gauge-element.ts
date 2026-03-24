@@ -86,10 +86,10 @@ export class ModernCircularGaugeElement extends LitElement {
 
     if (this.error) {
       return html`
-      <svg viewBox="-50 -50 100 ${this.gaugeType == "half" ? 50 : 100}" preserveAspectRatio="xMidYMid"
+      <svg viewBox="-50 ${this.gaugeType == "half" ? 0 : -50} 100 ${this.gaugeType == "half" ? 50 : 100}" preserveAspectRatio="xMidYMid"
         overflow="visible"
         style=${styleMap({ "transform": `rotate(${this._rotateAngle}deg)` })}>
-        <g transform="rotate(${this._rotateAngle})">
+        <g>
           ${!this.disableBackground ? renderPath("arc clear", this._path) : nothing}
         </g>
       </svg>`;
@@ -98,7 +98,7 @@ export class ModernCircularGaugeElement extends LitElement {
     if (this.outter)
     {
       return html`
-      <svg viewBox="-50 -50 100 ${this.gaugeType == "half" ? 50 : 100}" preserveAspectRatio="xMidYMid"
+      <svg viewBox="-50 ${this.gaugeType == "half" ? 0 : -50} 100 ${this.gaugeType == "half" ? 50 : 100}" preserveAspectRatio="xMidYMid"
         overflow="visible"
         style=${styleMap({ "--gauge-stroke-width": this.foregroundStyle?.width ? `${this.foregroundStyle?.width}px` : undefined,
         "--gauge-color": this.foregroundStyle?.color && this.foregroundStyle?.color != "adaptive" ? computeCssColor(this.foregroundStyle?.color) : computeSegments(this.value, this.segments, this.smoothSegments, this),
