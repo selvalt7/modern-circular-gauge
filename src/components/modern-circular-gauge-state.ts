@@ -90,7 +90,7 @@ export class ModernCircularGaugeState extends LitElement {
       return html``;
     }
 
-    const state = computeState(this.hass, this.stateObj!, this.entityAttribute!, this.stateOverride!, this.decimals, this.showSeconds);
+    const state = computeState(this.hass, this.stateObj!, this.entityAttribute!, this.stateOverride || undefined, this.decimals, this.showSeconds);
     const verticalOffset = this.verticalOffset ?? 0;
 
     return html`
