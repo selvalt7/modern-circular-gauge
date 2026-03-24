@@ -5,7 +5,7 @@ import { formatNumber, getNumberFormatOptions, getDefaultFormatOptions } from ".
 import secondsToDuration from "./seconds_to_duration";
 import { HomeAssistant } from "../ha/types";
 
-export function computeState(hass: HomeAssistant, stateObj: HassEntity, entityAttribute: string, stateOverride: string, decimals: number | undefined, showSeconds: boolean | undefined): string {
+export function computeState(hass: HomeAssistant, stateObj: HassEntity, entityAttribute: string, stateOverride: string | undefined, decimals: number | undefined, showSeconds: boolean | undefined): string {
   if (!stateObj && stateOverride !== undefined) {
     if (!Number.isNaN(Number(stateOverride))) {
       const formatOptions = getDefaultFormatOptions(stateOverride, { maximumFractionDigits: decimals, minimumFractionDigits: decimals });
