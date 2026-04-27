@@ -93,5 +93,23 @@
         "full": "Pełny"
       }
     }
+  },
+  "wind_direction": {
+    "N": "Pn.",
+    "NNE": "Pn. Pn. Wsch.",
+    "NE": "Pn. Wsch.",
+    "ENE": "Wsch. Pn. Wsch.",
+    "E": "Wsch.",
+    "ESE": "Wsch. Pd. Wsch.",
+    "SE": "Pd. Wsch.",
+    "SSE": "Pd. Pd. Wsch.",
+    "S": "Pd.",
+    "SSW": "Pd. Pd. Zach.",
+    "SW": "Pd. Zach.",
+    "WSW": "Zach. Pd. Zach.",
+    "W": "Zach.",
+    "WNW": "Zach. Pn. Zach.",
+    "NW": "Pn. Zach.",
+    "NNW": "Pn. Pn. Zach."
   }
 }

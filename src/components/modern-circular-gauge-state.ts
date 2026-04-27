@@ -41,6 +41,14 @@ export class ModernCircularGaugeState extends LitElement {
 
   @property({ type: Boolean }) public showSeconds = true;
 
+  @property() public timeFormat?: "compact" | "minutes" | "digital";
+
+  @property() public stateFormat?: "default" | "wind_direction" | "percentage";
+
+  @property({ type: Number }) public min?: number;
+
+  @property({ type: Number }) public max?: number;
+
   @state() private _updated = false;
 
   connectedCallback(): void {
@@ -90,7 +98,16 @@ export class ModernCircularGaugeState extends LitElement {
       return html``;
     }
 
-    const state = computeState(this.hass, this.stateObj!, this.entityAttribute!, this.stateOverride!, this.decimals, this.showSeconds);
+    const state = computeState(this.hass, this.stateObj, {
+      entityAttribute: this.entityAttribute,
+      stateOverride: this.stateOverride || undefined,
+      decimals: this.decimals,
+      showSeconds: this.showSeconds,
+      timeFormat: this.timeFormat,
+      stateFormat: this.stateFormat,
+      min: this.min,
+      max: this.max
+    });
     const verticalOffset = this.verticalOffset ?? 0;
 
     return html`

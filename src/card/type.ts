@@ -35,6 +35,8 @@ export interface BaseEntityConfig {
     adaptive_state_color?: boolean;
     adaptive_label_color?: boolean;
     segments?: SegmentsConfig[];
+    time_format?: "compact" | "minutes" | "digital";
+    state_format?: "default" | "wind_direction" | "percentage";
 }
 
 export interface SecondaryEntity extends BaseEntityConfig {
@@ -108,4 +110,6 @@ export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     secondary?: SecondaryEntity | string;
     tertiary?: TertiaryEntity | string;
     secondary_entity?: SecondaryEntity; // Unused
+    time_format?: "compact" | "minutes" | "digital";
+    state_format?: "default" | "wind_direction" | "percentage";
 }

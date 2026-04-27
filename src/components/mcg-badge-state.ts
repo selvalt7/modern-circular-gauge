@@ -2,8 +2,6 @@ import { html, LitElement, TemplateResult } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { HomeAssistant } from "../ha/types";
 import { HassEntity } from "home-assistant-js-websocket";
-import { TIMESTAMP_STATE_DOMAINS } from "../const";
-import { computeStateDomain } from "../ha/common/entity/compute_state_domain";
 import { computeState } from "../utils/compute-state";
 
 @customElement("mcg-badge-state")
@@ -24,6 +22,12 @@ export class McgBadgeState extends LitElement {
 
   @property({ type: Boolean }) public showSeconds = true;
 
+  @property() public stateFormat?: "default" | "wind_direction" | "percentage";
+
+  @property({ type: Number }) public min?: number;
+
+  @property({ type: Number }) public max?: number;
+
   connectedCallback(): void {
     super.connectedCallback();
   }
@@ -33,7 +37,15 @@ export class McgBadgeState extends LitElement {
   }
 
   protected render(): TemplateResult {
-    const state = computeState(this.hass!, this.stateObj!, this.entityAttribute!, this.stateOverride!, this.decimals, this.showSeconds);
+    const state = computeState(this.hass!, this.stateObj, {
+      entityAttribute: this.entityAttribute,
+      stateOverride: this.stateOverride || undefined,
+      decimals: this.decimals,
+      showSeconds: this.showSeconds,
+      stateFormat: this.stateFormat,
+      min: this.min,
+      max: this.max
+    });
 
     return html`
       ${state} ${this.unit}

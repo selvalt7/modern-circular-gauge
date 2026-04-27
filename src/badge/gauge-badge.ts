@@ -413,6 +413,9 @@ export class ModernCircularGaugeBadge extends LitElement {
         .stateOverride=${stateOverride ?? templatedState}
         .showSeconds=${this._config.show_seconds}
         .decimals=${this._config.decimals}
+        .min=${min}
+        .max=${max}
+        .stateFormat=${this._config.state_format}
       ></mcg-badge-state>
     `;
 
@@ -499,6 +502,8 @@ export class ModernCircularGaugeBadge extends LitElement {
               .stateOverride=${stateOverride ?? templatedState}
               .showSeconds=${this._config.show_seconds}
               .decimals=${this._config.decimals}
+              .timeFormat=${this._config.time_format}
+              .stateFormat=${this._config.state_format}
             ></modern-circular-gauge-state>
           ` : nothing}
       </div>

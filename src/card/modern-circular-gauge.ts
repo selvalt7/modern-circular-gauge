@@ -425,6 +425,10 @@ export class ModernCircularGauge extends LitElement {
             .showSeconds=${this._config.show_seconds}
             .decimals=${this._config.decimals}
             .unitSuperscript=${this._config.unit_superscript}
+            .timeFormat=${this._config.time_format}
+            .stateFormat=${this._config.state_format}
+            .min=${min}
+            .max=${max}
           ></modern-circular-gauge-state>
           ` : nothing}
           ${this._renderSecondaryState()}
@@ -984,6 +988,10 @@ export class ModernCircularGauge extends LitElement {
       .showSeconds=${secondary.show_seconds}
       .decimals=${secondary.decimals}
       .unitSuperscript=${secondary.unit_superscript}
+      .timeFormat=${secondary.time_format}
+      .stateFormat=${secondary.state_format}
+      .min=${Number(this._templateResults?.secondaryMin?.result ?? secondary.min) || DEFAULT_MIN}
+      .max=${Number(this._templateResults?.secondaryMax?.result ?? secondary.max) || DEFAULT_MAX}
     ></modern-circular-gauge-state>
     `;
   }
@@ -1028,6 +1036,9 @@ export class ModernCircularGauge extends LitElement {
         .showSeconds=${this._config.show_seconds}
         .decimals=${this._config.decimals}
         .unitSuperscript=${this._config.unit_superscript}
+        .timeFormat=${this._config.time_format}
+        .min=${Number(this._templateResults?.min?.result ?? this._config.min) || DEFAULT_MIN}
+        .max=${Number(this._templateResults?.max?.result ?? this._config.max) || DEFAULT_MAX}
         small
       ></modern-circular-gauge-state>
       `;
@@ -1122,6 +1133,10 @@ export class ModernCircularGauge extends LitElement {
       .showSeconds=${tertiary.show_seconds}
       .decimals=${tertiary.decimals}
       .unitSuperscript=${tertiary.unit_superscript}
+      .timeFormat=${tertiary.time_format}
+      .stateFormat=${tertiary.state_format}
+      .min=${Number(this._templateResults?.tertiaryMin?.result ?? tertiary.min) || DEFAULT_MIN}
+      .max=${Number(this._templateResults?.tertiaryMax?.result ?? tertiary.max) || DEFAULT_MAX}
       small
     ></modern-circular-gauge-state>
     `;

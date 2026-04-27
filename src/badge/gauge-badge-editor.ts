@@ -137,6 +137,28 @@ export class ModernCircularGaugeBadgeEditor extends LitElement {
                 selector: { number: { step: 1, min: 0 } },
               },
               {
+                name: "time_format",
+                selector: { select: {
+                  options: [
+                    { value: "digital", label: "Digital (00:00)" },
+                    { value: "compact", label: "Compact (1h 15m)" },
+                    { value: "minutes", label: "Minutes (120m)" },
+                  ],
+                  mode: "dropdown",
+                }},
+              },
+              {
+                name: "state_format",
+                selector: { select: {
+                  options: [
+                    { value: "default", label: "Default" },
+                    { value: "wind_direction", label: "Wind Direction" },
+                    { value: "percentage", label: "Percentage" },
+                  ],
+                  mode: "dropdown",
+                }},
+              },
+              {
                 name: "inverted_mode",
                 default: false,
                 selector: { boolean: {} },
