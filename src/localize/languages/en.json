@@ -47,6 +47,13 @@
     "graph_points_per_hour": "Points per hour",
     "inverted_mode": "Inverted mode",
     "unit_superscript": "Unit superscript",
+    "needle_config": "Needle configuration",
+    "type": "Type",
+    "rotate": "Rotate",
+    "scale": "Scale",
+    "border_width": "Border width",
+    "custom_path": "Custom path (SVG path data)",
+    "custom_path_style": "Custom path style (CSS)",
     "helper": {
       "start_from_zero": "Gauge starts from zero instead of min",
       "primary_label": "Text displayed under the main state when secondary state size is set to big",
@@ -91,6 +98,14 @@
         "standard": "Standard",
         "half": "Half",
         "full": "Full"
+      }
+    },
+    "needle_type_options": {
+      "options": {
+        "default": "Default",
+        "arrow": "Arrow",
+        "line": "Line",
+        "custom": "Custom"
       }
     }
   }

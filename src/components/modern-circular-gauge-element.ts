@@ -1,12 +1,13 @@
-import { html, LitElement, css, svg, nothing } from "lit";
+import { html, LitElement, css, svg, nothing, TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { DEFAULT_MAX, DEFAULT_MIN, GAUGE_TYPE_ANGLES, MAX_ANGLE } from "../const";
-import { GaugeElementConfig, GaugeType, SegmentsConfig } from "../card/type";
+import { GaugeElementConfig, GaugeType, NeedleConfig, NeedleType, SegmentsConfig } from "../card/type";
 import { styleMap } from "lit/directives/style-map.js";
 import { ifDefined } from "lit/directives/if-defined.js";
-import { svgArc, renderPath, currentDashArc, strokeDashArc, renderColorSegments, computeSegments } from "../utils/gauge";
+import { svgArc, renderPath, currentDashArc, strokeDashArc, renderColorSegments, computeSegments, getAngle, renderPathNeedle } from "../utils/gauge";
 import { computeCssColor } from "../ha/common/color/compute-color";
 import { classMap } from "lit/directives/class-map.js";
+import { NEEDLE_PATHS } from "./const";
 
 @customElement("modern-circular-gauge-element")
 export class ModernCircularGaugeElement extends LitElement {
@@ -31,6 +32,10 @@ export class ModernCircularGaugeElement extends LitElement {
   @property({ type: Object }) public backgroundStyle?: GaugeElementConfig;
 
   @property({ type: Boolean }) public needle = false;
+
+  @property({ type: Object }) public needleConfig?: NeedleConfig;
+
+  @property({ type: String }) public customNeedlePath = "";
 
   @property({ type: Boolean }) public startFromZero = false;
 
@@ -81,10 +86,10 @@ export class ModernCircularGaugeElement extends LitElement {
 
     if (this.error) {
       return html`
-      <svg viewBox="-50 -50 100 ${this.gaugeType == "half" ? 50 : 100}" preserveAspectRatio="xMidYMid"
+      <svg viewBox="-50 ${this.gaugeType == "half" ? 0 : -50} 100 ${this.gaugeType == "half" ? 50 : 100}" preserveAspectRatio="xMidYMid"
         overflow="visible"
-      >
-        <g transform="rotate(${this._rotateAngle})">
+        style=${styleMap({ "transform": `rotate(${this._rotateAngle}deg)` })}>
+        <g>
           ${!this.disableBackground ? renderPath("arc clear", this._path) : nothing}
         </g>
       </svg>`;
@@ -92,17 +97,16 @@ export class ModernCircularGaugeElement extends LitElement {
 
     if (this.outter)
     {
-      const current = strokeDashArc(this.value, this.value, this.min, this.max, this.radius, this._maxAngle, undefined, undefined, this.invertedMode);
-
       return html`
-      <svg viewBox="-50 -50 100 ${this.gaugeType == "half" ? 50 : 100}" preserveAspectRatio="xMidYMid"
+      <svg viewBox="-50 ${this.gaugeType == "half" ? 0 : -50} 100 ${this.gaugeType == "half" ? 50 : 100}" preserveAspectRatio="xMidYMid"
         overflow="visible"
         style=${styleMap({ "--gauge-stroke-width": this.foregroundStyle?.width ? `${this.foregroundStyle?.width}px` : undefined,
-        "--gauge-color": this.foregroundStyle?.color && this.foregroundStyle?.color != "adaptive" ? computeCssColor(this.foregroundStyle?.color) : computeSegments(this.value, this.segments, this.smoothSegments, this) })}
+        "--gauge-color": this.foregroundStyle?.color && this.foregroundStyle?.color != "adaptive" ? computeCssColor(this.foregroundStyle?.color) : computeSegments(this.value, this.segments, this.smoothSegments, this),
+        "transform": `rotate(${this._rotateAngle}deg)` })}
       >
-        <g transform="rotate(${this._rotateAngle})">
-          ${!this.foregroundStyle?.color ? renderPath("dot border", this._path, current, styleMap({ "opacity": this.foregroundStyle?.opacity ?? 1, "stroke-width": this.foregroundStyle?.width })) : nothing}
-          ${renderPath("dot", this._path, current, styleMap({ "opacity": this.foregroundStyle?.opacity ?? 1, "stroke": computeCssColor(this.foregroundStyle?.color ?? ""), "stroke-width": this.foregroundStyle?.width }))}
+        <g>
+          ${!this.foregroundStyle?.color ? this._renderNeedle(this.min, this.max, true) : nothing}
+          ${this._renderNeedle(this.min, this.max, false)}
         </g>
       </svg>
       `
@@ -123,15 +127,7 @@ export class ModernCircularGaugeElement extends LitElement {
             <defs>
               <mask id="needle-border-mask">
                 <rect x="-70" y="-70" width="140" height="140" fill="white"/>
-                ${needle ? svg`
-                <path
-                  class="needle-border"
-                  d=${this._path}
-                  stroke-dasharray="${needle[0]}"
-                  stroke-dashoffset="${needle[1]}"
-                  stroke="black"
-                />
-                ` : nothing}
+                ${this._renderNeedle(min, max, true)}
               </mask>
               ${!this.disableBackground ? svg`
               <mask id="gradient-path">
@@ -160,13 +156,79 @@ export class ModernCircularGaugeElement extends LitElement {
             </g>
             ` : renderPath("arc current", this._path, current, styleMap({ "visibility": (this.invertedMode ? (this.value >= max) : (this.value <= min && min >= 0)) || (this.flipGauge && this.value <= this.min) ? "hidden" : "visible", "opacity": this.foregroundStyle?.opacity }))
             : nothing}
-            ${needle ? svg`
-            ${renderPath("needle", this._path, needle)}
-            ` : nothing}
+            ${this._renderNeedle(min, max)}
           </g>
         </svg>
       `;
     }
+  }
+
+  private _renderNeedle(
+    min: number,
+    max: number,
+    border = false
+  ): TemplateResult {
+    if (!this.needle && !this.outter) {
+      return svg``;
+    }
+
+    if (this.needleConfig?.type === "default" || !this.needleConfig?.type) {
+      if (this.outter) {
+        const current = strokeDashArc(this.value, this.value, this.min, this.max, this.radius, this._maxAngle, undefined, undefined, this.invertedMode);
+        return renderPath(border ? "dot border" : "dot", this._path!, current, styleMap({ "opacity": this.foregroundStyle?.opacity ?? 1, "stroke-width": this.foregroundStyle?.width, "stroke": border ? undefined : computeCssColor(this.foregroundStyle?.color ?? "") }));
+      } else {
+        const needleStrokeDash = strokeDashArc(
+          this.value,
+          this.value,
+          min,
+          max,
+          this.radius,
+          this._maxAngle,
+          undefined,
+          undefined,
+          this.invertedMode
+        );
+        const cls = border ? "needle-border" : "needle";
+        const extra = border ? styleMap({ stroke: "black", "--gauge-needle-width": this.needleConfig?.border_width != undefined ? `${this.needleConfig.border_width}px` : undefined }) : undefined;
+        return renderPath(cls, this._path!, needleStrokeDash, extra);
+      }
+    }
+
+    if (this.outter && border) {
+      return svg``;
+    }
+
+    const needleAngle = getAngle(
+      this.value,
+      min,
+      max,
+      this._maxAngle,
+      this.invertedMode
+    );
+    const cls = border
+      ? `needle-${this.needleConfig?.type?.toLowerCase() || "default"}-border`
+      : `needle-${this.needleConfig?.type?.toLowerCase() || "default"}`;
+    const style = border ? styleMap({ stroke: "black", "--gauge-needle-width": this.needleConfig?.border_width != undefined ? `${this.needleConfig.border_width}px` : undefined, transform: `rotate(${this.needleConfig.rotate || 0}deg)` })
+      : `transform: rotate(${this.needleConfig.rotate || 0}deg); ${this.needleConfig.type === "custom" ? this.needleConfig.custom_path_style : ""}`;
+    
+    return renderPathNeedle(
+      cls,
+      this._getNeedlePath(),
+      this.radius,
+      needleAngle,
+      this.needleConfig?.scale || 1,
+      style
+    );
+  }
+
+  private _getNeedlePath(): string {
+    if (this.needleConfig?.type == "custom" && this.needleConfig.custom_path) {
+      return String(this.needleConfig.custom_path);
+    }
+    if (this.needleConfig?.type == "default" || !this.needleConfig?.type) {
+      return "";
+    }
+    return NEEDLE_PATHS[this.needleConfig?.type] || "";
   }
 
   static get styles() {
@@ -176,6 +238,8 @@ export class ModernCircularGaugeElement extends LitElement {
 
       --gauge-color: var(--gauge-primary-color);
       --gauge-stroke-width: 6px;
+      --gauge-default-stroke-width: 6px;
+      --gauge-needle-width: 4px;
     }
     svg {
       width: 100%;
@@ -221,10 +285,56 @@ export class ModernCircularGaugeElement extends LitElement {
       transition: all 1s ease 0s;
     }
 
+    .needle-path-group {
+      --needle-scale: calc(var(--gauge-stroke-width) / var(--gauge-default-stroke-width));
+    }
+
+    .needle-custom {
+      stroke: var(--gauge-color);
+      fill: var(--gauge-color);
+      stroke-linejoin: miter;
+    }
+
+    .needle-custom-border {
+      stroke: black;
+      fill: black;
+      stroke-linejoin: miter;
+      stroke-width: var(--gauge-needle-width);
+    }
+
+    .needle-arrow {
+      stroke: var(--gauge-color);
+      fill: var(--gauge-color);
+      stroke-linejoin: miter;
+    }
+
+    .needle-arrow-border {
+      stroke: black;
+      fill: black;
+      stroke-linejoin: miter;
+      stroke-width: var(--gauge-needle-width);
+    }
+
+    .needle-line {
+      stroke: var(--gauge-color);
+      fill: none;
+      stroke-linecap: round;
+      stroke-width: calc(var(--gauge-stroke-width) * 0.75);
+      vector-effect: non-scaling-stroke;
+    }
+
+    .needle-line-border {
+      stroke: black;
+      fill: black;
+      stroke-linejoin: miter;
+      stroke-width: calc(var(--gauge-needle-width) + (var(--gauge-stroke-width) * 0.75));
+      vector-effect: non-scaling-stroke;
+    }
+
     .needle-border {
       fill: none;
       stroke-linecap: round;
-      stroke-width: calc(var(--gauge-stroke-width) + 4px);
+      stroke-width: calc(var(--gauge-stroke-width) + var(--gauge-needle-width));
       transition: all 1s ease 0s, stroke 0.3s ease-out;
     }
     

@@ -47,6 +47,13 @@
     "graph_points_per_hour": "Punkty na godzinę",
     "inverted_mode": "Tryb odwrócony",
     "unit_superscript": "Jednostka jako indeks górny",
+    "needle_config": "Konfiguracja igły",
+    "type": "Typ",
+    "rotate": "Obrót",
+    "scale": "Skala",
+    "border_width": "Szerokość ramki",
+    "custom_path": "Niestandardowa ścieżka (dane SVG)",
+    "custom_path_style": "Styl niestandardowej ścieżki (CSS)",
     "helper": {
       "start_from_zero": "Wskaźnik rozpoczyna się od zera zamiast od minimum",
       "primary_label": "Tekst wyświetlony pod głównym stanem, gdy rozmiar stanu informacji drugorzędnej jest duży",
@@ -91,6 +98,14 @@
         "standard": "Standard",
         "half": "Połówka",
         "full": "Pełny"
+      }
+    },
+    "needle_type_options": {
+      "options": {
+        "default": "Domyślny",
+        "arrow": "Strzałka",
+        "line": "Linia",
+        "custom": "Niestandardowy"
       }
     }
   }
