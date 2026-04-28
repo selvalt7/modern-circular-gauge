@@ -49,6 +49,13 @@
     "unit_superscript": "Jednostka jako indeks górny",
     "time_format": "Format czasu",
     "state_format": "Format stanu",
+    "needle_config": "Konfiguracja igły",
+    "type": "Typ",
+    "rotate": "Obrót",
+    "scale": "Skala",
+    "border_width": "Szerokość ramki",
+    "custom_path": "Niestandardowa ścieżka (dane SVG)",
+    "custom_path_style": "Styl niestandardowej ścieżki (CSS)",
     "helper": {
       "start_from_zero": "Wskaźnik rozpoczyna się od zera zamiast od minimum",
       "primary_label": "Tekst wyświetlony pod głównym stanem, gdy rozmiar stanu informacji drugorzędnej jest duży",
@@ -107,6 +114,14 @@
         "default": "Domyślny",
         "direction": "Kierunek",
         "percentage": "Procent"
+      }
+    },
+    "needle_type_options": {
+      "options": {
+        "default": "Domyślny",
+        "arrow": "Strzałka",
+        "line": "Linia",
+        "custom": "Niestandardowy"
       }
     }
   },

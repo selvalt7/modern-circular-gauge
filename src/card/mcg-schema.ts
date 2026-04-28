@@ -1,4 +1,4 @@
-import { mdiNumeric2BoxOutline, mdiSegment, mdiNumeric3BoxOutline, mdiFlipToFront, mdiFlipToBack, mdiGauge } from "@mdi/js";
+import { mdiNumeric2BoxOutline, mdiSegment, mdiNumeric3BoxOutline, mdiFlipToFront, mdiFlipToBack, mdiGauge, mdiCircle } from "@mdi/js";
 import { NUMBER_ENTITY_DOMAINS, DEFAULT_MIN, DEFAULT_MAX, RADIUS, INNER_RADIUS, TERTIARY_RADIUS, NON_NUMERIC_ATTRIBUTES } from "../const";
 import { EntityNames } from "./type";
 
@@ -86,6 +86,51 @@ export const getGaugeStyleSchema = (gaugeDefaultWidth: number = 6, gaugeDefaultO
         selector: { number: { step: "any", min: 0, max: 1 } }
       }
     ]
+  }
+];
+
+export const getNeedleConfigSchema = [
+  {
+    name: "",
+    type: "grid",
+    schema: [
+      {
+        name: "type",
+        selector: { select: {
+          options: [
+            { value: "default", label: "Default" },
+            { value: "arrow", label: "Arrow" },
+            { value: "line", label: "Line" },
+            { value: "custom", label: "Custom" },
+          ],
+          mode: "dropdown",
+          translation_key: "needle_type_options",
+        }},
+      },
+      {
+        name: "rotate",
+        default: 0,
+        selector: { number: { step: "any", min: 0 } }
+      },
+      {
+        name: "border_width",
+        default: 4,
+        selector: { number: { step: "any", min: 0 } }
+      },
+      {
+        name: "scale",
+        default: 1,
+        selector: { number: { step: "any", min: 0 } }
+      }
+    ]
+  },
+  {
+    name: "custom_path",
+    selector: { text: {} },
+  },
+  {
+    name: "custom_path_style",
+    selector: { text: { multiline: true } },
   }
 ];
 
@@ -200,6 +245,12 @@ export const getEntityStyleSchema = (showGaugeOptions: boolean, gaugeDefaultRadi
     default: gaugeDefaultRadius,
     disabled: !showGaugeOptions,
     selector: { number: { step: 1 } }
+  },
+  {
+    name: "needle_config",
+    type: "expandable",
+    iconPath: mdiCircle,
+    schema: getNeedleConfigSchema,
   },
   {
     name: "gauge_foreground_style",

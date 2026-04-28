@@ -389,6 +389,7 @@ export class ModernCircularGauge extends LitElement {
             .linePadding=${this._config.combine_gauges && this._config.gauge_type === "full" ? 7.5 : 0}
             .lineOffset=${this._config.combine_gauges && this._config.gauge_type === "full" ?  3.25 : 0}
             .invertedMode=${this._config.inverted_mode}
+            .needleConfig=${this._config.needle_config}
           ></modern-circular-gauge-element>
           ${typeof this._config.secondary != "string" ? 
           (this._config.secondary?.show_gauge && this._config.secondary?.show_gauge != "none") || (this._config.combine_gauges && this._config.gauge_type === "full") ?
@@ -716,6 +717,7 @@ export class ModernCircularGauge extends LitElement {
         .startFromZero=${tertiaryObj?.start_from_zero}
         .rotateGauge=${this._config?.rotate_gauge}
         .invertedMode=${tertiaryObj?.inverted_mode}
+        .needleConfig=${tertiaryObj?.needle_config}
       ></modern-circular-gauge-element>
       `;
     } else {
@@ -749,6 +751,7 @@ export class ModernCircularGauge extends LitElement {
         .rotateGauge=${this._config?.rotate_gauge}
         .invertedMode=${tertiaryObj?.inverted_mode}
         .outter=${true}
+        .needleConfig=${tertiaryObj?.needle_config}
       ></modern-circular-gauge-element>
       `;
     }
@@ -849,6 +852,7 @@ export class ModernCircularGauge extends LitElement {
         .linePadding=${this._config?.combine_gauges && this._config.gauge_type === "full" ? 7.5 : 0}
         .lineOffset=${this._config?.combine_gauges && this._config.gauge_type === "full" ? 3.25 : 0}
         .invertedMode=${secondaryObj?.inverted_mode}
+        .needleConfig=${secondaryObj?.needle_config}
       ></modern-circular-gauge-element>
       `;
     } else {
@@ -882,6 +886,7 @@ export class ModernCircularGauge extends LitElement {
         .outter=${true}
         .rotateGauge=${this._config?.rotate_gauge}
         .invertedMode=${secondaryObj?.inverted_mode}
+        .needleConfig=${secondaryObj?.needle_config}
       ></modern-circular-gauge-element>
       `;
     }
@@ -1686,6 +1691,7 @@ export class ModernCircularGauge extends LitElement {
 
     .dual-gauge modern-circular-gauge-element {
       --gauge-stroke-width: 4px;
+      --gauge-default-stroke-width: 4px;
     }
 
     .dot {
