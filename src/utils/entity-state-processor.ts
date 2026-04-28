@@ -22,6 +22,7 @@ export interface EntityStateProcessorOptions {
 export interface ProcessedEntityState {
   displayState: string;
   numericValue?: number;
+  unit?: string;
   percentage?: string;
   isTimerOrTimestamp?: boolean;
 }
@@ -223,6 +224,7 @@ export function processEntityState(
     return {
       displayState,
       numericValue,
+      unit: ""
     };
   }
 
@@ -232,6 +234,7 @@ export function processEntityState(
       displayState: percentage,
       numericValue,
       percentage,
+      unit: "%"
     };
   }
 

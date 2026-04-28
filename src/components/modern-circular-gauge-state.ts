@@ -6,6 +6,7 @@ import { classMap } from "lit/directives/class-map.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { GaugeType } from "../card/type";
 import { computeState } from "../utils/compute-state";
+import { processEntityState } from "../utils/entity-state-processor";
 
 @customElement("modern-circular-gauge-state")
 export class ModernCircularGaugeState extends LitElement {
@@ -98,7 +99,7 @@ export class ModernCircularGaugeState extends LitElement {
       return html``;
     }
 
-    const state = computeState(this.hass, this.stateObj, {
+    const processedState = processEntityState(this.hass, this.stateObj, {
       entityAttribute: this.entityAttribute,
       stateOverride: this.stateOverride || undefined,
       decimals: this.decimals,
@@ -108,14 +109,18 @@ export class ModernCircularGaugeState extends LitElement {
       min: this.min,
       max: this.max
     });
+
+    const state = processedState.displayState;
+    const unit = this.unit ?? processedState.unit ?? this.stateObj?.attributes.unit_of_measurement ?? "";
+
     const verticalOffset = this.verticalOffset ?? 0;
 
     return html`
     <svg class="state ${classMap({ "small": this.small })}" overflow="visible" viewBox="${-50 + (this.horizontalOffset ?? 0)} -50 100 ${this.gaugeType == "half" ? 50 : 100}">
       <text x="0" y=${verticalOffset} class="value">
         ${state}
-        ${this.showUnit ? !(this.unitSuperscript ?? !this.small) ? this.unit : svg`
-        <tspan class="unit" dx=${this.small ? "-2" : "-4"} dy=${this.small ? "-0.3em" : "-0.8em"}>${this.unit}</tspan>
+        ${this.showUnit ? !(this.unitSuperscript ?? !this.small) ? unit : svg`
+        <tspan class="unit" dx=${this.small ? "-2" : "-4"} dy=${this.small ? "-0.3em" : "-0.8em"}>${unit}</tspan>
         ` : nothing}
       </text>
       <text class="state-label" style=${styleMap({ "font-size": this.labelFontSize ? `${this.labelFontSize}px` : undefined })} y=${verticalOffset + (this.small ? (9 * Math.sign(verticalOffset)) : 13)}>
