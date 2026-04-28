@@ -145,6 +145,7 @@ export class ModernCircularGaugeBadgeEditor extends LitElement {
                     { value: "minutes", label: "Minutes (120m)" },
                   ],
                   mode: "dropdown",
+                  translation_key: "time_format_options",
                 }},
               },
               {
@@ -156,6 +157,7 @@ export class ModernCircularGaugeBadgeEditor extends LitElement {
                     { value: "percentage", label: "Percentage" },
                   ],
                   mode: "dropdown",
+                  translation_key: "state_format_options",
                 }},
               },
               {
