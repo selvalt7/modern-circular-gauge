@@ -94,7 +94,7 @@
       }
     }
   },
-  "wind_direction": {
+  "direction": {
     "N": "N",
     "NNE": "NNE",
     "NE": "NE",

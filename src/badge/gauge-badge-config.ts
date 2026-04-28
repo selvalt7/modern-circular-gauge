@@ -25,5 +25,5 @@ export interface ModernCircularGaugeBadgeConfig extends LovelaceBadgeConfig {
   smooth_segments?: boolean;
   segments?: SegmentsConfig[];
   time_format?: "compact" | "minutes" | "digital";
-  state_format?: "default" | "wind_direction" | "percentage";
+  state_format?: "default" | "direction" | "percentage";
 }

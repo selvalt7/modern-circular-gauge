@@ -22,7 +22,7 @@ export class McgBadgeState extends LitElement {
 
   @property({ type: Boolean }) public showSeconds = true;
 
-  @property() public stateFormat?: "default" | "wind_direction" | "percentage";
+  @property() public stateFormat?: "default" | "direction" | "percentage";
 
   @property({ type: Number }) public min?: number;
 

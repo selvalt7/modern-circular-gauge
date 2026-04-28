@@ -43,7 +43,7 @@ export class ModernCircularGaugeState extends LitElement {
 
   @property() public timeFormat?: "compact" | "minutes" | "digital";
 
-  @property() public stateFormat?: "default" | "wind_direction" | "percentage";
+  @property() public stateFormat?: "default" | "direction" | "percentage";
 
   @property({ type: Number }) public min?: number;
 

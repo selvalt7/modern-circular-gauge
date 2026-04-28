@@ -16,7 +16,7 @@ export interface EntityStateProcessorOptions {
   min?: number;
   max?: number;
   timeFormat?: "compact" | "minutes" | "digital";
-  stateFormat?: "default" | "wind_direction" | "percentage";
+  stateFormat?: "default" | "direction" | "percentage";
 }
 
 export interface ProcessedEntityState {
@@ -61,8 +61,8 @@ export function getWindDirectionCardinal(hass: HomeAssistant, value: string | nu
   const normalized = ((numeric % 360) + 360) % 360;
   const index = Math.floor((normalized + 11.25) / 22.5) % CARDINAL_DIRECTIONS.length;
   const directionKey = CARDINAL_DIRECTIONS[index];
-  const translated = localize(hass, `wind_direction.${directionKey}`);
-  return translated === `wind_direction.${directionKey}` ? directionKey : translated;
+  const translated = localize(hass, `direction.${directionKey}`);
+  return translated === `direction.${directionKey}` ? directionKey : translated;
 }
 
 export function isTimerOrTimestampEntity(stateObj?: HassEntity): boolean {
@@ -217,7 +217,7 @@ export function processEntityState(
     stateObj.state;
   const numericValue = parseNumericValue(rawState);
 
-  if (stateFormat === "wind_direction") {
+  if (stateFormat === "direction") {
     const cardinal = getWindDirectionCardinal(hass, rawState);
     const displayState = cardinal ?? String(rawState);
     return {

@@ -152,7 +152,7 @@ export class ModernCircularGaugeBadgeEditor extends LitElement {
                 selector: { select: {
                   options: [
                     { value: "default", label: "Default" },
-                    { value: "wind_direction", label: "Wind Direction" },
+                    { value: "direction", label: "Direction" },
                     { value: "percentage", label: "Percentage" },
                   ],
                   mode: "dropdown",
