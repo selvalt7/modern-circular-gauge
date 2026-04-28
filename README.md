@@ -93,6 +93,8 @@ Both [Jinja](#jinja-templates) and [JavaScript](#javascript-templates) templates
 | show_in_graph | `boolean` | `true` | Show primary entity on the graph
 | adaptive_graph_range | `boolean` | `false` | Adapt y-axis range to min and max value of the entity history
 | show_seconds | `boolean` | `true` | Show seconds when displaying time based entities
+| time_format | `string` | `digital` | Time format: `digital` (00:00), `compact` (1h 15m), or `minutes` (120m)
+| state_format | `string` | `default` | State format: `default`, `direction` (converts degrees to cardinal directions like N, NE, E, etc.), or `percentage` (displays value as percentage of gauge range)
 | needle | `boolean` | `false` |
 | needle_config | `object` | Optional | Needle style config, see [needle config object](#needle-config-object)
 | state_text | `string` | Entity state | Displayed state override. May contain [templates](#templates)|✅
@@ -134,6 +136,8 @@ Both [Jinja](#jinja-templates) and [JavaScript](#javascript-templates) templates
 | show_icon | `bool` | `true` | Show icon
 | show_unit | `bool` | `true` | Show unit
 | show_seconds | `boolean` | `true` | Show seconds when displaying time based entities
+| time_format | `string` | `digital` | Time format: `digital` (00:00), `compact` (1h 15m), or `minutes` (120m)
+| state_format | `string` | `default` | State format: `default`, `direction` (converts degrees to cardinal directions like N, NE, E, etc.), or `percentage` (displays value as percentage of gauge range)
 | needle | `bool` | `false` | 
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min
 | inverted_mode | `boolean` | `false` | Inverts gauge fill logic and ignores start_from_zero, 0 -> full gauge, 100 -> empty gauge
@@ -170,6 +174,8 @@ Both [Jinja](#jinja-templates) and [JavaScript](#javascript-templates) templates
 | adaptive_graph_range | `boolean` | `false` | Adapt y-axis range to min and max value of the entity history
 | smooth_segments | `boolean` | `false` | Smooth color segments for secondary gauge
 | show_seconds | `boolean` | `true` | Show seconds when displaying time based entities
+| time_format | `string` | `digital` | Time format: `digital` (00:00), `compact` (1h 15m), or `minutes` (120m)
+| state_format | `string` | `default` | State format: `default`, `direction` (converts degrees to cardinal directions like N, NE, E, etc.), or `percentage` (displays value as percentage of gauge range)
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min
 | inverted_mode | `boolean` | `false` | Inverts gauge fill logic and ignores start_from_zero, 0 -> full gauge, 100 -> empty gauge
 | state_font_size | `number` | `10` or `24` | State size in px
@@ -203,6 +209,8 @@ Both [Jinja](#jinja-templates) and [JavaScript](#javascript-templates) templates
 | adaptive_graph_range | `boolean` | `false` | Adapt y-axis range to min and max value of the entity history
 | smooth_segments | `boolean` | `false` | Smooth color segments for tertiary gauge
 | show_seconds | `boolean` | `true` | Show seconds when displaying time based entities
+| time_format | `string` | `digital` | Time format: `digital` (00:00), `compact` (1h 15m), or `minutes` (120m)
+| state_format | `string` | `default` | State format: `default`, `direction` (converts degrees to cardinal directions like N, NE, E, etc.), or `percentage` (displays value as percentage of gauge range)
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min
 | inverted_mode | `boolean` | `false` | Inverts gauge fill logic and ignores start_from_zero, 0 -> full gauge, 100 -> empty gauge
 | state_font_size | `number` | `10` | State size in px

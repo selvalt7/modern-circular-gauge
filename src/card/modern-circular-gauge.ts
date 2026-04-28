@@ -324,7 +324,7 @@ export class ModernCircularGauge extends LitElement {
 
     const attributes = stateObj?.attributes ?? undefined;
 
-    const unit = this._config.unit ?? stateObj?.attributes?.unit_of_measurement ?? "";
+    const unit = this._config.unit;
 
     const min = Number(this._templateResults?.min?.result ?? this._config.min) || DEFAULT_MIN;
     const max = Number(this._templateResults?.max?.result ?? this._config.max ?? calculatedMax) || DEFAULT_MAX;
@@ -426,6 +426,10 @@ export class ModernCircularGauge extends LitElement {
             .showSeconds=${this._config.show_seconds}
             .decimals=${this._config.decimals}
             .unitSuperscript=${this._config.unit_superscript}
+            .timeFormat=${this._config.time_format}
+            .stateFormat=${this._config.state_format}
+            .min=${min}
+            .max=${max}
           ></modern-circular-gauge-state>
           ` : nothing}
           ${this._renderSecondaryState()}
@@ -944,7 +948,7 @@ export class ModernCircularGauge extends LitElement {
 
     const attributes = stateObj?.attributes ?? undefined;
 
-    const unit = secondary.unit ?? attributes?.unit_of_measurement;
+    const unit = secondary.unit;
 
     const state = Number(templatedState ?? attributes[secondary.attribute!] ?? stateObj.state);
     const stateOverride = this._templateResults?.secondaryStateText?.result ?? (isTemplate(String(secondary.state_text)) ? "" : (secondary.state_text || undefined));
@@ -989,6 +993,10 @@ export class ModernCircularGauge extends LitElement {
       .showSeconds=${secondary.show_seconds}
       .decimals=${secondary.decimals}
       .unitSuperscript=${secondary.unit_superscript}
+      .timeFormat=${secondary.time_format}
+      .stateFormat=${secondary.state_format}
+      .min=${Number(this._templateResults?.secondaryMin?.result ?? secondary.min) || DEFAULT_MIN}
+      .max=${Number(this._templateResults?.secondaryMax?.result ?? secondary.max) || DEFAULT_MAX}
     ></modern-circular-gauge-state>
     `;
   }
@@ -1006,7 +1014,7 @@ export class ModernCircularGauge extends LitElement {
       const templatedState = this._templateResults?.entity?.result;
       const stateObj = this._getEntityStateObj("primary");
       const numberState = Number(this._getEntityState("primary", this._config.attribute));
-      const unit = this._config.unit ?? stateObj?.attributes?.unit_of_measurement ?? "";
+      const unit = this._config.unit;
 
       const stateOverride = this._templateResults?.stateText?.result ?? (isTemplate(String(this._config.state_text)) ? "" : (this._config.state_text || undefined));
       const segments = (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config.segments;
@@ -1033,6 +1041,9 @@ export class ModernCircularGauge extends LitElement {
         .showSeconds=${this._config.show_seconds}
         .decimals=${this._config.decimals}
         .unitSuperscript=${this._config.unit_superscript}
+        .timeFormat=${this._config.time_format}
+        .min=${Number(this._templateResults?.min?.result ?? this._config.min) || DEFAULT_MIN}
+        .max=${Number(this._templateResults?.max?.result ?? this._config.max) || DEFAULT_MAX}
         small
       ></modern-circular-gauge-state>
       `;
@@ -1085,7 +1096,7 @@ export class ModernCircularGauge extends LitElement {
     }
 
     const attributes = stateObj?.attributes ?? undefined;
-    const unit = tertiary.unit ?? attributes?.unit_of_measurement;
+    const unit = tertiary.unit;
     const state = Number(templatedState ?? attributes[tertiary.attribute!] ?? stateObj.state);
     const stateOverride = this._templateResults?.tertiaryStateText?.result ?? (isTemplate(String(tertiary.state_text)) ? "" : (tertiary.state_text || undefined));
     const segments = (this._templateResults?.tertiarySegments?.result as unknown) as SegmentsConfig[] ?? tertiary.segments;
@@ -1127,6 +1138,10 @@ export class ModernCircularGauge extends LitElement {
       .showSeconds=${tertiary.show_seconds}
       .decimals=${tertiary.decimals}
       .unitSuperscript=${tertiary.unit_superscript}
+      .timeFormat=${tertiary.time_format}
+      .stateFormat=${tertiary.state_format}
+      .min=${Number(this._templateResults?.tertiaryMin?.result ?? tertiary.min) || DEFAULT_MIN}
+      .max=${Number(this._templateResults?.tertiaryMax?.result ?? tertiary.max) || DEFAULT_MAX}
       small
     ></modern-circular-gauge-state>
     `;

@@ -137,6 +137,30 @@ export class ModernCircularGaugeBadgeEditor extends LitElement {
                 selector: { number: { step: 1, min: 0 } },
               },
               {
+                name: "time_format",
+                selector: { select: {
+                  options: [
+                    { value: "digital", label: "Digital (00:00)" },
+                    { value: "compact", label: "Compact (1h 15m)" },
+                    { value: "minutes", label: "Minutes (120m)" },
+                  ],
+                  mode: "dropdown",
+                  translation_key: "time_format_options",
+                }},
+              },
+              {
+                name: "state_format",
+                selector: { select: {
+                  options: [
+                    { value: "default", label: "Default" },
+                    { value: "direction", label: "Direction" },
+                    { value: "percentage", label: "Percentage" },
+                  ],
+                  mode: "dropdown",
+                  translation_key: "state_format_options",
+                }},
+              },
+              {
                 name: "inverted_mode",
                 default: false,
                 selector: { boolean: {} },

@@ -47,6 +47,8 @@
     "graph_points_per_hour": "Points per hour",
     "inverted_mode": "Inverted mode",
     "unit_superscript": "Unit superscript",
+    "time_format": "Time format",
+    "state_format": "State format",
     "needle_config": "Needle configuration",
     "type": "Type",
     "rotate": "Rotate",
@@ -100,6 +102,20 @@
         "full": "Full"
       }
     },
+    "time_format_options": {
+      "options": {
+        "digital": "Digital (00:00)",
+        "compact": "Compact (0h 0m)",
+        "minutes": "Minutes (120m)"
+      }
+    },
+    "state_format_options": {
+      "options": {
+        "default": "Default",
+        "direction": "Direction",
+        "percentage": "Percentage"
+      }
+    },
     "needle_type_options": {
       "options": {
         "default": "Default",
@@ -108,5 +124,23 @@
         "custom": "Custom"
       }
     }
+  },
+  "direction": {
+    "N": "N",
+    "NNE": "NNE",
+    "NE": "NE",
+    "ENE": "ENE",
+    "E": "E",
+    "ESE": "ESE",
+    "SE": "SE",
+    "SSE": "SSE",
+    "S": "S",
+    "SSW": "SSW",
+    "SW": "SW",
+    "WSW": "WSW",
+    "W": "W",
+    "WNW": "WNW",
+    "NW": "NW",
+    "NNW": "NNW"
   }
 }
