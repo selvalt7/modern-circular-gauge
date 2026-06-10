@@ -46,7 +46,7 @@ const CARDINAL_DIRECTIONS = [
   "NNW",
 ];
 
-const parseNumericValue = (value: unknown): number | undefined => {
+export const parseNumericValue = (value: unknown): number | undefined => {
   if (value === undefined || value === null) {
     return undefined;
   }

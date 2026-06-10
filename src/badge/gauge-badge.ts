@@ -27,6 +27,7 @@ import { compareHass } from "../utils/compare-hass";
 import { computeCssColor } from "../ha/common/color/compute-color";
 import { getHaJsTemplates } from "../utils/js-templates";
 import { compareTemplateResult } from "../utils/compare-template-result";
+import { parseNumericValue } from "../utils/entity-state-processor";
 
 const MAX_ANGLE = 270;
 const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
@@ -391,8 +392,8 @@ export class ModernCircularGaugeBadge extends LitElement {
       return this._renderWarning(this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? stateObj.attributes.friendly_name ?? '', "NaN", stateObj, "warning", icon);
     }
 
-    const min = Number(this._templateResults?.min?.result ?? this._config.min) || DEFAULT_MIN;
-    const max = Number(this._templateResults?.max?.result ?? this._config.max ?? timerDuration) || DEFAULT_MAX;
+    const min = parseNumericValue(this._templateResults?.min?.result ?? this._config.min) ?? DEFAULT_MIN;
+    const max = parseNumericValue(this._templateResults?.max?.result ?? this._config.max ?? timerDuration) ?? DEFAULT_MAX;
 
     const current = this._config.needle ? undefined : currentDashArc(numberState, min, max, RADIUS, this._config.start_from_zero, undefined, undefined, undefined, this._config.inverted_mode);
 
