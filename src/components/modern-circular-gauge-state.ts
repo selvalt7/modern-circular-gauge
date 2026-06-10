@@ -111,7 +111,7 @@ export class ModernCircularGaugeState extends LitElement {
     });
 
     const state = processedState.displayState;
-    const unit = this.unit ?? processedState.unit ?? this.stateObj?.attributes.unit_of_measurement ?? "";
+    const unit = this.unit ?? processedState.unit ?? this.stateObj?.attributes?.unit_of_measurement ?? "";
 
     const verticalOffset = this.verticalOffset ?? 0;
 
