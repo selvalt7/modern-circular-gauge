@@ -28,6 +28,7 @@ import { MCGGraphConfig } from "../components/type";
 import { computeCssColor } from "../ha/common/color/compute-color";
 import { getHaJsTemplates } from "../utils/js-templates";
 import { compareTemplateResult } from "../utils/compare-template-result";
+import { parseNumericValue } from "../utils/entity-state-processor";
 import { ModernCircularGaugeState } from "../components/modern-circular-gauge-state";
 
 registerCustomCard({
@@ -326,8 +327,8 @@ export class ModernCircularGauge extends LitElement {
 
     const unit = this._config.unit;
 
-    const min = Number(this._templateResults?.min?.result ?? this._config.min) || DEFAULT_MIN;
-    const max = Number(this._templateResults?.max?.result ?? this._config.max ?? calculatedMax) || DEFAULT_MAX;
+    const min = parseNumericValue(this._templateResults?.min?.result ?? this._config.min) ?? DEFAULT_MIN;
+    const max = parseNumericValue(this._templateResults?.max?.result ?? this._config.max ?? calculatedMax) ?? DEFAULT_MAX;
 
     const stateOverride = 
       this._config.combine_gauges && this._config.gauge_type === "full" 
@@ -573,8 +574,8 @@ export class ModernCircularGauge extends LitElement {
     
     if (this._config?.show_in_graph ?? true) {
       graphConfig.entitys?.set("primary", { entity: this._config?.entity ?? "",
-        min: Number(this._templateResults?.min?.result ?? this._config?.min) || DEFAULT_MIN,
-        max: Number(this._templateResults?.max?.result ?? this._config?.max) || DEFAULT_MAX,
+        min: parseNumericValue(this._templateResults?.min?.result ?? this._config?.min) ?? DEFAULT_MIN,
+        max: parseNumericValue(this._templateResults?.max?.result ?? this._config?.max) ?? DEFAULT_MAX,
         segments: (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config?.segments,
         adaptive_range: this._config?.adaptive_graph_range
       });
@@ -583,8 +584,8 @@ export class ModernCircularGauge extends LitElement {
       const secondaryEntity = this._config?.secondary?.entity;
       if (secondaryEntity) {
         graphConfig.entitys?.set("secondary", { entity: secondaryEntity,
-          min: Number(this._templateResults?.secondaryMin?.result ?? this._config?.secondary?.min) || DEFAULT_MIN,
-          max: Number(this._templateResults?.secondaryMax?.result ?? this._config?.secondary?.max) || DEFAULT_MAX,
+          min: parseNumericValue(this._templateResults?.secondaryMin?.result ?? this._config?.secondary?.min) ?? DEFAULT_MIN,
+          max: parseNumericValue(this._templateResults?.secondaryMax?.result ?? this._config?.secondary?.max) ?? DEFAULT_MAX,
           segments: (this._templateResults?.secondarySegments?.result as unknown) as SegmentsConfig[] ?? this._config?.secondary?.segments,
           adaptive_range: this._config.secondary.adaptive_graph_range
         });
@@ -594,8 +595,8 @@ export class ModernCircularGauge extends LitElement {
       const tertiaryEntity = this._config?.tertiary?.entity;
       if (tertiaryEntity) {
         graphConfig.entitys?.set("tertiary", { entity: tertiaryEntity,
-          min: Number(this._templateResults?.tertiaryMin?.result ?? this._config?.tertiary?.min) || DEFAULT_MIN,
-          max: Number(this._templateResults?.tertiaryMax?.result ?? this._config?.tertiary?.max) || DEFAULT_MAX,
+          min: parseNumericValue(this._templateResults?.tertiaryMin?.result ?? this._config?.tertiary?.min) ?? DEFAULT_MIN,
+          max: parseNumericValue(this._templateResults?.tertiaryMax?.result ?? this._config?.tertiary?.max) ?? DEFAULT_MAX,
           segments: (this._templateResults?.tertiarySegments?.result as unknown) as SegmentsConfig[] ?? this._config?.tertiary?.segments,
           adaptive_range: this._config.tertiary.adaptive_graph_range
         });
@@ -685,8 +686,8 @@ export class ModernCircularGauge extends LitElement {
         this._isTimerOrTimestamp = true;
       }
 
-      const min = Number(this._templateResults?.tertiaryMin?.result ?? tertiaryObj.min) || DEFAULT_MIN;
-      const max = Number(this._templateResults?.tertiaryMax?.result ?? tertiaryObj.max ?? timerDuration) || DEFAULT_MAX;
+      const min = parseNumericValue(this._templateResults?.tertiaryMin?.result ?? tertiaryObj.min) ?? DEFAULT_MIN;
+      const max = parseNumericValue(this._templateResults?.tertiaryMax?.result ?? tertiaryObj.max ?? timerDuration) ?? DEFAULT_MAX;
       const segments = (this._templateResults?.tertiarySegments?.result as unknown) as SegmentsConfig[] ?? tertiaryObj.segments;
       const numberState = Number(templatedState ?? secondsUntil ?? stateObj.attributes[tertiaryObj.attribute!] ?? stateObj.state);
 
@@ -735,8 +736,8 @@ export class ModernCircularGauge extends LitElement {
         return html``;
       }
   
-      const min = Number(this._templateResults?.min?.result ?? this._config?.min) || DEFAULT_MIN; 
-      const max = Number(this._templateResults?.max?.result ?? this._config?.max) || DEFAULT_MAX;
+      const min = parseNumericValue(this._templateResults?.min?.result ?? this._config?.min) ?? DEFAULT_MIN; 
+      const max = parseNumericValue(this._templateResults?.max?.result ?? this._config?.max) ?? DEFAULT_MAX;
   
       return html`
       <modern-circular-gauge-element
@@ -815,8 +816,8 @@ export class ModernCircularGauge extends LitElement {
       }
 
       
-      const min = Number(this._templateResults?.secondaryMin?.result ?? secondaryObj.min) || DEFAULT_MIN;
-      const max = Number(this._templateResults?.secondaryMax?.result ?? secondaryObj.max ?? calculatedMax) || DEFAULT_MAX;
+      const min = parseNumericValue(this._templateResults?.secondaryMin?.result ?? secondaryObj.min) ?? DEFAULT_MIN;
+      const max = parseNumericValue(this._templateResults?.secondaryMax?.result ?? secondaryObj.max ?? calculatedMax) ?? DEFAULT_MAX;
       const segments = (this._templateResults?.secondarySegments?.result as unknown) as SegmentsConfig[] ?? secondaryObj.segments;
       const numberState = Number(templatedState ?? secondsUntil ?? stateObj.attributes[secondaryObj.attribute!] ?? stateObj.state);
 
@@ -870,8 +871,8 @@ export class ModernCircularGauge extends LitElement {
         return html``;
       }
   
-      const min = Number(this._templateResults?.min?.result ?? this._config?.min) || DEFAULT_MIN; 
-      const max = Number(this._templateResults?.max?.result ?? this._config?.max) || DEFAULT_MAX;
+      const min = parseNumericValue(this._templateResults?.min?.result ?? this._config?.min) ?? DEFAULT_MIN; 
+      const max = parseNumericValue(this._templateResults?.max?.result ?? this._config?.max) ?? DEFAULT_MAX;
   
       return html`
       <modern-circular-gauge-element
@@ -995,8 +996,8 @@ export class ModernCircularGauge extends LitElement {
       .unitSuperscript=${secondary.unit_superscript}
       .timeFormat=${secondary.time_format}
       .stateFormat=${secondary.state_format}
-      .min=${Number(this._templateResults?.secondaryMin?.result ?? secondary.min) || DEFAULT_MIN}
-      .max=${Number(this._templateResults?.secondaryMax?.result ?? secondary.max) || DEFAULT_MAX}
+      .min=${parseNumericValue(this._templateResults?.secondaryMin?.result ?? secondary.min) ?? DEFAULT_MIN}
+      .max=${parseNumericValue(this._templateResults?.secondaryMax?.result ?? secondary.max) ?? DEFAULT_MAX}
     ></modern-circular-gauge-state>
     `;
   }
@@ -1042,8 +1043,8 @@ export class ModernCircularGauge extends LitElement {
         .decimals=${this._config.decimals}
         .unitSuperscript=${this._config.unit_superscript}
         .timeFormat=${this._config.time_format}
-        .min=${Number(this._templateResults?.min?.result ?? this._config.min) || DEFAULT_MIN}
-        .max=${Number(this._templateResults?.max?.result ?? this._config.max) || DEFAULT_MAX}
+        .min=${parseNumericValue(this._templateResults?.min?.result ?? this._config.min) ?? DEFAULT_MIN}
+        .max=${parseNumericValue(this._templateResults?.max?.result ?? this._config.max) ?? DEFAULT_MAX}
         small
       ></modern-circular-gauge-state>
       `;
@@ -1140,8 +1141,8 @@ export class ModernCircularGauge extends LitElement {
       .unitSuperscript=${tertiary.unit_superscript}
       .timeFormat=${tertiary.time_format}
       .stateFormat=${tertiary.state_format}
-      .min=${Number(this._templateResults?.tertiaryMin?.result ?? tertiary.min) || DEFAULT_MIN}
-      .max=${Number(this._templateResults?.tertiaryMax?.result ?? tertiary.max) || DEFAULT_MAX}
+      .min=${parseNumericValue(this._templateResults?.tertiaryMin?.result ?? tertiary.min) ?? DEFAULT_MIN}
+      .max=${parseNumericValue(this._templateResults?.tertiaryMax?.result ?? tertiary.max) ?? DEFAULT_MAX}
       small
     ></modern-circular-gauge-state>
     `;
