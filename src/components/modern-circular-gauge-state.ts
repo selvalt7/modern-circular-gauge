@@ -95,13 +95,13 @@ export class ModernCircularGaugeState extends LitElement {
   }
 
   protected render() {
-    if (!this.hass || (!this.stateObj && this.stateOverride === undefined)) {
+    if (!this.hass || (!this.stateObj && (this.stateOverride === undefined || this.stateOverride === ""))) {
       return html``;
     }
 
     const processedState = processEntityState(this.hass, this.stateObj, {
       entityAttribute: this.entityAttribute,
-      stateOverride: this.stateOverride || undefined,
+      stateOverride: this.stateOverride === "" ? undefined : this.stateOverride,
       decimals: this.decimals,
       showSeconds: this.showSeconds,
       timeFormat: this.timeFormat,
