@@ -193,18 +193,18 @@ Both [Jinja](#jinja-templates) and [JavaScript](#javascript-templates) templates
 #### Tertiary entity object
 | Name | Type | Default | Description | Supports template |
 |------|:----:|:-------:|:------------|:-----------------:|
-| entity | `string` | Optional | Secondary entity. May contain [templates](#templates)|✅
+| entity | `string` | Optional | Tertiary entity. May contain [templates](#templates)|✅
 | attribute | `string` | Optional | Use entity attribute instead of state
 | unit | `string` | Optional | Custom unit
 | unit_superscript | `boolean` | `false` | Superscripted unit
 | decimals | `number` | Optional | Adjusts decimal places
-| show_gauge | `none`, `inner`, `outer` | `none` | Display secondary info as dot on main gauge or on inner gauge
+| show_gauge | `none`, `inner`, `outer` | `none` | Display tertiary info as dot on main gauge or on inner gauge
 | min | `number` | Optional | Minimum inner gauge value. May contain [templates](#templates)|✅
 | max | `number` | Optional | Maximum inner gauge value. May contain [templates](#templates)|✅
 | label | `string` | Optional | Label above the state. May contain [templates](#templates)|✅
 | label_font_size | `number` | `0.49em` | Label font size in px
-| show_state | `boolean` | `true` | Show secondary state
-| show_unit | `boolean` | `true` | Show secondary unit
+| show_state | `boolean` | `true` | Show tertiary state
+| show_unit | `boolean` | `true` | Show tertiary unit
 | show_in_graph | `boolean` | `false` | Show tertiary entity on the graph
 | adaptive_graph_range | `boolean` | `false` | Adapt y-axis range to min and max value of the entity history
 | smooth_segments | `boolean` | `false` | Smooth color segments for tertiary gauge
