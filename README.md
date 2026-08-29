@@ -105,6 +105,7 @@ Both [Jinja](#jinja-templates) and [JavaScript](#javascript-templates) templates
 | state_font_family | `string` | Optional | State font family
 | header_font_size | `number` | `14` | Gauge header font size in px
 | header_offset | `number` | `0` | Gauge header vertical offset in px
+| header_wrap | `boolean` | `false` | Allow the header to span multiple lines, preserving newlines in `name` instead of truncating with an ellipsis
 | gauge_type | `standard`, `half`, `full` | `standard` | Gauge style type, standard for 270°, half for 180° and full for 360° style
 | rotate_gauge | `boolean`, | `false` | When true full gauge is rotated 180° so it starts from the top
 | gauge_radius | `number` | `47` | Gauge radius

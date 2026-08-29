@@ -361,7 +361,7 @@ export class ModernCircularGauge extends LitElement {
       ${this._config.show_header ? html`
       <div class="header" style=${styleMap({ "--gauge-header-font-size": this._config.header_font_size ? `${this._config.header_font_size}px` : undefined,
         "transform": this._config.header_offset ? `translate(0, ${this._config.header_offset}px)` : undefined })}>
-        <p class="name">
+        <p class="name${this._config.header_wrap ? " wrap" : ""}">
           ${this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? (attributes ? attributes.friendly_name : "")}
         </p>
       </div>
@@ -457,7 +457,7 @@ export class ModernCircularGauge extends LitElement {
       >
       <div class="header" style=${styleMap({ "--gauge-header-font-size": this._config?.header_font_size ? `${this._config.header_font_size}px` : undefined,
         "transform": this._config?.header_offset ? `translate(0, ${this._config.header_offset}px)` : undefined })}>
-        <p class="name">
+        <p class="name${this._config?.header_wrap ? " wrap" : ""}">
           ${headerText}
         </p>
       </div>
@@ -1574,6 +1574,12 @@ export class ModernCircularGauge extends LitElement {
       line-height: 20px;
       letter-spacing: .1px;
       color: var(--primary-text-color);
+    }
+
+    .name.wrap {
+      white-space: pre-line;
+      overflow: visible;
+      text-overflow: clip;
     }
 
     .unit {
