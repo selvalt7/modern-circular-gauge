@@ -359,9 +359,9 @@ export class ModernCircularGauge extends LitElement {
       )}
     >
       ${this._config.show_header ? html`
-      <div class="header" style=${styleMap({ "--gauge-header-font-size": this._config.header_font_size ? `${this._config.header_font_size}px` : undefined,
+      <div class="header${this._config.header_wrap ? " wrap" : ""}" style=${styleMap({ "--gauge-header-font-size": this._config.header_font_size ? `${this._config.header_font_size}px` : undefined,
         "transform": this._config.header_offset ? `translate(0, ${this._config.header_offset}px)` : undefined })}>
-        <p class="name">
+        <p class="name${this._config.header_wrap ? " wrap" : ""}">
           ${this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? (attributes ? attributes.friendly_name : "")}
         </p>
       </div>
@@ -455,9 +455,9 @@ export class ModernCircularGauge extends LitElement {
         : undefined
       )}
       >
-      <div class="header" style=${styleMap({ "--gauge-header-font-size": this._config?.header_font_size ? `${this._config.header_font_size}px` : undefined,
+      <div class="header${this._config?.header_wrap ? " wrap" : ""}" style=${styleMap({ "--gauge-header-font-size": this._config?.header_font_size ? `${this._config.header_font_size}px` : undefined,
         "transform": this._config?.header_offset ? `translate(0, ${this._config.header_offset}px)` : undefined })}>
-        <p class="name">
+        <p class="name${this._config?.header_wrap ? " wrap" : ""}">
           ${headerText}
         </p>
       </div>
@@ -1492,6 +1492,14 @@ export class ModernCircularGauge extends LitElement {
     .flex-column-reverse .header {
       position: relative;
     }
+
+    /* An absolutely positioned header is anchored at its static position, which
+       in this column-reverse card is its bottom edge, so extra lines grow up
+       into the dial and the state icon. Joining the flex flow reserves space
+       for the header instead, letting it grow downward. */
+    .header.wrap {
+      position: relative;
+    }
     
     .gauge-state {
       position: absolute;
@@ -1574,6 +1582,12 @@ export class ModernCircularGauge extends LitElement {
       line-height: 20px;
       letter-spacing: .1px;
       color: var(--primary-text-color);
+    }
+
+    .name.wrap {
+      white-space: pre-line;
+      overflow: visible;
+      text-overflow: clip;
     }
 
     .unit {

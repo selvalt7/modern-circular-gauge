@@ -98,6 +98,7 @@ export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     state_font_family?: string;
     header_font_size?: number;
     header_offset?: number;
+    header_wrap?: boolean;
     start_from_zero?: boolean;
     inverted_mode?: boolean;
     gauge_width?: number;
