@@ -27,6 +27,7 @@ import { compareHass } from "../utils/compare-hass";
 import { computeCssColor } from "../ha/common/color/compute-color";
 import { getHaJsTemplates } from "../utils/js-templates";
 import { compareTemplateResult } from "../utils/compare-template-result";
+import { computeEntityName, entityNamesChanged } from "../entity-name";
 
 const MAX_ANGLE = 270;
 const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
@@ -141,6 +142,12 @@ export class ModernCircularGaugeBadge extends LitElement {
         return true;
       }
       const oldHass = _changedProperties.get("hass") as HomeAssistant | undefined;
+      // Names resolve against the entity/device/area/floor registries, and HA
+      // swaps the real formatEntityName in asynchronously once translations
+      // load. Neither changes an entity state, so compareHass misses both.
+      if (entityNamesChanged(oldHass, this.hass)) {
+        return true;
+      }
       return compareHass(oldHass, this.hass, this._trackedEntities);
     }
     return true;
@@ -364,7 +371,7 @@ export class ModernCircularGaugeBadge extends LitElement {
     const icon = this._templateResults?.icon?.result ?? this._config.icon;
 
     if (stateObj?.state === "unavailable") {
-      return this._renderWarning(this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? stateObj.attributes.friendly_name ?? '', this.hass.localize("state.default.unavailable"), stateObj, "warning", icon);
+      return this._renderWarning(this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? computeEntityName(this.hass, stateObj), this.hass.localize("state.default.unavailable"), stateObj, "warning", icon);
     }
 
     const domain = computeStateDomain(stateObj);
@@ -388,7 +395,7 @@ export class ModernCircularGaugeBadge extends LitElement {
     const numberState = Number(templatedState ?? secondsUntil ?? stateObj.attributes[this._config.attribute!] ?? stateObj.state);
 
     if (isNaN(numberState)) {
-      return this._renderWarning(this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? stateObj.attributes.friendly_name ?? '', "NaN", stateObj, "warning", icon);
+      return this._renderWarning(this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? computeEntityName(this.hass, stateObj), "NaN", stateObj, "warning", icon);
     }
 
     const min = Number(this._templateResults?.min?.result ?? this._config.min) || DEFAULT_MIN;
@@ -416,7 +423,7 @@ export class ModernCircularGaugeBadge extends LitElement {
       ></mcg-badge-state>
     `;
 
-    const name = this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? stateObj?.attributes.friendly_name ?? "";
+    const name = this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? computeEntityName(this.hass, stateObj);
     const label = this._config.show_name && showIcon && this._config.show_state ? name : undefined;
     const content = showIcon && this._config.show_state ? stateElement : this._config.show_name ? name : undefined;
 
