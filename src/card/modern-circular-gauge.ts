@@ -30,6 +30,7 @@ import { getHaJsTemplates } from "../utils/js-templates";
 import { compareTemplateResult } from "../utils/compare-template-result";
 import { parseNumericValue } from "../utils/entity-state-processor";
 import { ModernCircularGaugeState } from "../components/modern-circular-gauge-state";
+import { computeEntityName, entityNamesChanged } from "../entity-name";
 
 registerCustomCard({
   type: "modern-circular-gauge",
@@ -155,6 +156,12 @@ export class ModernCircularGauge extends LitElement {
         return true;
       }
       const oldHass = _changedProperties.get("hass") as HomeAssistant | undefined;
+      // Names resolve against the entity/device/area/floor registries, and HA
+      // swaps the real formatEntityName in asynchronously once translations
+      // load. Neither changes an entity state, so compareHass misses both.
+      if (entityNamesChanged(oldHass, this.hass)) {
+        return true;
+      }
       return compareHass(oldHass, this.hass, this._trackedEntities);
     }
     return true;
@@ -292,7 +299,7 @@ export class ModernCircularGauge extends LitElement {
     const icon = this._templateResults?.icon?.result ?? this._config.icon;
     
     if (stateObj?.state === "unavailable") {
-      return this._renderWarning(this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? stateObj.attributes.friendly_name ?? '', this.hass.localize("state.default.unavailable"), stateObj, icon);
+      return this._renderWarning(this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? computeEntityName(this.hass, stateObj), this.hass.localize("state.default.unavailable"), stateObj, icon);
     }
     
     const domain = computeStateDomain(stateObj!);
@@ -320,7 +327,7 @@ export class ModernCircularGauge extends LitElement {
     const numberState = Number(templatedState ?? secondsUntil ?? entityState);
 
     if (isNaN(numberState)) {
-      return this._renderWarning(this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? stateObj?.attributes.friendly_name ?? '', "NaN", stateObj, icon);
+      return this._renderWarning(this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? computeEntityName(this.hass, stateObj), "NaN", stateObj, icon);
     }
 
     const attributes = stateObj?.attributes ?? undefined;
@@ -363,7 +370,7 @@ export class ModernCircularGauge extends LitElement {
       <div class="header" style=${styleMap({ "--gauge-header-font-size": this._config.header_font_size ? `${this._config.header_font_size}px` : undefined,
         "transform": this._config.header_offset ? `translate(0, ${this._config.header_offset}px)` : undefined })}>
         <p class="name">
-          ${this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? (attributes ? attributes.friendly_name : "")}
+          ${this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? computeEntityName(this.hass, stateObj)}
         </p>
       </div>
       ` : nothing}
