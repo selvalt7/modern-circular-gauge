@@ -47,6 +47,15 @@
     "graph_points_per_hour": "Points per hour",
     "inverted_mode": "Inverted mode",
     "unit_superscript": "Unit superscript",
+    "time_format": "Time format",
+    "state_format": "State format",
+    "needle_config": "Needle configuration",
+    "type": "Type",
+    "rotate": "Rotate",
+    "scale": "Scale",
+    "border_width": "Border width",
+    "custom_path": "Custom path (SVG path data)",
+    "custom_path_style": "Custom path style (CSS)",
     "helper": {
       "start_from_zero": "Gauge starts from zero instead of min",
       "primary_label": "Text displayed under the main state when secondary state size is set to big",
@@ -92,6 +101,46 @@
         "half": "Half",
         "full": "Full"
       }
+    },
+    "time_format_options": {
+      "options": {
+        "digital": "Digital (00:00)",
+        "compact": "Compact (0h 0m)",
+        "minutes": "Minutes (120m)"
+      }
+    },
+    "state_format_options": {
+      "options": {
+        "default": "Default",
+        "direction": "Direction",
+        "percentage": "Percentage"
+      }
+    },
+    "needle_type_options": {
+      "options": {
+        "default": "Default",
+        "arrow": "Arrow",
+        "line": "Line",
+        "custom": "Custom"
+      }
     }
+  },
+  "direction": {
+    "N": "N",
+    "NNE": "NNE",
+    "NE": "NE",
+    "ENE": "ENE",
+    "E": "E",
+    "ESE": "ESE",
+    "SE": "SE",
+    "SSE": "SSE",
+    "S": "S",
+    "SSW": "SSW",
+    "SW": "SW",
+    "WSW": "WSW",
+    "W": "W",
+    "WNW": "WNW",
+    "NW": "NW",
+    "NNW": "NNW"
   }
 }

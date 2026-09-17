@@ -35,6 +35,8 @@ export interface BaseEntityConfig {
     adaptive_state_color?: boolean;
     adaptive_label_color?: boolean;
     segments?: SegmentsConfig[];
+    time_format?: "compact" | "minutes" | "digital";
+    state_format?: "default" | "direction" | "percentage";
 }
 
 export interface SecondaryEntity extends BaseEntityConfig {
@@ -55,6 +57,17 @@ export interface GaugeElementConfig {
 };
 
 export type GaugeType = "standard" | "half" | "full";
+
+export type NeedleType = "default" | "arrow" | "line" | "custom";
+
+export interface NeedleConfig {
+    type?: NeedleType;
+    rotate?: number;
+    border_width?: number;
+    scale?: number;
+    custom_path?: string;
+    custom_path_style?: string;
+}
 
 export type EntityNames = "primary" | "secondary" | "tertiary";
 
@@ -89,6 +102,7 @@ export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     graph_hours_to_show?: number;
     graph_points_per_hour?: number;
     needle?: boolean;
+    needle_config?: NeedleConfig;
     state_text?: string;
     adaptive_icon_color?: boolean;
     adaptive_state_color?: boolean;
@@ -108,4 +122,6 @@ export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     secondary?: SecondaryEntity | string;
     tertiary?: TertiaryEntity | string;
     secondary_entity?: SecondaryEntity; // Unused
+    time_format?: "compact" | "minutes" | "digital";
+    state_format?: "default" | "direction" | "percentage";
 }

@@ -28,6 +28,7 @@ import { computeCssColor } from "../ha/common/color/compute-color";
 import { getHaJsTemplates } from "../utils/js-templates";
 import { compareTemplateResult } from "../utils/compare-template-result";
 import { computeEntityName, entityNamesChanged } from "../entity-name";
+import { parseNumericValue } from "../utils/entity-state-processor";
 
 const MAX_ANGLE = 270;
 const ROTATE_ANGLE = 360 - MAX_ANGLE / 2 - 90;
@@ -398,13 +399,13 @@ export class ModernCircularGaugeBadge extends LitElement {
       return this._renderWarning(this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? computeEntityName(this.hass, stateObj), "NaN", stateObj, "warning", icon);
     }
 
-    const min = Number(this._templateResults?.min?.result ?? this._config.min) || DEFAULT_MIN;
-    const max = Number(this._templateResults?.max?.result ?? this._config.max ?? timerDuration) || DEFAULT_MAX;
+    const min = parseNumericValue(this._templateResults?.min?.result ?? this._config.min) ?? DEFAULT_MIN;
+    const max = parseNumericValue(this._templateResults?.max?.result ?? this._config.max ?? timerDuration) ?? DEFAULT_MAX;
 
     const current = this._config.needle ? undefined : currentDashArc(numberState, min, max, RADIUS, this._config.start_from_zero, undefined, undefined, undefined, this._config.inverted_mode);
 
     const stateOverride = this._templateResults?.stateText?.result ?? (isTemplate(String(this._config.state_text)) ? "" : (this._config.state_text || undefined));
-    const unit = this._config.show_unit ?? true ? (this._config.unit ?? stateObj?.attributes.unit_of_measurement) || "" : "";
+    const unit = this._config.unit;
     
     const showIcon = this._config.show_icon ?? true;
 
@@ -420,6 +421,11 @@ export class ModernCircularGaugeBadge extends LitElement {
         .stateOverride=${stateOverride ?? templatedState}
         .showSeconds=${this._config.show_seconds}
         .decimals=${this._config.decimals}
+        .min=${min}
+        .max=${max}
+        .stateFormat=${this._config.state_format}
+        .timeFormat=${this._config.time_format}
+        .showUnit=${this._config.show_unit ?? true}
       ></mcg-badge-state>
     `;
 
@@ -506,6 +512,9 @@ export class ModernCircularGaugeBadge extends LitElement {
               .stateOverride=${stateOverride ?? templatedState}
               .showSeconds=${this._config.show_seconds}
               .decimals=${this._config.decimals}
+              .timeFormat=${this._config.time_format}
+              .stateFormat=${this._config.state_format}
+              .showUnit=${this._config.show_unit ?? true}
             ></modern-circular-gauge-state>
           ` : nothing}
       </div>
