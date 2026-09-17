@@ -256,7 +256,7 @@ export class ModernCircularGauge extends LitElement {
   private _getEntityStateObj(entityName: EntityNames): HassEntity | undefined {
     if (this._entityStates.has(entityName)) {
       const state = this._entityStates.get(entityName);
-      if (typeof state === "string") {
+      if (typeof state === "string" || typeof state === "number") {
         return undefined;
       }
       return state as HassEntity | undefined;
