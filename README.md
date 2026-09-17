@@ -93,7 +93,10 @@ Both [Jinja](#jinja-templates) and [JavaScript](#javascript-templates) templates
 | show_in_graph | `boolean` | `true` | Show primary entity on the graph
 | adaptive_graph_range | `boolean` | `false` | Adapt y-axis range to min and max value of the entity history
 | show_seconds | `boolean` | `true` | Show seconds when displaying time based entities
-| needle | `boolean` | `false` | 
+| time_format | `string` | `digital` | Time format: `digital` (00:00), `compact` (1h 15m), or `minutes` (120m)
+| state_format | `string` | `default` | State format: `default`, `direction` (converts degrees to cardinal directions like N, NE, E, etc.), or `percentage` (displays value as percentage of gauge range)
+| needle | `boolean` | `false` |
+| needle_config | `object` | Optional | Needle style config, see [needle config object](#needle-config-object)
 | state_text | `string` | Entity state | Displayed state override. May contain [templates](#templates)|✅
 | adaptive_icon_color | `boolean` | `false` | Makes icon color adaptive to current color segment
 | adaptive_state_color | `boolean` | `false` | Makes state color adaptive to current color segment
@@ -134,6 +137,8 @@ Both [Jinja](#jinja-templates) and [JavaScript](#javascript-templates) templates
 | show_icon | `bool` | `true` | Show icon
 | show_unit | `bool` | `true` | Show unit
 | show_seconds | `boolean` | `true` | Show seconds when displaying time based entities
+| time_format | `string` | `digital` | Time format: `digital` (00:00), `compact` (1h 15m), or `minutes` (120m)
+| state_format | `string` | `default` | State format: `default`, `direction` (converts degrees to cardinal directions like N, NE, E, etc.), or `percentage` (displays value as percentage of gauge range)
 | needle | `bool` | `false` | 
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min
 | inverted_mode | `boolean` | `false` | Inverts gauge fill logic and ignores start_from_zero, 0 -> full gauge, 100 -> empty gauge
@@ -170,6 +175,8 @@ Both [Jinja](#jinja-templates) and [JavaScript](#javascript-templates) templates
 | adaptive_graph_range | `boolean` | `false` | Adapt y-axis range to min and max value of the entity history
 | smooth_segments | `boolean` | `false` | Smooth color segments for secondary gauge
 | show_seconds | `boolean` | `true` | Show seconds when displaying time based entities
+| time_format | `string` | `digital` | Time format: `digital` (00:00), `compact` (1h 15m), or `minutes` (120m)
+| state_format | `string` | `default` | State format: `default`, `direction` (converts degrees to cardinal directions like N, NE, E, etc.), or `percentage` (displays value as percentage of gauge range)
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min
 | inverted_mode | `boolean` | `false` | Inverts gauge fill logic and ignores start_from_zero, 0 -> full gauge, 100 -> empty gauge
 | state_font_size | `number` | `10` or `24` | State size in px
@@ -179,6 +186,7 @@ Both [Jinja](#jinja-templates) and [JavaScript](#javascript-templates) templates
 | gauge_background_style | `object` | Optional | Gauge background style, see [gauge element style object](#gauge-element-style-object)
 | gauge_foreground_style | `object` | Optional | Gauge foreground style, see [gauge element style object](#gauge-element-style-object)
 | needle | `boolean` | `false` |
+| needle_config | `object` | Optional | Needle style config, see [needle config object](#needle-config-object)
 | adaptive_state_color | `boolean` | `false` | Makes state color adaptive to current color segment based on `show_gauge` config
 | adaptive_label_color | `boolean` | `false` | Makes label color adaptive to current color segment based on `show_gauge` config
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
@@ -186,22 +194,24 @@ Both [Jinja](#jinja-templates) and [JavaScript](#javascript-templates) templates
 #### Tertiary entity object
 | Name | Type | Default | Description | Supports template |
 |------|:----:|:-------:|:------------|:-----------------:|
-| entity | `string` | Optional | Secondary entity. May contain [templates](#templates)|✅
+| entity | `string` | Optional | Tertiary entity. May contain [templates](#templates)|✅
 | attribute | `string` | Optional | Use entity attribute instead of state
 | unit | `string` | Optional | Custom unit
 | unit_superscript | `boolean` | `false` | Superscripted unit
 | decimals | `number` | Optional | Adjusts decimal places
-| show_gauge | `none`, `inner`, `outer` | `none` | Display secondary info as dot on main gauge or on inner gauge
+| show_gauge | `none`, `inner`, `outer` | `none` | Display tertiary info as dot on main gauge or on inner gauge
 | min | `number` | Optional | Minimum inner gauge value. May contain [templates](#templates)|✅
 | max | `number` | Optional | Maximum inner gauge value. May contain [templates](#templates)|✅
 | label | `string` | Optional | Label above the state. May contain [templates](#templates)|✅
 | label_font_size | `number` | `0.49em` | Label font size in px
-| show_state | `boolean` | `true` | Show secondary state
-| show_unit | `boolean` | `true` | Show secondary unit
+| show_state | `boolean` | `true` | Show tertiary state
+| show_unit | `boolean` | `true` | Show tertiary unit
 | show_in_graph | `boolean` | `false` | Show tertiary entity on the graph
 | adaptive_graph_range | `boolean` | `false` | Adapt y-axis range to min and max value of the entity history
 | smooth_segments | `boolean` | `false` | Smooth color segments for tertiary gauge
 | show_seconds | `boolean` | `true` | Show seconds when displaying time based entities
+| time_format | `string` | `digital` | Time format: `digital` (00:00), `compact` (1h 15m), or `minutes` (120m)
+| state_format | `string` | `default` | State format: `default`, `direction` (converts degrees to cardinal directions like N, NE, E, etc.), or `percentage` (displays value as percentage of gauge range)
 | start_from_zero | `boolean` | `false` | Start gauge from zero instead of min
 | inverted_mode | `boolean` | `false` | Inverts gauge fill logic and ignores start_from_zero, 0 -> full gauge, 100 -> empty gauge
 | state_font_size | `number` | `10` | State size in px
@@ -211,6 +221,7 @@ Both [Jinja](#jinja-templates) and [JavaScript](#javascript-templates) templates
 | gauge_background_style | `object` | Optional | Gauge background style, see [gauge element style object](#gauge-element-style-object)
 | gauge_foreground_style | `object` | Optional | Gauge foreground style, see [gauge element style object](#gauge-element-style-object)
 | needle | `boolean` | `false` |
+| needle_config | `object` | Optional | Needle style config, see [needle config object](#needle-config-object)
 | adaptive_state_color | `boolean` | `false` | Makes state color adaptive to current color segment based on `show_gauge` config
 | adaptive_label_color | `boolean` | `false` | Makes label color adaptive to current color segment based on `show_gauge` config
 | segments | `list` | | Color segments list, see [color segments object](#color-segment-object)
@@ -221,6 +232,27 @@ Both [Jinja](#jinja-templates) and [JavaScript](#javascript-templates) templates
 | width | `number` | `6 or 4`, `14` for badge | Gauge element width
 | color | `string` or `adaptive` | Optional | Gauge element color
 | opacity | `number` | Optional | Gauge element opacity
+
+#### Needle config object
+| Name | Type | Default | Description |
+|------|:----:|:-------:|:------------|
+| type | `default`, `arrow`, `line`, `custom` | `default` | Needle type, `custom` will use path provided in `custom_path`. [Custom needle](#custom-needle-svg-path)
+| rotate | `number` | Optional | Needle rotation in degrees
+| border_width | `number` | `2` | Needle border size in px
+| scale | `number` | `1` | Needle scale
+| custom_path | `string` | Optional | Custom needle SVG path. [Custom needle](#custom-needle-svg-path)
+| custom_path_style | `string` | Optional | Additional CSS style applied on to custom SVG path. [Custom needle](#custom-needle-svg-path)
+
+## Custom needle SVG path
+You can provide custom SVG path for needle. You can use tools like [svg-path-editor](https://yqnn.github.io/svg-path-editor) to design your custom needle. You can use build-in needle paths to design your own.
+
+Custom needle style can be altered with `custom_path_style` with CSS styling.
+
+### Build-in needle paths
+| Name | Path |
+|------|:------------|
+| arrow | `M 4.5 0 L -4.5 -3 L -3 0 L -4.5 3 Z` |
+| line | `M -3.5 0 L 3.5 0 Z` |
 
 ## Templates
 Templates are supported on couple essential config options. Both [Jinja](#jinja-templates) and [JavaScript](#javascript-templates) templates are supported. The two main differences between them is syntax and the fact that JavaScript templates are processed client side so theoretically JavaScript templates should be faster.

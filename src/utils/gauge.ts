@@ -127,6 +127,14 @@ export function renderPath(pathClass: DirectiveResult<typeof ClassMapDirective>,
     />`;
 }
 
+export function renderPathNeedle(pathClass: DirectiveResult<typeof ClassMapDirective>, d: string, radius: number, angle: number, scale: number, style: DirectiveResult<typeof StyleMapDirective> | undefined = undefined): TemplateResult {
+  return svg`
+    <g class="needle-path-group" style="transform: rotate(${angle}deg) translate(${radius}px, 0) scale(var(--needle-scale)) scale(${scale})">
+      ${renderPath(pathClass, d, undefined, style)}
+    </g>
+  `;
+}
+
 export function renderColorSegments(segments: SegmentsConfig[], min: number, max: number, radius: number, smooth_segments: boolean | undefined, maxAngle: number = MAX_ANGLE): TemplateResult[] {
   if (smooth_segments) {
     return renderSegmentsGradient(segments, min, max, maxAngle);

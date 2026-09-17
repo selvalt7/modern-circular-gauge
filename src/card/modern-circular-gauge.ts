@@ -28,7 +28,9 @@ import { MCGGraphConfig } from "../components/type";
 import { computeCssColor } from "../ha/common/color/compute-color";
 import { getHaJsTemplates } from "../utils/js-templates";
 import { compareTemplateResult } from "../utils/compare-template-result";
+import { parseNumericValue } from "../utils/entity-state-processor";
 import { ModernCircularGaugeState } from "../components/modern-circular-gauge-state";
+import { computeEntityName, entityNamesChanged } from "../entity-name";
 
 registerCustomCard({
   type: "modern-circular-gauge",
@@ -154,6 +156,12 @@ export class ModernCircularGauge extends LitElement {
         return true;
       }
       const oldHass = _changedProperties.get("hass") as HomeAssistant | undefined;
+      // Names resolve against the entity/device/area/floor registries, and HA
+      // swaps the real formatEntityName in asynchronously once translations
+      // load. Neither changes an entity state, so compareHass misses both.
+      if (entityNamesChanged(oldHass, this.hass)) {
+        return true;
+      }
       return compareHass(oldHass, this.hass, this._trackedEntities);
     }
     return true;
@@ -291,7 +299,7 @@ export class ModernCircularGauge extends LitElement {
     const icon = this._templateResults?.icon?.result ?? this._config.icon;
     
     if (stateObj?.state === "unavailable") {
-      return this._renderWarning(this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? stateObj.attributes.friendly_name ?? '', this.hass.localize("state.default.unavailable"), stateObj, icon);
+      return this._renderWarning(this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? computeEntityName(this.hass, stateObj), this.hass.localize("state.default.unavailable"), stateObj, icon);
     }
     
     const domain = computeStateDomain(stateObj!);
@@ -319,15 +327,15 @@ export class ModernCircularGauge extends LitElement {
     const numberState = Number(templatedState ?? secondsUntil ?? entityState);
 
     if (isNaN(numberState)) {
-      return this._renderWarning(this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? stateObj?.attributes.friendly_name ?? '', "NaN", stateObj, icon);
+      return this._renderWarning(this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? computeEntityName(this.hass, stateObj), "NaN", stateObj, icon);
     }
 
     const attributes = stateObj?.attributes ?? undefined;
 
-    const unit = this._config.unit ?? stateObj?.attributes?.unit_of_measurement ?? "";
+    const unit = this._config.unit;
 
-    const min = Number(this._templateResults?.min?.result ?? this._config.min) || DEFAULT_MIN;
-    const max = Number(this._templateResults?.max?.result ?? this._config.max ?? calculatedMax) || DEFAULT_MAX;
+    const min = parseNumericValue(this._templateResults?.min?.result ?? this._config.min) ?? DEFAULT_MIN;
+    const max = parseNumericValue(this._templateResults?.max?.result ?? this._config.max ?? calculatedMax) ?? DEFAULT_MAX;
 
     const stateOverride = 
       this._config.combine_gauges && this._config.gauge_type === "full" 
@@ -362,7 +370,7 @@ export class ModernCircularGauge extends LitElement {
       <div class="header${this._config.header_wrap ? " wrap" : ""}" style=${styleMap({ "--gauge-header-font-size": this._config.header_font_size ? `${this._config.header_font_size}px` : undefined,
         "transform": this._config.header_offset ? `translate(0, ${this._config.header_offset}px)` : undefined })}>
         <p class="name${this._config.header_wrap ? " wrap" : ""}">
-          ${this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? (attributes ? attributes.friendly_name : "")}
+          ${this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? computeEntityName(this.hass, stateObj)}
         </p>
       </div>
       ` : nothing}
@@ -389,6 +397,7 @@ export class ModernCircularGauge extends LitElement {
             .linePadding=${this._config.combine_gauges && this._config.gauge_type === "full" ? 7.5 : 0}
             .lineOffset=${this._config.combine_gauges && this._config.gauge_type === "full" ?  3.25 : 0}
             .invertedMode=${this._config.inverted_mode}
+            .needleConfig=${this._config.needle_config}
           ></modern-circular-gauge-element>
           ${typeof this._config.secondary != "string" ? 
           (this._config.secondary?.show_gauge && this._config.secondary?.show_gauge != "none") || (this._config.combine_gauges && this._config.gauge_type === "full") ?
@@ -425,6 +434,10 @@ export class ModernCircularGauge extends LitElement {
             .showSeconds=${this._config.show_seconds}
             .decimals=${this._config.decimals}
             .unitSuperscript=${this._config.unit_superscript}
+            .timeFormat=${this._config.time_format}
+            .stateFormat=${this._config.state_format}
+            .min=${min}
+            .max=${max}
           ></modern-circular-gauge-state>
           ` : nothing}
           ${this._renderSecondaryState()}
@@ -568,8 +581,8 @@ export class ModernCircularGauge extends LitElement {
     
     if (this._config?.show_in_graph ?? true) {
       graphConfig.entitys?.set("primary", { entity: this._config?.entity ?? "",
-        min: Number(this._templateResults?.min?.result ?? this._config?.min) || DEFAULT_MIN,
-        max: Number(this._templateResults?.max?.result ?? this._config?.max) || DEFAULT_MAX,
+        min: parseNumericValue(this._templateResults?.min?.result ?? this._config?.min) ?? DEFAULT_MIN,
+        max: parseNumericValue(this._templateResults?.max?.result ?? this._config?.max) ?? DEFAULT_MAX,
         segments: (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config?.segments,
         adaptive_range: this._config?.adaptive_graph_range
       });
@@ -578,8 +591,8 @@ export class ModernCircularGauge extends LitElement {
       const secondaryEntity = this._config?.secondary?.entity;
       if (secondaryEntity) {
         graphConfig.entitys?.set("secondary", { entity: secondaryEntity,
-          min: Number(this._templateResults?.secondaryMin?.result ?? this._config?.secondary?.min) || DEFAULT_MIN,
-          max: Number(this._templateResults?.secondaryMax?.result ?? this._config?.secondary?.max) || DEFAULT_MAX,
+          min: parseNumericValue(this._templateResults?.secondaryMin?.result ?? this._config?.secondary?.min) ?? DEFAULT_MIN,
+          max: parseNumericValue(this._templateResults?.secondaryMax?.result ?? this._config?.secondary?.max) ?? DEFAULT_MAX,
           segments: (this._templateResults?.secondarySegments?.result as unknown) as SegmentsConfig[] ?? this._config?.secondary?.segments,
           adaptive_range: this._config.secondary.adaptive_graph_range
         });
@@ -589,8 +602,8 @@ export class ModernCircularGauge extends LitElement {
       const tertiaryEntity = this._config?.tertiary?.entity;
       if (tertiaryEntity) {
         graphConfig.entitys?.set("tertiary", { entity: tertiaryEntity,
-          min: Number(this._templateResults?.tertiaryMin?.result ?? this._config?.tertiary?.min) || DEFAULT_MIN,
-          max: Number(this._templateResults?.tertiaryMax?.result ?? this._config?.tertiary?.max) || DEFAULT_MAX,
+          min: parseNumericValue(this._templateResults?.tertiaryMin?.result ?? this._config?.tertiary?.min) ?? DEFAULT_MIN,
+          max: parseNumericValue(this._templateResults?.tertiaryMax?.result ?? this._config?.tertiary?.max) ?? DEFAULT_MAX,
           segments: (this._templateResults?.tertiarySegments?.result as unknown) as SegmentsConfig[] ?? this._config?.tertiary?.segments,
           adaptive_range: this._config.tertiary.adaptive_graph_range
         });
@@ -680,8 +693,8 @@ export class ModernCircularGauge extends LitElement {
         this._isTimerOrTimestamp = true;
       }
 
-      const min = Number(this._templateResults?.tertiaryMin?.result ?? tertiaryObj.min) || DEFAULT_MIN;
-      const max = Number(this._templateResults?.tertiaryMax?.result ?? tertiaryObj.max ?? timerDuration) || DEFAULT_MAX;
+      const min = parseNumericValue(this._templateResults?.tertiaryMin?.result ?? tertiaryObj.min) ?? DEFAULT_MIN;
+      const max = parseNumericValue(this._templateResults?.tertiaryMax?.result ?? tertiaryObj.max ?? timerDuration) ?? DEFAULT_MAX;
       const segments = (this._templateResults?.tertiarySegments?.result as unknown) as SegmentsConfig[] ?? tertiaryObj.segments;
       const numberState = Number(templatedState ?? secondsUntil ?? stateObj.attributes[tertiaryObj.attribute!] ?? stateObj.state);
 
@@ -712,6 +725,7 @@ export class ModernCircularGauge extends LitElement {
         .startFromZero=${tertiaryObj?.start_from_zero}
         .rotateGauge=${this._config?.rotate_gauge}
         .invertedMode=${tertiaryObj?.inverted_mode}
+        .needleConfig=${tertiaryObj?.needle_config}
       ></modern-circular-gauge-element>
       `;
     } else {
@@ -729,8 +743,8 @@ export class ModernCircularGauge extends LitElement {
         return html``;
       }
   
-      const min = Number(this._templateResults?.min?.result ?? this._config?.min) || DEFAULT_MIN; 
-      const max = Number(this._templateResults?.max?.result ?? this._config?.max) || DEFAULT_MAX;
+      const min = parseNumericValue(this._templateResults?.min?.result ?? this._config?.min) ?? DEFAULT_MIN; 
+      const max = parseNumericValue(this._templateResults?.max?.result ?? this._config?.max) ?? DEFAULT_MAX;
   
       return html`
       <modern-circular-gauge-element
@@ -745,6 +759,7 @@ export class ModernCircularGauge extends LitElement {
         .rotateGauge=${this._config?.rotate_gauge}
         .invertedMode=${tertiaryObj?.inverted_mode}
         .outter=${true}
+        .needleConfig=${tertiaryObj?.needle_config}
       ></modern-circular-gauge-element>
       `;
     }
@@ -808,8 +823,8 @@ export class ModernCircularGauge extends LitElement {
       }
 
       
-      const min = Number(this._templateResults?.secondaryMin?.result ?? secondaryObj.min) || DEFAULT_MIN;
-      const max = Number(this._templateResults?.secondaryMax?.result ?? secondaryObj.max ?? calculatedMax) || DEFAULT_MAX;
+      const min = parseNumericValue(this._templateResults?.secondaryMin?.result ?? secondaryObj.min) ?? DEFAULT_MIN;
+      const max = parseNumericValue(this._templateResults?.secondaryMax?.result ?? secondaryObj.max ?? calculatedMax) ?? DEFAULT_MAX;
       const segments = (this._templateResults?.secondarySegments?.result as unknown) as SegmentsConfig[] ?? secondaryObj.segments;
       const numberState = Number(templatedState ?? secondsUntil ?? stateObj.attributes[secondaryObj.attribute!] ?? stateObj.state);
 
@@ -845,6 +860,7 @@ export class ModernCircularGauge extends LitElement {
         .linePadding=${this._config?.combine_gauges && this._config.gauge_type === "full" ? 7.5 : 0}
         .lineOffset=${this._config?.combine_gauges && this._config.gauge_type === "full" ? 3.25 : 0}
         .invertedMode=${secondaryObj?.inverted_mode}
+        .needleConfig=${secondaryObj?.needle_config}
       ></modern-circular-gauge-element>
       `;
     } else {
@@ -862,8 +878,8 @@ export class ModernCircularGauge extends LitElement {
         return html``;
       }
   
-      const min = Number(this._templateResults?.min?.result ?? this._config?.min) || DEFAULT_MIN; 
-      const max = Number(this._templateResults?.max?.result ?? this._config?.max) || DEFAULT_MAX;
+      const min = parseNumericValue(this._templateResults?.min?.result ?? this._config?.min) ?? DEFAULT_MIN; 
+      const max = parseNumericValue(this._templateResults?.max?.result ?? this._config?.max) ?? DEFAULT_MAX;
   
       return html`
       <modern-circular-gauge-element
@@ -878,6 +894,7 @@ export class ModernCircularGauge extends LitElement {
         .outter=${true}
         .rotateGauge=${this._config?.rotate_gauge}
         .invertedMode=${secondaryObj?.inverted_mode}
+        .needleConfig=${secondaryObj?.needle_config}
       ></modern-circular-gauge-element>
       `;
     }
@@ -939,7 +956,7 @@ export class ModernCircularGauge extends LitElement {
 
     const attributes = stateObj?.attributes ?? undefined;
 
-    const unit = secondary.unit ?? attributes?.unit_of_measurement;
+    const unit = secondary.unit;
 
     const state = Number(templatedState ?? attributes[secondary.attribute!] ?? stateObj.state);
     const stateOverride = this._templateResults?.secondaryStateText?.result ?? (isTemplate(String(secondary.state_text)) ? "" : (secondary.state_text || undefined));
@@ -984,6 +1001,10 @@ export class ModernCircularGauge extends LitElement {
       .showSeconds=${secondary.show_seconds}
       .decimals=${secondary.decimals}
       .unitSuperscript=${secondary.unit_superscript}
+      .timeFormat=${secondary.time_format}
+      .stateFormat=${secondary.state_format}
+      .min=${parseNumericValue(this._templateResults?.secondaryMin?.result ?? secondary.min) ?? DEFAULT_MIN}
+      .max=${parseNumericValue(this._templateResults?.secondaryMax?.result ?? secondary.max) ?? DEFAULT_MAX}
     ></modern-circular-gauge-state>
     `;
   }
@@ -1001,7 +1022,7 @@ export class ModernCircularGauge extends LitElement {
       const templatedState = this._templateResults?.entity?.result;
       const stateObj = this._getEntityStateObj("primary");
       const numberState = Number(this._getEntityState("primary", this._config.attribute));
-      const unit = this._config.unit ?? stateObj?.attributes?.unit_of_measurement ?? "";
+      const unit = this._config.unit;
 
       const stateOverride = this._templateResults?.stateText?.result ?? (isTemplate(String(this._config.state_text)) ? "" : (this._config.state_text || undefined));
       const segments = (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config.segments;
@@ -1028,6 +1049,9 @@ export class ModernCircularGauge extends LitElement {
         .showSeconds=${this._config.show_seconds}
         .decimals=${this._config.decimals}
         .unitSuperscript=${this._config.unit_superscript}
+        .timeFormat=${this._config.time_format}
+        .min=${parseNumericValue(this._templateResults?.min?.result ?? this._config.min) ?? DEFAULT_MIN}
+        .max=${parseNumericValue(this._templateResults?.max?.result ?? this._config.max) ?? DEFAULT_MAX}
         small
       ></modern-circular-gauge-state>
       `;
@@ -1080,7 +1104,7 @@ export class ModernCircularGauge extends LitElement {
     }
 
     const attributes = stateObj?.attributes ?? undefined;
-    const unit = tertiary.unit ?? attributes?.unit_of_measurement;
+    const unit = tertiary.unit;
     const state = Number(templatedState ?? attributes[tertiary.attribute!] ?? stateObj.state);
     const stateOverride = this._templateResults?.tertiaryStateText?.result ?? (isTemplate(String(tertiary.state_text)) ? "" : (tertiary.state_text || undefined));
     const segments = (this._templateResults?.tertiarySegments?.result as unknown) as SegmentsConfig[] ?? tertiary.segments;
@@ -1122,6 +1146,10 @@ export class ModernCircularGauge extends LitElement {
       .showSeconds=${tertiary.show_seconds}
       .decimals=${tertiary.decimals}
       .unitSuperscript=${tertiary.unit_superscript}
+      .timeFormat=${tertiary.time_format}
+      .stateFormat=${tertiary.state_format}
+      .min=${parseNumericValue(this._templateResults?.tertiaryMin?.result ?? tertiary.min) ?? DEFAULT_MIN}
+      .max=${parseNumericValue(this._templateResults?.tertiaryMax?.result ?? tertiary.max) ?? DEFAULT_MAX}
       small
     ></modern-circular-gauge-state>
     `;
@@ -1685,6 +1713,7 @@ export class ModernCircularGauge extends LitElement {
 
     .dual-gauge modern-circular-gauge-element {
       --gauge-stroke-width: 4px;
+      --gauge-default-stroke-width: 4px;
     }
 
     .dot {
