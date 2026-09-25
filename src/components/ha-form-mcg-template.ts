@@ -23,13 +23,15 @@ export class HaFormMCGTemplate extends LitElement {
     data?: HaFormDataContainer
   ) => string;
 
+  @state() private _formValueBeforeTemplate?: unknown;
+
   @state() private _templateMode: boolean = false;
 
   connectedCallback(): void {
     super.connectedCallback();
 
     const DATA = this.schema.flatten ? this.data : { [this.schema.name]: this.data };
-    this._templateMode = isTemplate(DATA[this.schema.name] as unknown as string) || isJSTemplate(DATA[this.schema.name] as unknown as string);
+    this._templateMode = typeof DATA[this.schema.name] === "string" && (isTemplate(DATA[this.schema.name] as unknown as string) || isJSTemplate(DATA[this.schema.name] as unknown as string));
   }
 
   private _computeSelector(): any[] {
@@ -48,7 +50,7 @@ export class HaFormMCGTemplate extends LitElement {
   protected render() {
     const DATA = this.schema.flatten ? this.data : { [this.schema.name]: this.data };
     
-    const dataIsTemplate = this._templateMode ?? (isTemplate(DATA[this.schema.name] as unknown as string) || isJSTemplate(DATA[this.schema.name] as unknown as string));
+    const dataIsTemplate = this._templateMode ?? (typeof DATA[this.schema.name] === "string" && (isTemplate(DATA[this.schema.name] as unknown as string) || isJSTemplate(DATA[this.schema.name] as unknown as string)));
     
     let schema = Array.isArray(this.schema.schema) ? this.schema.schema : this._computeSelector();
     
@@ -87,15 +89,43 @@ export class HaFormMCGTemplate extends LitElement {
     this._templateMode = !this._templateMode;
     const value = this.schema.flatten ? this.data[this.schema.name] : this.data;
     if (this._templateMode) {
-      const newValue = this.schema.flatten ? { ...this.data, [this.schema.name]: String(value ?? "") } : String(value ?? "");
+      this._formValueBeforeTemplate = value;
+
+      const templateValue = this._toTemplateValue(value);
+      const newValue = this.schema.flatten
+        ? { ...this.data, [this.schema.name]: templateValue }
+        : templateValue;
+
       fireEvent(this, "value-changed", { value: newValue });
-    } else {
-      if (value === "") {
-        const newValue = this.schema.flatten ? { ...this.data, [this.schema.name]: undefined } : undefined;
-        fireEvent(this, "value-changed", { value: newValue });
-      }
+    } else if (this._formValueBeforeTemplate !== undefined) {
+      const newValue = this.schema.flatten
+        ? { ...this.data, [this.schema.name]: this._formValueBeforeTemplate }
+        : this._formValueBeforeTemplate;
+
+      fireEvent(this, "value-changed", { value: newValue });
+      this._formValueBeforeTemplate = undefined;
     }
   }
+
+  private _toTemplateValue(value: unknown): string {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (
+    value &&
+    typeof value === "object" &&
+    !Array.isArray(value) &&
+    "type" in value &&
+    value.type === "text" &&
+    "text" in value &&
+    typeof value.text === "string"
+  ) {
+    return value.text;
+  }
+
+  return "";
+}
 
   private _valueChanged(ev: CustomEvent): void {
     ev.stopPropagation();

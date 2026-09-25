@@ -1,3 +1,4 @@
+import { EntityNameItem } from "../ha/data/entity_name";
 import { LovelaceCardConfig } from "../ha/data/lovelace";
 
 export interface SegmentsConfig {
@@ -74,7 +75,7 @@ export type EntityNames = "primary" | "secondary" | "tertiary";
 export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     entity: string;
     attribute?: string;
-    name?: string;
+    name?: string | EntityNameItem | EntityNameItem[];
     icon?: string;
     icon_entity?: "primary" | "secondary" | "tertiary";
     icon_size?: number;

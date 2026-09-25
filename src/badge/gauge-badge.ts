@@ -372,7 +372,7 @@ export class ModernCircularGaugeBadge extends LitElement {
     const icon = this._templateResults?.icon?.result ?? this._config.icon;
 
     if (stateObj?.state === "unavailable") {
-      return this._renderWarning(this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? computeEntityName(this.hass, stateObj), this.hass.localize("state.default.unavailable"), stateObj, "warning", icon);
+      return this._renderWarning(this._templateResults?.name?.result ?? (typeof this._config.name === "string" ? (isTemplate(String(this._config.name)) ? "" : this._config.name) : computeEntityName(this.hass, stateObj, this._config.name)), this.hass.localize("state.default.unavailable"), stateObj, "warning", icon);
     }
 
     const domain = computeStateDomain(stateObj);
@@ -396,7 +396,7 @@ export class ModernCircularGaugeBadge extends LitElement {
     const numberState = Number(templatedState ?? secondsUntil ?? stateObj.attributes[this._config.attribute!] ?? stateObj.state);
 
     if (isNaN(numberState)) {
-      return this._renderWarning(this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? computeEntityName(this.hass, stateObj), "NaN", stateObj, "warning", icon);
+      return this._renderWarning(this._templateResults?.name?.result ?? (typeof this._config.name === "string" ? (isTemplate(String(this._config.name)) ? "" : this._config.name) : computeEntityName(this.hass, stateObj, this._config.name)), "NaN", stateObj, "warning", icon);
     }
 
     const min = parseNumericValue(this._templateResults?.min?.result ?? this._config.min) ?? DEFAULT_MIN;
@@ -429,7 +429,7 @@ export class ModernCircularGaugeBadge extends LitElement {
       ></mcg-badge-state>
     `;
 
-    const name = this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? computeEntityName(this.hass, stateObj);
+    const name = this._templateResults?.name?.result ?? (typeof this._config.name === "string" ? (isTemplate(String(this._config.name)) ? "" : this._config.name) : computeEntityName(this.hass, stateObj, this._config.name));
     const label = this._config.show_name && showIcon && this._config.show_state ? name : undefined;
     const content = showIcon && this._config.show_state ? stateElement : this._config.show_name ? name : undefined;
 

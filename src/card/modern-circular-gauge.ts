@@ -299,7 +299,7 @@ export class ModernCircularGauge extends LitElement {
     const icon = this._templateResults?.icon?.result ?? this._config.icon;
     
     if (stateObj?.state === "unavailable") {
-      return this._renderWarning(this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? computeEntityName(this.hass, stateObj), this.hass.localize("state.default.unavailable"), stateObj, icon);
+      return this._renderWarning(this._templateResults?.name?.result ?? (typeof this._config.name === "string" ? (isTemplate(String(this._config.name)) ? "" : this._config.name) : computeEntityName(this.hass, stateObj, this._config.name)), this.hass.localize("state.default.unavailable"), stateObj, icon);
     }
     
     const domain = computeStateDomain(stateObj!);
@@ -327,7 +327,7 @@ export class ModernCircularGauge extends LitElement {
     const numberState = Number(templatedState ?? secondsUntil ?? entityState);
 
     if (isNaN(numberState)) {
-      return this._renderWarning(this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? computeEntityName(this.hass, stateObj), "NaN", stateObj, icon);
+      return this._renderWarning(this._templateResults?.name?.result ?? (typeof this._config.name === "string" ? (isTemplate(String(this._config.name)) ? "" : this._config.name) : computeEntityName(this.hass, stateObj, this._config.name)), "NaN", stateObj, icon);
     }
 
     const attributes = stateObj?.attributes ?? undefined;
@@ -370,7 +370,7 @@ export class ModernCircularGauge extends LitElement {
       <div class="header" style=${styleMap({ "--gauge-header-font-size": this._config.header_font_size ? `${this._config.header_font_size}px` : undefined,
         "transform": this._config.header_offset ? `translate(0, ${this._config.header_offset}px)` : undefined })}>
         <p class="name">
-          ${this._templateResults?.name?.result ?? (isTemplate(String(this._config.name)) ? "" : this._config.name) ?? computeEntityName(this.hass, stateObj)}
+          ${this._templateResults?.name?.result ?? (typeof this._config.name === "string" ? (isTemplate(String(this._config.name)) ? "" : this._config.name) : computeEntityName(this.hass, stateObj, this._config.name))}
         </p>
       </div>
       ` : nothing}

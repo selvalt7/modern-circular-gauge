@@ -1,10 +1,11 @@
 import { LovelaceBadgeConfig } from "../ha/data/lovelace";
 import { GaugeElementConfig, SegmentsConfig } from "../card/type";
+import { EntityNameItem } from "../ha/data/entity_name";
 
 export interface ModernCircularGaugeBadgeConfig extends LovelaceBadgeConfig {
   entity: string;
   attribute?: string;
-  name?: string;
+  name?: string | EntityNameItem | EntityNameItem[];
   min?: number | string;
   max?: number | string;
   decimals?: number;
