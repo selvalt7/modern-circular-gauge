@@ -23,9 +23,9 @@ export class HaFormMCGTemplate extends LitElement {
     data?: HaFormDataContainer
   ) => string;
 
-  @state() private _formValueBeforeTemplate?: unknown;
-
   @state() private _templateMode: boolean = false;
+
+  private _formValueBeforeTemplate?: unknown;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -108,24 +108,24 @@ export class HaFormMCGTemplate extends LitElement {
   }
 
   private _toTemplateValue(value: unknown): string {
-  if (typeof value === "string") {
-    return value;
-  }
+    if (typeof value === "string") {
+      return value;
+    }
 
-  if (
-    value &&
-    typeof value === "object" &&
-    !Array.isArray(value) &&
-    "type" in value &&
-    value.type === "text" &&
-    "text" in value &&
-    typeof value.text === "string"
-  ) {
-    return value.text;
-  }
+    if (
+      value &&
+      typeof value === "object" &&
+      !Array.isArray(value) &&
+      "type" in value &&
+      value.type === "text" &&
+      "text" in value &&
+      typeof value.text === "string"
+    ) {
+      return value.text;
+    }
 
-  return "";
-}
+    return "";
+  }
 
   private _valueChanged(ev: CustomEvent): void {
     ev.stopPropagation();
