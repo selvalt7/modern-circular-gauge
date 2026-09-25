@@ -68,7 +68,7 @@ Both [Jinja](#jinja-templates) and [JavaScript](#javascript-templates) templates
 | type | `string` | 'custom:modern-circular-gauge' |
 | entity | `string` | Required | Entity. May contain [templates](#templates)|✅
 | attribute | `string` | Optional | Use entity attribute instead of state
-| name | `string` | Optional | Custom title. May contain [templates](#templates)|✅
+| name | `string` or `object` | Optional | Custom title. May contain [templates](#templates) or [name object](https://www.home-assistant.io/dashboards/naming/#name-object)|✅
 | icon | `string` | Optional | Custom icon. May contain [templates](#templates)|✅
 | show_entity_picture | `boolean` | `false` | Show entity picture instead of icon
 | icon_entity | `primary` or `secondary` or `tertiary` | `primary` | Selects which entity to use for icon selection and color segments
@@ -124,7 +124,7 @@ Both [Jinja](#jinja-templates) and [JavaScript](#javascript-templates) templates
 | type | `string` | 'custom:modern-circular-gauge-badge' |
 | entity | `string` | Required | Entity. May contain [templates](#templates).|✅
 | attribute | `string` | Optional | Use entity attribute instead of state
-| name | `string` | Optional | Custom title. May contain [templates](#templates)|✅
+| name | `string` or `object` | Optional | Custom title. May contain [templates](#templates) or [name object](https://www.home-assistant.io/dashboards/naming/#name-object)|✅
 | icon | `string` | Entity icon | Custom icon. May contain [templates](#templates)|✅
 | show_entity_picture | `boolean` | `false` | Show entity picture instead of icon
 | min | `number` or `string` | `0` | Minimum gauge value. May contain [templates](#templates)|✅
