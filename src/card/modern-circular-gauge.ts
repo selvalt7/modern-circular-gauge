@@ -1576,7 +1576,7 @@ export class ModernCircularGauge extends LitElement {
     }
 
     modern-circular-gauge-icon {
-      color: var(--primary-color);
+      color: var(--state-icon-color);
     }
 
     .warning-icon {
