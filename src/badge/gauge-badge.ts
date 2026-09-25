@@ -231,7 +231,7 @@ export class ModernCircularGaugeBadge extends LitElement {
             `,
             (result) => {
               const templateResult = {
-                result: result as string || "",
+                result: (result as string) ?? "",
                 listeners: { all: false, domains: [], entities: [], time: false },
               };
               this._templateResults = {
@@ -248,7 +248,7 @@ export class ModernCircularGaugeBadge extends LitElement {
             templateValue.replace(JSTemplateRegex, "$1"),
             (result) => {
               const templateResult = {
-                result: result as string || "",
+                result: (result as string) ?? "",
                 listeners: { all: false, domains: [], entities: [], time: false },
               };
               this._templateResults = {
