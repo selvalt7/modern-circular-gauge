@@ -9,6 +9,7 @@ import "../components/ha-form-mcg-list";
 import memoizeOne from "memoize-one";
 import { getGaugeStyleSchema } from "../card/mcg-schema";
 import localize from "../localize/localize";
+import { supportsEntityNamesVersion } from "../entity-name";
 
 
 @customElement("modern-circular-gauge-badge-editor")
@@ -21,7 +22,7 @@ export class ModernCircularGaugeBadgeEditor extends LitElement {
   }
 
   private _schema = memoizeOne(
-    (defaultBackgroundOpacity: number) =>
+    (defaultBackgroundOpacity: number, supportsEntityNames: boolean) =>
     [
       {
         name: "entity",
@@ -45,7 +46,11 @@ export class ModernCircularGaugeBadgeEditor extends LitElement {
       {
         name: "name",
         type: "mcg-template",
-        schema: { text: {} },
+        flatten: true,
+        schema: supportsEntityNames ? { entity_name: {} } : { text: {} },
+        context: {
+          entity: "entity",
+        }
       },
       {
         name: "",
@@ -228,7 +233,8 @@ export class ModernCircularGaugeBadgeEditor extends LitElement {
     }
 
     const FORM = this._schema(
-      this._config.segments && (this._config.needle || this._config.gauge_background_style?.color == "adaptive") ? 0.45 : 1
+      this._config.segments && (this._config.needle || this._config.gauge_background_style?.color == "adaptive") ? 0.45 : 1,
+      supportsEntityNamesVersion(this.hass)
     );
 
     const DATA = this._config;

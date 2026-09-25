@@ -1,5 +1,11 @@
+import { EntityNameItem } from "./ha/data/entity_name";
 import { HomeAssistant } from "./ha/types";
 import { HassEntity } from "home-assistant-js-websocket";
+
+export const supportsEntityNamesVersion = (hass?: HomeAssistant): boolean => {
+  const [major, minor] = (hass?.config?.version ?? "").split(".", 2);
+  return Number(major) > 2026 || (Number(major) === 2026 && Number(minor) >= 4);
+};
 
 /**
  * `hass.formatEntityName` only resolves an entity's name from its registry
@@ -23,12 +29,16 @@ const supportsEntityNames = (hass?: HomeAssistant): boolean => {
  */
 export const computeEntityName = (
   hass: HomeAssistant | undefined,
-  stateObj: HassEntity | undefined
+  stateObj: HassEntity | undefined,
+  name: string | EntityNameItem | EntityNameItem[] | undefined
 ): string => {
   if (!stateObj) return "";
   if (supportsEntityNames(hass)) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (hass as any).formatEntityName(stateObj) || "";
+    return (hass as any).formatEntityName(stateObj, name) || "";
+  }
+  if (typeof name === "string") {
+    return name;
   }
   return stateObj.attributes?.friendly_name ?? "";
 };

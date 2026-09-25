@@ -10,6 +10,7 @@ import memoizeOne from "memoize-one";
 import "../components/ha-form-mcg-list";
 import "../components/ha-form-mcg-template";
 import localize from "../localize/localize";
+import { supportsEntityNamesVersion } from "../entity-name";
 
 @customElement("modern-circular-gauge-editor")
 export class ModernCircularGaugeEditor extends LitElement {
@@ -34,7 +35,7 @@ export class ModernCircularGaugeEditor extends LitElement {
   }
 
   private _schema = memoizeOne(
-    (showInnerGaugeOptions: boolean, showTertiaryGaugeOptions: boolean, disableTertiary: boolean, gaugeType: GaugeType, entities?: Map<EntityNames, string>, defaultBackgroundOpacity?: Map<EntityNames, number>) =>
+    (showInnerGaugeOptions: boolean, showTertiaryGaugeOptions: boolean, disableTertiary: boolean, gaugeType: GaugeType, entities?: Map<EntityNames, string>, defaultBackgroundOpacity?: Map<EntityNames, number>, supportsEntityNames?: boolean) =>
     [
       {
         name: "entity",
@@ -56,7 +57,11 @@ export class ModernCircularGaugeEditor extends LitElement {
       {
         name: "name",
         type: "mcg-template",
-        schema: { text: {} },
+        flatten: true,
+        schema: supportsEntityNames ? { entity_name: {} } : { text: {} },
+        context: {
+          entity: "entity",
+        }
       },
       {
         name: "",
@@ -303,7 +308,8 @@ export class ModernCircularGaugeEditor extends LitElement {
       this._config.combine_gauges === true && this._config.gauge_type === "full",
       this._config.gauge_type || "standard",
       entities,
-      defaultBackgroundOpacity
+      defaultBackgroundOpacity,
+      supportsEntityNamesVersion(this.hass)
     );
 
     const DATA = {
