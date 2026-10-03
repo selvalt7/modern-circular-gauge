@@ -8,14 +8,14 @@ import type { BaseEntityConfig, EntityNames, GaugeElementConfig, GaugeSlot, Mode
 import { LovelaceLayoutOptions, LovelaceGridOptions } from "../ha/data/lovelace";
 import { handleAction } from "../ha/handle-action";
 import { HomeAssistant } from "../ha/types";
-import { HassEntity, UnsubscribeFunc } from "home-assistant-js-websocket";
+import { HassEntity } from "home-assistant-js-websocket";
 import { classMap } from "lit/directives/class-map.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { actionHandler } from "../utils/action-handler-directive";
 import { DEFAULT_MIN, DEFAULT_MAX, NUMBER_ENTITY_DOMAINS, RADIUS, INNER_RADIUS, TERTIARY_RADIUS, TIMESTAMP_STATE_DOMAINS } from "../const";
-import { RenderTemplateResult, subscribeRenderTemplate } from "../ha/data/ws-templates";
-import { isJSTemplate, JSTemplateRegex, isTemplate } from "../utils/template";
+import { RenderTemplateResult } from "../ha/data/ws-templates";
+import { isTemplate } from "../utils/template";
 import "../components/modern-circular-gauge-element";
 import "../components/modern-circular-gauge-state";
 import "../components/modern-circular-gauge-icon";
@@ -26,11 +26,11 @@ import { getTimerRemainingSeconds, getTimestampRemainingSeconds } from "../utils
 import { compareHass } from "../utils/compare-hass";
 import { MCGGraphConfig } from "../components/type";
 import { computeCssColor } from "../ha/common/color/compute-color";
-import { getHaJsTemplates } from "../utils/js-templates";
 import { compareTemplateResult } from "../utils/compare-template-result";
 import { parseNumericValue } from "../utils/entity-state-processor";
 import { ModernCircularGaugeState } from "../components/modern-circular-gauge-state";
 import { computeEntityName, entityNamesChanged } from "../entity-name";
+import { TemplateController } from "../utils/template-controller";
 
 const SLOT_TEMPLATE_KEYS = {
   primary: {
@@ -75,11 +75,13 @@ export class ModernCircularGauge extends LitElement {
 
   @state() private _templateResults?: Partial<Record<string, RenderTemplateResult | undefined>> = {};
 
-  @state() private _unsubRenderTemplates?: Map<string, Promise<UnsubscribeFunc> | UnsubscribeFunc> = new Map();
-
   @state() private _stateMargin?: number;
 
   @state() private _inCardPicker?: boolean;
+
+  private _templates = new TemplateController((results) => {
+    this._templateResults = results;
+  });
 
   private _entityStates: Map<EntityNames, HassEntity | string | number | undefined> = new Map();
 
@@ -88,8 +90,6 @@ export class ModernCircularGauge extends LitElement {
   private _isTimerOrTimestamp: boolean = false;
 
   private _interval?: any;
-
-  private haJsTemplates = getHaJsTemplates();
 
   public static async getConfigElement(): Promise<HTMLElement> {
     await import("./mcg-editor");
@@ -142,19 +142,53 @@ export class ModernCircularGauge extends LitElement {
       }
     }
 
+    this._templates.disconnectChanged(this._templateMap(this._config), this._templateMap(config));
+
     this._config = { min: DEFAULT_MIN, show_header: true, show_state: true, ...config, secondary: secondary, secondary_entity: undefined };
   }
 
   public connectedCallback() {
     super.connectedCallback();
     this._inCardPicker = this.parentElement?.classList.contains("preview");
-    this._tryConnect();
+    this._templates.connect(this._templateMap(this._config), this.hass, this._config);
   }
 
   public disconnectedCallback() {
     super.disconnectedCallback();
     this._clearInterval();
-    this._tryDisconnect();
+    this._templates.disconnectAll();
+  }
+
+  private _templateMap(config?: ModernCircularGaugeConfig): Record<string, unknown> {
+    return {
+      entity: config?.entity,
+      name: config?.name,
+      icon: config?.icon,
+      min: config?.min,
+      max: config?.max,
+      label: config?.label,
+      segments: config?.segments,
+      stateText: config?.state_text,
+      secondary: config?.secondary,
+      tertiary: config?.tertiary,
+      ...this._slotTemplateValues("secondary", config),
+      ...this._slotTemplateValues("tertiary", config),
+    };
+  }
+
+  private _slotTemplateValues(slotName: "secondary" | "tertiary", config?: ModernCircularGaugeConfig): Record<string, unknown> {
+    const slotConfig = config?.[slotName];
+    if (typeof slotConfig === "object") {
+      return {
+        [SLOT_TEMPLATE_KEYS[slotName].entity]: slotConfig.entity,
+        [SLOT_TEMPLATE_KEYS[slotName].min]: slotConfig.min,
+        [SLOT_TEMPLATE_KEYS[slotName].max]: slotConfig.max,
+        [SLOT_TEMPLATE_KEYS[slotName].label]: slotConfig.label,
+        [SLOT_TEMPLATE_KEYS[slotName].segments]: slotConfig.segments,
+        [SLOT_TEMPLATE_KEYS[slotName].stateText]: slotConfig.state_text,
+      };
+    }
+    return {};
   }
 
   private _startInterval() {
@@ -211,7 +245,7 @@ export class ModernCircularGauge extends LitElement {
       }
     }
 
-    this._tryConnect();
+    this._templates.connect(this._templateMap(this._config), this.hass, this._config);
   }
 
   private _hasCardAction() {
@@ -921,264 +955,6 @@ export class ModernCircularGauge extends LitElement {
 
   private _slotTemplate(slot: EntityNames, field: TemplateField) {
     return this._templateResult(SLOT_TEMPLATE_KEYS[slot][field]);
-  }
-
-  private async _tryConnect(): Promise<void> {
-    const templates = {
-      entity: this._config?.entity,
-      name: this._config?.name,
-      icon: this._config?.icon,
-      min: this._config?.min,
-      max: this._config?.max,
-      label: this._config?.label,
-      segments: this._config?.segments,
-      stateText: this._config?.state_text,
-      secondary: this._config?.secondary,
-      tertiary: this._config?.tertiary
-    };
-    
-    Object.entries(templates).forEach(([key, value]) => {
-      if (typeof value == "string") {
-        this._tryConnectKey(key, value);
-      } else if (key == "segments") {
-        let segmentsStringified = JSON.stringify(value);
-        if (typeof segmentsStringified !== "undefined")
-        {
-          segmentsStringified = segmentsStringified.replace(/\\"/g, "'");
-          this._tryConnectKey(key, segmentsStringified);
-        }
-      }
-    });
-
-    if (typeof this._config?.secondary != "string") {
-      const secondary = this._config?.secondary;
-      const secondaryTemplates = {
-        secondaryMin: secondary?.min,
-        secondaryMax: secondary?.max,
-        secondaryEntity: secondary?.entity,
-        secondaryStateText: secondary?.state_text,
-        secondarySegments: secondary?.segments,
-        secondaryLabel: secondary?.label
-      };
-
-      Object.entries(secondaryTemplates).forEach(([key, value]) => {
-        if (typeof value == "string") {
-          this._tryConnectKey(key, value);
-        } else if (key == "secondarySegments") {
-          let segmentsStringified = JSON.stringify(value);
-          if (typeof segmentsStringified !== "undefined")
-          {
-            segmentsStringified = segmentsStringified.replace(/\\"/g, "'");
-            this._tryConnectKey(key, segmentsStringified);
-          }
-        }
-      });
-    }
-
-    if (typeof this._config?.tertiary != "string") {
-      const tertiary = this._config?.tertiary;
-      const tertiaryTemplates = {
-        tertiaryMin: tertiary?.min,
-        tertiaryMax: tertiary?.max,
-        tertiaryEntity: tertiary?.entity,
-        tertiaryStateText: tertiary?.state_text,
-        tertiarySegments: tertiary?.segments,
-        tertiaryLabel: tertiary?.label
-      };
-
-      Object.entries(tertiaryTemplates).forEach(([key, value]) => {
-        if (typeof value == "string") {
-          this._tryConnectKey(key, value);
-        } else if (key == "tertiarySegments") {
-          let segmentsStringified = JSON.stringify(value);
-          if (typeof segmentsStringified !== "undefined")
-          {
-            segmentsStringified = segmentsStringified.replace(/\\"/g, "'");
-            this._tryConnectKey(key, segmentsStringified);
-          }
-        }
-      });
-    }
-  }
-
-  private async _tryConnectKey(key: string, templateValue: string): Promise<void> {
-    if (
-      this._unsubRenderTemplates?.get(key) !== undefined ||
-      !this.hass ||
-      !this._config ||
-      !isTemplate(templateValue)
-    ) {
-      return;
-    }
-
-    if (isJSTemplate(templateValue)) {
-      const isSegments = /segments$/i.test(key);
-      if (isSegments) {
-        this.haJsTemplates.getRenderer()
-        .then((renderer) => {
-          const untrack = renderer.trackTemplate(
-            `
-              const processedSegments = [];
-              for (let i = 0; i < segments.length; i++) {
-                const segment = segments[i];
-                const newSegment = { ...segment };
-                const keys = Object.keys(segment);
-                keys.forEach((k) => {
-                  if (typeof segment[k] === "string" && JSRegex.test(segment[k])) {
-                    const segmentValue = segment[k].replace(JSRegex, "$1");
-                    const functionBody = segmentValue.includes('return')
-                    ? segmentValue
-                    : 'return ' + segmentValue;
-                    newSegment[k] = eval('(function(){' + functionBody + '})()');
-                  }
-                });
-                processedSegments.push(newSegment);
-              }
-              return processedSegments;
-            `,
-            (result) => {
-              const templateResult = {
-                result: (result as string) ?? "",
-                listeners: { all: false, domains: [], entities: [], time: false },
-              };
-              this._templateResults = {
-                ...this._templateResults,
-                [key]: templateResult,
-              };
-            }, {variables: {"segments": JSON.parse(templateValue), "JSRegex": JSTemplateRegex}});
-          this._unsubRenderTemplates?.set(key, untrack);
-        });
-      } else {
-        this.haJsTemplates.getRenderer()
-        .then((renderer) => {
-          const untrack = renderer.trackTemplate(
-            templateValue.replace(JSTemplateRegex, "$1"),
-            (result) => {
-              const templateResult = {
-                result: (result as string) ?? "",
-                listeners: { all: false, domains: [], entities: [], time: false },
-              };
-              this._templateResults = {
-                ...this._templateResults,
-                [key]: templateResult,
-              };
-            }
-          );
-          this._unsubRenderTemplates?.set(key, untrack);
-        });
-      }
-    } else {
-      try {
-        const sub = subscribeRenderTemplate(
-          this.hass.connection,
-          (result) => {
-            if ("error" in result) {
-              return;
-            }
-            this._templateResults = {
-              ...this._templateResults,
-              [key]: result,
-            };
-          },
-          {
-            template: templateValue as string || "",
-            variables: {
-              config: this._config,
-              user: this.hass.user!.name,
-            },
-            strict: true,
-          }
-        );
-        this._unsubRenderTemplates?.set(key, sub);
-        await sub;
-      } catch (e: any) {
-        const result = {
-          result: templateValue as string || "",
-          listeners: { all: false, domains: [], entities: [], time: false },
-        };
-        this._templateResults = {
-          ...this._templateResults,
-          [key]: result,
-        };
-        this._unsubRenderTemplates?.delete(key);
-      }
-    }
-  }
-
-  private async _tryDisconnect(): Promise<void> {
-    const templates = {
-      entity: this._config?.entity,
-      name: this._config?.name,
-      icon: this._config?.icon,
-      min: this._config?.min,
-      max: this._config?.max,
-      segments: this._config?.segments,
-      stateText: this._config?.state_text,
-      secondary: this._config?.secondary,
-      tertiary: this._config?.tertiary,
-      label: this._config?.label
-    };
-    
-    Object.entries(templates).forEach(([key, _]) => {
-      this._tryDisconnectKey(key);
-    });
-
-    if (typeof this._config?.secondary != "string") {
-      const secondary = this._config?.secondary;
-      const secondaryTemplates = {
-        secondaryMin: secondary?.min,
-        secondaryMax: secondary?.max,
-        secondaryEntity: secondary?.entity,
-        secondaryStateText: secondary?.state_text,
-        secondarySegments: secondary?.segments,
-        secondaryLabel: secondary?.label
-      };
-
-      Object.entries(secondaryTemplates).forEach(([key, _]) => {
-        this._tryDisconnectKey(key);
-      });
-    }
-
-    if (typeof this._config?.tertiary != "string") {
-      const tertiary = this._config?.tertiary;
-      const tertiaryTemplates = {
-        tertiaryMin: tertiary?.min,
-        tertiaryMax: tertiary?.max,
-        tertiaryEntity: tertiary?.entity,
-        tertiaryStateText: tertiary?.state_text,
-        tertiarySegments: tertiary?.segments,
-        tertiaryLabel: tertiary?.label
-      };
-
-      Object.entries(tertiaryTemplates).forEach(([key, _]) => {
-        this._tryDisconnectKey(key);
-      });
-    }
-  }
-
-  private async _tryDisconnectKey(key: string): Promise<void> {
-    const unsubRenderTemplate = this._unsubRenderTemplates?.get(key);
-    if (!unsubRenderTemplate) {
-      return;
-    }
-
-    if (unsubRenderTemplate instanceof Promise === false) {
-      unsubRenderTemplate();
-      this._unsubRenderTemplates?.delete(key);
-      return;
-    }
-
-    try {
-      const unsub = await unsubRenderTemplate;
-      unsub();
-      this._unsubRenderTemplates?.delete(key);
-    } catch (e: any) {
-      if (e.code === "not_found" || e.code === "template_error") {
-
-      } else {
-        throw e;
-      }
-    }
   }
 
   private _handleAction(ev: ActionHandlerEvent) {
