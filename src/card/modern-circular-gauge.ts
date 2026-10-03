@@ -2,9 +2,9 @@ import { html, LitElement, TemplateResult, css, nothing, PropertyValues } from "
 import { customElement, property, state } from "lit/decorators.js";
 import { ActionHandlerEvent } from "../ha/data/lovelace";
 import { hasAction } from "../ha/panels/lovelace/common/has-action";
-import { computeSegments } from "../utils/gauge";
+import { computeSegments, stateLayout } from "../utils/gauge";
 import { registerCustomCard } from "../utils/custom-cards";
-import type { EntityNames, GaugeElementConfig, ModernCircularGaugeConfig, SecondaryEntity, SegmentsConfig, TertiaryEntity } from "./type";
+import type { BaseEntityConfig, EntityNames, GaugeElementConfig, GaugeSlot, ModernCircularGaugeConfig, SecondaryEntity, SegmentsConfig, TertiaryEntity } from "./type";
 import { LovelaceLayoutOptions, LovelaceGridOptions } from "../ha/data/lovelace";
 import { handleAction } from "../ha/handle-action";
 import { HomeAssistant } from "../ha/types";
@@ -31,6 +31,34 @@ import { compareTemplateResult } from "../utils/compare-template-result";
 import { parseNumericValue } from "../utils/entity-state-processor";
 import { ModernCircularGaugeState } from "../components/modern-circular-gauge-state";
 import { computeEntityName, entityNamesChanged } from "../entity-name";
+
+const SLOT_TEMPLATE_KEYS = {
+  primary: {
+    entity: "entity",
+    min: "min",
+    max: "max",
+    label: "label",
+    segments: "segments",
+    stateText: "stateText",
+  },
+  secondary: {
+    entity: "secondaryEntity",
+    min: "secondaryMin",
+    max: "secondaryMax",
+    label: "secondaryLabel",
+    segments: "secondarySegments",
+    stateText: "secondaryStateText",
+  },
+  tertiary: {
+    entity: "tertiaryEntity",
+    min: "tertiaryMin",
+    max: "tertiaryMax",
+    label: "tertiaryLabel",
+    segments: "tertiarySegments",
+    stateText: "tertiaryStateText",
+  },
+} as const;
+type TemplateField = keyof typeof SLOT_TEMPLATE_KEYS.primary;
 
 registerCustomCard({
   type: "modern-circular-gauge",
@@ -283,70 +311,33 @@ export class ModernCircularGauge extends LitElement {
 
     this._buildEntityStates();
 
-    const stateObj = this._getEntityStateObj("primary");
-    const entityState = this._getEntityState("primary", this._config.attribute);
-    const templatedState = this._templateResults?.entity?.result;
-    const isPrimaryTemplate = isTemplate(this._config.entity);
+    const primarySlot = this._resolveSlot("primary");
 
-    if (!stateObj && templatedState === undefined) {
-      if (isPrimaryTemplate) {
-        return this._renderWarning();
-      } else {
-        return this._renderWarning(this._config.entity, undefined, undefined, "mdi:help");
+    if (!primarySlot) {
+      return this._renderWarning(undefined, undefined, undefined, "mdi:exclamation");
+    }
+
+    const secondarySlot = this._resolveSlot("secondary");
+    const tertiarySlot = this._resolveSlot("tertiary");
+
+    const icon = this._templateResult("icon") ?? this._config.icon;
+
+    if (primarySlot?.error) {
+      switch (primarySlot.error) {
+        case "blank":
+          return this._renderWarning();
+        case "missing":
+          return this._renderWarning(primarySlot.config.entity, undefined, undefined, "mdi:help");
+        case "unavailable":
+          return this._renderWarning(this._templateResult("name") ?? (typeof this._config.name === "string" ? (isTemplate(String(this._config.name)) ? "" : this._config.name) : computeEntityName(this.hass, primarySlot.stateObj, this._config.name)), this.hass.localize("state.default.unavailable"), primarySlot.stateObj, icon)
+        case "nan":
+          return this._renderWarning(this._templateResult("name") ?? (typeof this._config.name === "string" ? (isTemplate(String(this._config.name)) ? "" : this._config.name) : computeEntityName(this.hass, primarySlot.stateObj, this._config.name)), "NaN", primarySlot.stateObj, icon);
       }
     }
     
-    const icon = this._templateResults?.icon?.result ?? this._config.icon;
-    
-    if (stateObj?.state === "unavailable") {
-      return this._renderWarning(this._templateResults?.name?.result ?? (typeof this._config.name === "string" ? (isTemplate(String(this._config.name)) ? "" : this._config.name) : computeEntityName(this.hass, stateObj, this._config.name)), this.hass.localize("state.default.unavailable"), stateObj, icon);
-    }
-    
-    const domain = computeStateDomain(stateObj!);
-    let secondsUntil: number | undefined;
-
-    if ((!isPrimaryTemplate && stateObj?.attributes?.device_class === "timestamp") ||
-      TIMESTAMP_STATE_DOMAINS.includes(domain)
-    ) {
-      secondsUntil = getTimestampRemainingSeconds(stateObj!);
-      this._isTimerOrTimestamp = true;
-    }
-
-    let calculatedMax: number | undefined;
-
-    if (domain === "timer") {
-      calculatedMax = durationToSeconds(stateObj?.attributes?.duration ?? "00:00");
-      secondsUntil = getTimerRemainingSeconds(stateObj!);
-      this._isTimerOrTimestamp = true;
-    }
-
-    if (this._config.combine_gauges && this._config.gauge_type === "full") {
-      calculatedMax = this._getEntityStatesSum(true);
-    }
-
-    const numberState = Number(templatedState ?? secondsUntil ?? entityState);
-
-    if (isNaN(numberState)) {
-      return this._renderWarning(this._templateResults?.name?.result ?? (typeof this._config.name === "string" ? (isTemplate(String(this._config.name)) ? "" : this._config.name) : computeEntityName(this.hass, stateObj, this._config.name)), "NaN", stateObj, icon);
-    }
-
-    const attributes = stateObj?.attributes ?? undefined;
-
-    const unit = this._config.unit;
-
-    const min = parseNumericValue(this._templateResults?.min?.result ?? this._config.min) ?? DEFAULT_MIN;
-    const max = parseNumericValue(this._templateResults?.max?.result ?? this._config.max ?? calculatedMax) ?? DEFAULT_MAX;
-
-    const stateOverride = 
-      this._config.combine_gauges && this._config.gauge_type === "full" 
-      ? this._getEntityStatesSum(true)
-      : (this._templateResults?.stateText?.result ?? (isTemplate(String(this._config.state_text)) ? "" : (this._config.state_text || undefined)));
 
     const iconCenter = !(this._config.show_state ?? false) && (this._config.show_icon ?? true);
     const segments = (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config.segments;
-    const segmentsLabel = this._getSegmentLabel(numberState, segments);
-
-    const halfStateBig = this._config?.gauge_type == "half" && typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big";
 
     return html`
     <ha-card
@@ -370,78 +361,26 @@ export class ModernCircularGauge extends LitElement {
       <div class="header" style=${styleMap({ "--gauge-header-font-size": this._config.header_font_size ? `${this._config.header_font_size}px` : undefined,
         "transform": this._config.header_offset ? `translate(0, ${this._config.header_offset}px)` : undefined })}>
         <p class="name">
-          ${this._templateResults?.name?.result ?? (typeof this._config.name === "string" ? (isTemplate(String(this._config.name)) ? "" : this._config.name) : computeEntityName(this.hass, stateObj, this._config.name))}
+          ${this._templateResults?.name?.result ?? (typeof this._config.name === "string" ? (isTemplate(String(this._config.name)) ? "" : this._config.name) : computeEntityName(this.hass, primarySlot.stateObj, this._config.name))}
         </p>
       </div>
       ` : nothing}
       <div
-        class="container${classMap({ "dual-gauge": (typeof this._config.secondary != "string" && this._config.secondary?.show_gauge == "inner") || (typeof this._config.tertiary != "string" && this._config.tertiary?.show_gauge == "inner"),
+        class="container${classMap({ "dual-gauge": secondarySlot?.config.show_gauge === "inner" || tertiarySlot?.config.show_gauge === "inner",
           "half-gauge": this._config.gauge_type == "half", "full-gauge": this._config.gauge_type == "full" })}"
         style=${styleMap({ "--full-gauge-padding": this._config.show_header ? undefined : "0",
-          "--gauge-color": this._config.gauge_foreground_style?.color && this._config.gauge_foreground_style?.color != "adaptive" ? computeCssColor(this._config.gauge_foreground_style?.color) : computeSegments(numberState, segments, this._config.smooth_segments, this) })}
+          "--gauge-color": this._config.gauge_foreground_style?.color && this._config.gauge_foreground_style?.color != "adaptive" ? computeCssColor(this._config.gauge_foreground_style?.color) : computeSegments(primarySlot.value ?? 0, segments, primarySlot.config.smooth_segments, this) })}
       >
         <div class="gauge-container">
-          <modern-circular-gauge-element
-            .min=${min}
-            .max=${max}
-            .value=${numberState}
-            .radius=${this._config.gauge_radius ?? RADIUS}
-            .gaugeType=${this._config.gauge_type}
-            .segments=${segments}
-            .smoothSegments=${this._config.smooth_segments}
-            .foregroundStyle=${this._config.gauge_foreground_style}
-            .backgroundStyle=${this._config.gauge_background_style}
-            .needle=${this._config.needle}
-            .startFromZero=${this._config.start_from_zero}
-            .rotateGauge=${this._config.rotate_gauge}
-            .linePadding=${this._config.combine_gauges && this._config.gauge_type === "full" ? 7.5 : 0}
-            .lineOffset=${this._config.combine_gauges && this._config.gauge_type === "full" ?  3.25 : 0}
-            .invertedMode=${this._config.inverted_mode}
-            .needleConfig=${this._config.needle_config}
-          ></modern-circular-gauge-element>
-          ${typeof this._config.secondary != "string" ? 
-          (this._config.secondary?.show_gauge && this._config.secondary?.show_gauge != "none") || (this._config.combine_gauges && this._config.gauge_type === "full") ?
-          this._renderSecondaryGauge()
-          : nothing
-          : nothing}
-          ${typeof this._config.tertiary != "string" ? 
-          this._config.tertiary?.show_gauge && this._config.tertiary?.show_gauge != "none" ?
-          this._renderTertiaryGauge()
-          : nothing
-          : nothing}
+          ${this._renderGauge(primarySlot)}
+          ${this._renderGauge(secondarySlot)}
+          ${this._renderGauge(tertiarySlot)}
         </div>
         ${this._config.show_graph ? this._renderGraph() : nothing}
         <div class="gauge-state">
-          ${this._config.show_state || (this._config.combine_gauges && this._config.gauge_type === "full") ? html`
-          <modern-circular-gauge-state
-            class=${classMap({ "preview": this._inCardPicker! })}
-            style=${styleMap({ "--state-text-color": (this._config.adaptive_state_color && (!this._config.combine_gauges || this._config.gauge_type !== "full")) ? "var(--gauge-color)" : undefined,
-              "--state-font-size-override": this._config.state_font_size ? `${this._config.state_font_size}px` : (halfStateBig ? `15px` : undefined),
-              "--state-label-color-override": (this._config.adaptive_label_color && (!this._config.combine_gauges || this._config.gauge_type !== "full")) ? "var(--gauge-color)" : undefined,
-              "font-family": this._config.state_font_family ? this._config.state_font_family : undefined })}
-            .hass=${this.hass}
-            .stateObj=${stateObj}
-            .entityAttribute=${this._config.attribute}
-            .stateOverride=${(segmentsLabel || stateOverride) ?? templatedState}
-            .unit=${unit}
-            .gaugeType=${this._config.gauge_type}
-            .verticalOffset=${typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big" ? -14 : this._config.gauge_type == "half" ? (this._hasSecondary ? -15 : -10) : 0}
-            .horizontalOffset=${this._config?.gauge_type == "half" && typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big" ? 16 : 0}
-            .label=${typeof this._config.secondary != "string" && this._config.secondary?.state_size == "big" ? this._templateResults?.label?.result ?? (isTemplate(String(this._config.label)) ? "" : this._config.label) : ""}
-            .stateMargin=${this._stateMargin}
-            .labelFontSize=${this._config.label_font_size}
-            .showUnit=${this._config.show_unit ?? true}
-            .showSeconds=${this._config.show_seconds}
-            .decimals=${this._config.decimals}
-            .unitSuperscript=${this._config.unit_superscript}
-            .timeFormat=${this._config.time_format}
-            .stateFormat=${this._config.state_format}
-            .min=${min}
-            .max=${max}
-          ></modern-circular-gauge-state>
-          ` : nothing}
-          ${this._renderSecondaryState()}
-          ${this._renderTertiaryState()}
+          ${this._renderState(primarySlot)}
+          ${this._renderState(secondarySlot)}
+          ${this._renderState(tertiarySlot)}
         </div>
         ${this._config.show_icon ?? true ? this._renderIcon(icon) : nothing}
       </div> 
@@ -640,519 +579,326 @@ export class ModernCircularGauge extends LitElement {
     return (gauge.radius - gauge.width) * 2;
   }
 
-  private _renderTertiaryGauge(): TemplateResult {
-    if (this._config?.combine_gauges && this._config.gauge_type === "full") {
-      return html``;
-    }
-    const tertiaryObj = this._config?.tertiary as TertiaryEntity;
-    const stateObj = this.hass.states[tertiaryObj.entity || ""];
-    const templatedState = this._templateResults?.tertiaryEntity?.result;
-    const secondaryInner = (this._config?.secondary as SecondaryEntity).show_gauge == "inner";
-
-    if (!tertiaryObj) {
-      return html``;
+  private _resolveSlot(slotName: EntityNames): GaugeSlot | undefined {
+    if (!this._config) {
+      return undefined;
     }
 
-    if (tertiaryObj.show_gauge == "inner") {
-      if (!stateObj && templatedState === undefined) {
-        return html`
-        <modern-circular-gauge-element
-          class="tertiary"
-          .radius=${secondaryInner ? TERTIARY_RADIUS : INNER_RADIUS}
-          .gaugeType=${this._config?.gauge_type}
-        ></modern-circular-gauge-element>
-        `;
+    const slotConfig = this._getSlotConfig(slotName);
+
+    if (!slotConfig) {
+      return undefined;
+    }
+
+    if (!slotConfig.entity) {
+      return undefined;
+    }
+
+    const stateObj = this._getEntityStateObj(slotName);
+    const entityState = this._getEntityState(slotName, slotConfig.attribute);
+    const templatedState = this._slotTemplate(slotName, "entity");
+    const isEntityTemplate = isTemplate(slotConfig.entity);
+
+    if (!stateObj && templatedState === undefined) {
+      let error: "missing" | "blank" = "missing";
+
+      if (isEntityTemplate) {
+        error = "blank";
+      } else {
+        error = "missing";
       }
-
-      if (stateObj?.state === "unavailable") {
-        return html`
-        <modern-circular-gauge-element
-          class="tertiary"
-          .radius=${secondaryInner ? TERTIARY_RADIUS : INNER_RADIUS}
-          .gaugeType=${this._config?.gauge_type}
-          error
-        ></modern-circular-gauge-element>
-        `;
+      return {
+        name: slotName,
+        className: slotName,
+        config: slotConfig,
+        error: error,
       }
+    }
 
-      const domain = computeStateDomain(stateObj);
-      let secondsUntil: number | undefined;
+    if (stateObj && stateObj?.state === "unavailable") {
+      return {
+        name: slotName,
+        className: slotName,
+        config: slotConfig,
+        stateObj: stateObj,
+        error: "unavailable",
+      };
+    }
 
-      if (stateObj?.attributes.device_class === "timestamp" ||
-        TIMESTAMP_STATE_DOMAINS.includes(domain)
-      ) {
-        secondsUntil = getTimestampRemainingSeconds(stateObj);
-        this._isTimerOrTimestamp = true;
-      }
+    const domain = computeStateDomain(stateObj!);
+    let secondsUntil: number | undefined;
 
-      let timerDuration: number | undefined;
+    if ((!isEntityTemplate && stateObj && stateObj?.attributes?.device_class === "timestamp") ||
+      TIMESTAMP_STATE_DOMAINS.includes(domain)
+    ) {
+      secondsUntil = getTimestampRemainingSeconds(stateObj!);
+      this._isTimerOrTimestamp = true;
+    }
 
-      if (domain === "timer") {
-        timerDuration = durationToSeconds(stateObj.attributes?.duration ?? "00:00");
-        secondsUntil = getTimerRemainingSeconds(stateObj);
-        this._isTimerOrTimestamp = true;
-      }
+    let calculatedMax: number | undefined;
 
-      const min = parseNumericValue(this._templateResults?.tertiaryMin?.result ?? tertiaryObj.min) ?? DEFAULT_MIN;
-      const max = parseNumericValue(this._templateResults?.tertiaryMax?.result ?? tertiaryObj.max ?? timerDuration) ?? DEFAULT_MAX;
-      const segments = (this._templateResults?.tertiarySegments?.result as unknown) as SegmentsConfig[] ?? tertiaryObj.segments;
-      const numberState = Number(templatedState ?? secondsUntil ?? stateObj.attributes[tertiaryObj.attribute!] ?? stateObj.state);
+    if (domain === "timer") {
+      calculatedMax = durationToSeconds(stateObj?.attributes?.duration ?? "00:00");
+      secondsUntil = getTimerRemainingSeconds(stateObj!);
+      this._isTimerOrTimestamp = true;
+    }
 
-      if (isNaN(numberState)) {
-        return html`
-        <modern-circular-gauge-element
-          class="tertiary"
-          .radius=${secondaryInner ? TERTIARY_RADIUS : INNER_RADIUS}
-          .gaugeType=${this._config?.gauge_type}
-          error
-        ></modern-circular-gauge-element>
-        `;
-      }
+    if (this._config.combine_gauges && this._config.gauge_type === "full") {
+      calculatedMax = this._getEntityStatesSum(true);
+    }
 
-      return html`
-      <modern-circular-gauge-element
-        class="tertiary"
-        .min=${min}
-        .max=${max}
-        .value=${numberState}
-        .radius=${tertiaryObj.gauge_radius ?? (secondaryInner ? TERTIARY_RADIUS : INNER_RADIUS)}
-        .gaugeType=${this._config?.gauge_type}
-        .segments=${segments}
-        .smoothSegments=${tertiaryObj.smooth_segments}
-        .foregroundStyle=${tertiaryObj?.gauge_foreground_style}
-        .backgroundStyle=${tertiaryObj?.gauge_background_style}
-        .needle=${tertiaryObj?.needle}
-        .startFromZero=${tertiaryObj?.start_from_zero}
-        .rotateGauge=${this._config?.rotate_gauge}
-        .invertedMode=${tertiaryObj?.inverted_mode}
-        .needleConfig=${tertiaryObj?.needle_config}
-      ></modern-circular-gauge-element>
-      `;
-    } else {
-      if (!stateObj && templatedState === undefined) {
-        return html``;
-      }
+    const numberState = Number(templatedState ?? secondsUntil ?? entityState);
 
-      const numberState = Number(templatedState ?? stateObj.attributes[tertiaryObj.attribute!] ?? stateObj.state);
+    const stateOverride = 
+      this._config.combine_gauges && this._config.gauge_type === "full" 
+      ? this._getEntityStatesSum(true)
+      : (this._slotTemplate(slotName, "stateText") ?? (isTemplate(String(slotConfig.state_text)) ? "" : (slotConfig.state_text || undefined)));
 
-      if (stateObj?.state === "unavailable" && templatedState) {
-        return html``;
-      }
-  
-      if (isNaN(numberState)) {
-        return html``;
-      }
-  
-      const min = parseNumericValue(this._templateResults?.min?.result ?? this._config?.min) ?? DEFAULT_MIN; 
-      const max = parseNumericValue(this._templateResults?.max?.result ?? this._config?.max) ?? DEFAULT_MAX;
-  
-      return html`
-      <modern-circular-gauge-element
-        class="tertiary"
-        .min=${min}
-        .max=${max}
-        .value=${numberState}
-        .radius=${this._config?.gauge_radius ?? RADIUS}
-        .gaugeType=${this._config?.gauge_type}
-        .foregroundStyle=${tertiaryObj?.gauge_foreground_style}
-        .backgroundStyle=${tertiaryObj?.gauge_background_style}
-        .rotateGauge=${this._config?.rotate_gauge}
-        .invertedMode=${tertiaryObj?.inverted_mode}
-        .outter=${true}
-        .needleConfig=${tertiaryObj?.needle_config}
-      ></modern-circular-gauge-element>
-      `;
+    if (isNaN(numberState)) {
+      return {
+        name: slotName,
+        className: slotName,
+        stateOverride: stateOverride,
+        config: slotConfig,
+        stateObj: stateObj,
+        error: "nan",
+      };
+    }
+
+    const min = parseNumericValue(this._slotTemplate(slotName, "min") ?? slotConfig.min) ?? DEFAULT_MIN;
+    const max = parseNumericValue(this._slotTemplate(slotName, "max") ?? slotConfig.max ?? calculatedMax) ?? DEFAULT_MAX;
+
+    const segments = (this._slotTemplate(slotName, "segments") as unknown as SegmentsConfig[]) ?? slotConfig.segments;
+    const segmentsLabel = this._getSegmentLabel(numberState, segments);
+
+    return {
+      name: slotName,
+      className: slotName,
+      config: slotConfig,
+      stateObj: stateObj,
+      value: numberState,
+      min: min,
+      max: max,
+      stateOverride: (segmentsLabel || stateOverride) ?? templatedState,
+      label: this._slotTemplate(slotName, "label") ?? (isTemplate(String(slotConfig.label)) ? "" : slotConfig.label),
+      segments: segments
     }
   }
 
-  private _renderSecondaryGauge(): TemplateResult {
-    const secondaryObj = this._config?.secondary as SecondaryEntity;
-    const stateObj = this.hass.states[secondaryObj.entity || ""];
-    const templatedState = this._templateResults?.secondaryEntity?.result;
+  private _getSlotConfig(slotName: EntityNames): BaseEntityConfig | undefined {
+    if (!this._config) {
+      return undefined;
+    }
 
-    if (!secondaryObj) {
+    if (slotName === "primary") {
+      return this._config;
+    }
+
+    const slotConfig = this._config[slotName];
+
+    if (typeof slotConfig === "string") {
+      return { 
+        entity: slotConfig,
+        show_gauge: "none",
+      };
+    }
+
+    return slotConfig;
+  }
+
+  private _renderGauge(slot: GaugeSlot | undefined): TemplateResult {
+    if (!slot) {
       return html``;
     }
-    
-    if (secondaryObj.show_gauge == "inner" || (this._config?.combine_gauges && this._config.gauge_type === "full")) {
-      if (!stateObj && templatedState === undefined) {
-        if (this._config?.combine_gauges && this._config.gauge_type === "full") {
-          return html``;
+
+    const canCombineGauges = this._config?.combine_gauges && this._config.gauge_type === "full" && slot.name !== "tertiary";
+
+    const secondaryInner =
+      typeof this._config?.secondary !== "string" &&
+      this._config?.secondary?.show_gauge === "inner";
+    const RADIUS_MAP: Record<EntityNames, number> = {
+      primary: this._config?.gauge_radius ?? RADIUS,
+      secondary: slot.config.gauge_radius ?? INNER_RADIUS,
+      tertiary: slot.config.gauge_radius ?? (secondaryInner ? TERTIARY_RADIUS : INNER_RADIUS),
+    };
+    const radius = canCombineGauges ? RADIUS_MAP["primary"] : RADIUS_MAP[slot.name];
+
+    if (slot.name === "primary" ||slot.config.show_gauge == "inner" || canCombineGauges) {
+      if (slot.error) {
+        switch (slot.error) {
+          case "blank":
+          case "missing":
+            if (canCombineGauges) {
+              return html``;
+            }
+            return html`
+              <modern-circular-gauge-element
+                class=${slot.className}
+                .radius=${RADIUS_MAP[slot.name]}
+                .gaugeType=${this._config?.gauge_type}
+              ></modern-circular-gauge-element>
+            `;
+          case "unavailable":
+            return html`
+              <modern-circular-gauge-element
+                class=${slot.className}
+                .radius=${radius}
+                .gaugeType=${this._config?.gauge_type}
+                .disableBackground=${canCombineGauges}
+                error
+              ></modern-circular-gauge-element>
+            `;
+          case "nan":
+            return html`
+              <modern-circular-gauge-element
+                class=${slot.className}
+                .radius=${radius}
+                .gaugeType=${this._config?.gauge_type}
+                .disableBackground=${canCombineGauges}
+                error
+              ></modern-circular-gauge-element>
+            `;
         }
-        return html`
-        <modern-circular-gauge-element
-          class="secondary"
-          .radius=${INNER_RADIUS}
-          .gaugeType=${this._config?.gauge_type}
-        ></modern-circular-gauge-element>
-        `;
-      }
-
-      if (stateObj?.state === "unavailable") {
-        return html`
-        <modern-circular-gauge-element
-          class="secondary"
-          .radius=${this._config?.combine_gauges && this._config.gauge_type === "full" ? (this._config?.gauge_radius ?? RADIUS) : (secondaryObj.gauge_radius ?? INNER_RADIUS)}
-          .gaugeType=${this._config?.gauge_type}
-          .disableBackground=${this._config?.combine_gauges && this._config.gauge_type === "full"}
-          error
-        ></modern-circular-gauge-element>
-        `;
-      }
-
-      const domain = computeStateDomain(stateObj);
-      let secondsUntil: number | undefined;
-
-      if (stateObj?.attributes.device_class === "timestamp" ||
-        TIMESTAMP_STATE_DOMAINS.includes(domain)
-      ) {
-        secondsUntil = getTimestampRemainingSeconds(stateObj);
-        this._isTimerOrTimestamp = true;
-      }
-
-      let calculatedMax: number | undefined;
-
-      if (domain === "timer") {
-        calculatedMax = durationToSeconds(stateObj.attributes?.duration ?? "00:00");
-        secondsUntil = getTimerRemainingSeconds(stateObj);
-        this._isTimerOrTimestamp = true;
-      }
-
-      if (this._config?.combine_gauges && this._config.gauge_type === "full") {
-        calculatedMax = this._getEntityStatesSum(true);
-      }
-
-      
-      const min = parseNumericValue(this._templateResults?.secondaryMin?.result ?? secondaryObj.min) ?? DEFAULT_MIN;
-      const max = parseNumericValue(this._templateResults?.secondaryMax?.result ?? secondaryObj.max ?? calculatedMax) ?? DEFAULT_MAX;
-      const segments = (this._templateResults?.secondarySegments?.result as unknown) as SegmentsConfig[] ?? secondaryObj.segments;
-      const numberState = Number(templatedState ?? secondsUntil ?? stateObj.attributes[secondaryObj.attribute!] ?? stateObj.state);
-
-      if (isNaN(numberState)) {
-        return html`
-        <modern-circular-gauge-element
-          class="secondary"
-          .radius=${this._config?.combine_gauges && this._config.gauge_type === "full" ? (this._config?.gauge_radius ?? RADIUS) : (secondaryObj.gauge_radius ?? INNER_RADIUS)}
-          .disableBackground=${this._config?.combine_gauges && this._config.gauge_type === "full"}
-          .gaugeType=${this._config?.gauge_type}
-          error
-        ></modern-circular-gauge-element>
-        `;
       }
 
       return html`
-      <modern-circular-gauge-element
-        class="secondary"
-        .min=${min}
-        .max=${max}
-        .value=${numberState}
-        .radius=${this._config?.combine_gauges && this._config.gauge_type === "full" ? (this._config?.gauge_radius ?? RADIUS) : (secondaryObj.gauge_radius ?? INNER_RADIUS)}
-        .gaugeType=${this._config?.gauge_type}
-        .segments=${segments}
-        .smoothSegments=${secondaryObj.smooth_segments}
-        .foregroundStyle=${secondaryObj?.gauge_foreground_style}
-        .backgroundStyle=${secondaryObj?.gauge_background_style}
-        .needle=${secondaryObj?.needle}
-        .startFromZero=${secondaryObj.start_from_zero}
-        .rotateGauge=${this._config?.rotate_gauge}
-        .disableBackground=${this._config?.combine_gauges && this._config.gauge_type === "full"}
-        .flipGauge=${this._config?.combine_gauges && this._config.gauge_type === "full"}
-        .linePadding=${this._config?.combine_gauges && this._config.gauge_type === "full" ? 7.5 : 0}
-        .lineOffset=${this._config?.combine_gauges && this._config.gauge_type === "full" ? 3.25 : 0}
-        .invertedMode=${secondaryObj?.inverted_mode}
-        .needleConfig=${secondaryObj?.needle_config}
-      ></modern-circular-gauge-element>
+        <modern-circular-gauge-element
+          class=${slot.className}
+          .min=${slot.min}
+          .max=${slot.max}
+          .value=${slot.value}
+          .radius=${radius}
+          .gaugeType=${this._config?.gauge_type}
+          .segments=${slot.segments}
+          .smoothSegments=${slot.config.smooth_segments}
+          .foregroundStyle=${slot.config?.gauge_foreground_style}
+          .backgroundStyle=${slot.config?.gauge_background_style}
+          .needle=${slot.config?.needle}
+          .startFromZero=${slot.config.start_from_zero}
+          .rotateGauge=${this._config?.rotate_gauge}
+          .disableBackground=${canCombineGauges}
+          .flipGauge=${canCombineGauges}
+          .linePadding=${canCombineGauges ? 7.5 : 0}
+          .lineOffset=${canCombineGauges ? 3.25 : 0}
+          .invertedMode=${slot.config?.inverted_mode}
+          .needleConfig=${slot.config?.needle_config}
+        ></modern-circular-gauge-element>
       `;
     } else {
-      if (!stateObj && templatedState === undefined) {
+      if (slot.error) {
         return html``;
       }
 
-      const numberState = Number(templatedState ?? stateObj.attributes[secondaryObj.attribute!] ?? stateObj.state);
-
-      if (stateObj?.state === "unavailable" && templatedState) {
-        return html``;
-      }
-  
-      if (isNaN(numberState)) {
-        return html``;
-      }
-  
-      const min = parseNumericValue(this._templateResults?.min?.result ?? this._config?.min) ?? DEFAULT_MIN; 
-      const max = parseNumericValue(this._templateResults?.max?.result ?? this._config?.max) ?? DEFAULT_MAX;
-  
       return html`
-      <modern-circular-gauge-element
-        class="secondary"
-        .min=${min}
-        .max=${max}
-        .value=${numberState}
-        .radius=${this._config?.gauge_radius ?? RADIUS}
-        .gaugeType=${this._config?.gauge_type}
-        .foregroundStyle=${secondaryObj?.gauge_foreground_style}
-        .backgroundStyle=${secondaryObj?.gauge_background_style}
-        .outter=${true}
-        .rotateGauge=${this._config?.rotate_gauge}
-        .invertedMode=${secondaryObj?.inverted_mode}
-        .needleConfig=${secondaryObj?.needle_config}
-      ></modern-circular-gauge-element>
+        <modern-circular-gauge-element
+          class=${slot.className}
+          .min=${slot.min}
+          .max=${slot.max}
+          .value=${slot.value}
+          .radius=${this._config?.gauge_radius ?? RADIUS}
+          .gaugeType=${this._config?.gauge_type}
+          .foregroundStyle=${slot.config?.gauge_foreground_style}
+          .backgroundStyle=${slot.config?.gauge_background_style}
+          .outter=${true}
+          .rotateGauge=${this._config?.rotate_gauge}
+          .invertedMode=${slot.config?.inverted_mode}
+          .needleConfig=${slot.config?.needle_config}
+        ></modern-circular-gauge-element>
       `;
     }
   }
 
-  private _renderSecondaryState(): TemplateResult {
-    const secondary = this._config?.secondary;
-    if (!secondary) {
+  private _renderState(slot: GaugeSlot | undefined): TemplateResult {
+    if (!slot) {
       return html``;
     }
 
-    const iconCenter = !(this._config?.show_state ?? false) && (this._config?.show_icon ?? true) && this._config?.gauge_type != "half" && (!this._config?.combine_gauges || this._config?.gauge_type !== "full");
-
-    if (typeof secondary === "string") {
-      this._hasSecondary = true;
-      return html`
-      <modern-circular-gauge-state
-        class=${classMap({ "preview": this._inCardPicker!, "secondary": true })}
-        .hass=${this.hass}
-        .stateOverride=${this._templateResults?.secondary?.result ?? secondary}
-        .verticalOffset=${this._config?.gauge_type == "half" ? -1 : 17}
-        .stateMargin=${this._stateMargin}
-        .gaugeType=${this._config?.gauge_type}
-        small
-      ></modern-circular-gauge-state>
-      `;
-    }
-
-    if (!(secondary.show_state ?? true)) {
+    if (!(slot.config.show_state ?? true)) {
       return html``;
     }
 
-    const stateObj = this.hass.states[secondary.entity || ""];
-    const templatedState = this._templateResults?.secondaryEntity?.result;
+    const stateSize = slot.name === "primary" ? "big" : slot.name === "tertiary" ? "small" : slot.config.state_size ?? "small";
 
-    if (!stateObj && templatedState === undefined) {
-      return html``;
-    }
-
-    const halfStateBig = this._config?.gauge_type == "half" && secondary.state_size == "big";
-
-    if (stateObj?.state === "unavailable") {
-      return html`
-      <modern-circular-gauge-state
-        class=${classMap({ "preview": this._inCardPicker!, "secondary": true })}
-        .hass=${this.hass}
-        .gaugeType=${this._config?.gauge_type}
-        .stateMargin=${this._stateMargin}
-        .verticalOffset=${secondary.state_size == "big" ? (this._config?.gauge_type == "half" ? -14 : 14) : iconCenter ? 22 : this._config?.gauge_type == "half" ? -1 : 17}
-        .horizontalOffset=${halfStateBig ? -16 : 0}
-        .small=${secondary.state_size != "big"}
-        .stateOverride=${this.hass.localize("state.default.unavailable")}
-        .label=${this._config?.gauge_type == "half" && secondary.state_size != "big" ? "" : this._templateResults?.secondaryLabel?.result ?? (isTemplate(String(secondary.label)) ? "" : secondary.label)}
-      ></modern-circular-gauge-state>
-      `;
-    }
-
-    this._hasSecondary = true;
-
-    const attributes = stateObj?.attributes ?? undefined;
-
-    const unit = secondary.unit;
-
-    const state = Number(templatedState ?? attributes[secondary.attribute!] ?? stateObj.state);
-    const stateOverride = this._templateResults?.secondaryStateText?.result ?? (isTemplate(String(secondary.state_text)) ? "" : (secondary.state_text || undefined));
-    const segments = (this._templateResults?.secondarySegments?.result as unknown) as SegmentsConfig[] ?? secondary.segments;
-    const segmentsLabel = this._getSegmentLabel(state, segments);
-
-    let secondaryColor;
-
-    if (secondary.adaptive_state_color || secondary.adaptive_label_color) {
-      secondaryColor = "var(--gauge-color)";
-      if (secondary.show_gauge == "outter" || secondary.show_gauge == "outer") {
-        secondaryColor = computeSegments(state, (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config?.segments, this._config?.smooth_segments, this);
-      } else if (segments) {
-        secondaryColor = computeSegments(state, segments, this._config?.smooth_segments, this);
-      }
-
-      if (secondary.gauge_foreground_style?.color && secondary.gauge_foreground_style?.color != "adaptive") {
-        secondaryColor = computeCssColor(secondary.gauge_foreground_style?.color);
+    if (slot.error) {
+      switch (slot.error) {
+        case "blank":
+        case "missing":
+          return html``;
+        case "unavailable":
+          return html`
+            <modern-circular-gauge-state
+              class=${classMap({ "preview": this._inCardPicker!, "warning": true, [slot.className]: Boolean(slot.className) })}
+              .hass=${this.hass}
+              .gaugeType=${this._config?.gauge_type}
+              .stateMargin=${this._stateMargin}
+              .stateSize=${stateSize}
+              .stateOverride=${this.hass.localize("state.default.unavailable")}
+              .label=${slot.label}
+            ></modern-circular-gauge-state>
+          `;
       }
     }
+
+    const label = slot.name === "primary"
+      ? typeof this._config?.secondary != "string" && this._config?.secondary?.state_size == "big" 
+        ? slot.label : "" 
+      : this._config?.gauge_type == "half" && stateSize != "big" ? "" : slot.label;
+
+    let color;
+
+    if (slot.config.adaptive_state_color || slot.config.adaptive_label_color) {
+      color = "var(--gauge-color)";
+      if (slot.config.show_gauge == "outer" || slot.config.show_gauge == "outter") {
+        color = computeSegments(slot.value ?? 0, this._slotTemplate("primary", "segments") as unknown as SegmentsConfig[] ?? this._config?.segments, this._config?.smooth_segments, this);
+      } else if (slot.segments) {
+        color = computeSegments(slot.value ?? 0, slot.segments, slot.config.smooth_segments, this);
+      }
+
+      if (slot.config.gauge_foreground_style?.color && slot.config.gauge_foreground_style.color != "adaptive") {
+        color = computeCssColor(slot.config.gauge_foreground_style.color);
+      }
+    }
+
+    const hasSecondary = typeof this._config?.secondary != "string" && this._config?.secondary?.show_gauge == "inner";
+    const hasTertiary = typeof this._config?.tertiary != "string" && this._config?.tertiary?.show_gauge == "inner";
+
+    const { x, y, fontPx } = stateLayout(slot.name, {
+      gaugeType: this._config?.gauge_type ?? "standard",
+      hasSecondary: !!this._config?.secondary,
+      secondaryBig: !!this._config?.secondary && typeof this._config?.secondary != "string" && this._config?.secondary?.state_size == "big",
+      iconCenter: !!this._config?.icon_center,
+      threeGauges: hasTertiary && hasSecondary,
+    });
 
     return html`
-    <modern-circular-gauge-state
-      class=${classMap({ "preview": this._inCardPicker!, "secondary": true })}
-      style=${styleMap({ "--state-text-color-override": secondary.adaptive_state_color ? secondaryColor ?? (secondary.state_size == "big" ? "var(--secondary-text-color)" : undefined) : (secondary.state_size == "big" ? "var(--secondary-text-color)" : undefined),
-        "--state-font-size-override": secondary.state_font_size ? `${secondary.state_font_size}px` : (halfStateBig ? `15px` : undefined),
-        "--state-label-color-override": secondary.adaptive_label_color ? (secondaryColor ?? "var(--gauge-color)") : undefined,
-        "font-family": secondary.state_font_family ? secondary.state_font_family : undefined })}
-      .hass=${this.hass}
-      .stateObj=${stateObj}
-      .entityAttribute=${secondary.attribute}
-      .stateOverride=${(segmentsLabel || stateOverride) ?? templatedState}
-      .unit=${unit}
-      .verticalOffset=${secondary.state_size == "big" ? (this._config?.gauge_type == "half" ? -14 : 14) : iconCenter ? 22 : this._config?.gauge_type == "half" ? -1 : 17}
-      .horizontalOffset=${halfStateBig ? -16 : 0}
-      .small=${secondary.state_size != "big"}
-      .label=${this._config?.gauge_type == "half" && secondary.state_size != "big" ? "" : this._templateResults?.secondaryLabel?.result ?? (isTemplate(String(secondary.label)) ? "" : secondary.label)}
-      .gaugeType=${this._config?.gauge_type}
-      .stateMargin=${this._stateMargin}
-      .labelFontSize=${secondary.label_font_size}
-      .showUnit=${secondary.show_unit ?? true}
-      .showSeconds=${secondary.show_seconds}
-      .decimals=${secondary.decimals}
-      .unitSuperscript=${secondary.unit_superscript}
-      .timeFormat=${secondary.time_format}
-      .stateFormat=${secondary.state_format}
-      .min=${parseNumericValue(this._templateResults?.secondaryMin?.result ?? secondary.min) ?? DEFAULT_MIN}
-      .max=${parseNumericValue(this._templateResults?.secondaryMax?.result ?? secondary.max) ?? DEFAULT_MAX}
-    ></modern-circular-gauge-state>
-    `;
-  }
-
-  private _renderTertiaryState(): TemplateResult {
-    if (this._config?.show_graph) {
-      return html``;
-    }
-    const threeGauges = (typeof this._config?.secondary != "string" && this._config?.secondary?.show_gauge == "inner") && (typeof this._config?.tertiary != "string" && this._config?.tertiary?.show_gauge == "inner");
-
-    if (this._config?.combine_gauges && this._config.gauge_type === "full") {
-      if (!this._config.show_state) {
-        return html``;
-      }
-      const templatedState = this._templateResults?.entity?.result;
-      const stateObj = this._getEntityStateObj("primary");
-      const numberState = Number(this._getEntityState("primary", this._config.attribute));
-      const unit = this._config.unit;
-
-      const stateOverride = this._templateResults?.stateText?.result ?? (isTemplate(String(this._config.state_text)) ? "" : (this._config.state_text || undefined));
-      const segments = (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config.segments;
-      const segmentsLabel = this._getSegmentLabel(numberState, segments);
-
-      return html`
       <modern-circular-gauge-state
-        class=${classMap({ "preview": this._inCardPicker! })}
-        style=${styleMap({ "--state-text-color-override": this._config.adaptive_state_color ? "var(--gauge-color)" : undefined,
-          "--state-font-size-override": this._config.state_font_size ? `${this._config.state_font_size}px` : undefined,
-          "--state-label-color-override": this._config.adaptive_label_color ? "var(--gauge-color)" : undefined,
-          "font-family": this._config.state_font_family ? this._config.state_font_family : undefined })}
+        class=${classMap({ "preview": this._inCardPicker!, [slot.className]: Boolean(slot.className) })}
+        style=${styleMap({ "--state-text-color-override": slot.config.adaptive_state_color ? color ?? (slot.config.state_size == "big" ? "var(--secondary-text-color)" : undefined) : (slot.config.state_size == "big" ? "var(--secondary-text-color)" : undefined),
+          "--state-font-size-override": slot.config.state_font_size ? `${slot.config.state_font_size}px` : fontPx ? `${fontPx}px` : undefined,
+          "--state-label-color-override": slot.config.adaptive_label_color ? (color ?? "var(--gauge-color)") : undefined,
+          "font-family": slot.config.state_font_family ? slot.config.state_font_family : undefined })}
         .hass=${this.hass}
-        .stateObj=${stateObj}
-        .entityAttribute=${this._config.attribute}
-        .stateOverride=${(segmentsLabel || stateOverride) ?? templatedState}
-        .unit=${unit}
-        .verticalOffset=${-19}
-        .stateMargin=${this._stateMargin}
-        .showUnit=${this._config.show_unit ?? true}
-        .label=${this._templateResults?.label?.result ?? (isTemplate(String(this._config.label)) ? "" : this._config.label)}
+        .stateObj=${slot.stateObj}
+        .entityAttribute=${slot.config.attribute}
+        .stateOverride=${slot.stateOverride}
+        .unit=${slot.config.unit}
+        .verticalOffset=${y}
+        .horizontalOffset=${x}
+        .stateSize=${stateSize}
+        .label=${label}
         .gaugeType=${this._config?.gauge_type}
-        .labelFontSize=${this._config.label_font_size}
-        .showSeconds=${this._config.show_seconds}
-        .decimals=${this._config.decimals}
-        .unitSuperscript=${this._config.unit_superscript}
-        .timeFormat=${this._config.time_format}
-        .min=${parseNumericValue(this._templateResults?.min?.result ?? this._config.min) ?? DEFAULT_MIN}
-        .max=${parseNumericValue(this._templateResults?.max?.result ?? this._config.max) ?? DEFAULT_MAX}
-        small
-      ></modern-circular-gauge-state>
-      `;
-    }
-    const tertiary = this._config?.tertiary;
-    if (!tertiary) {
-      return html``;
-    }
-
-    if (typeof tertiary === "string") {
-      return html`
-      <modern-circular-gauge-state
-        class=${classMap({ "preview": this._inCardPicker!, "tertiary": true })}
-        .hass=${this.hass}
-        .stateOverride=${this._templateResults?.tertiary?.result ?? tertiary}
-        .verticalOffset=${this._config?.gauge_type == "half" ? (!this._hasSecondary ? -28 :-31) : -19}
         .stateMargin=${this._stateMargin}
-        .gaugeType=${this._config?.gauge_type}
-        small
+        .labelFontSize=${slot.config.label_font_size}
+        .showUnit=${slot.config.show_unit ?? true}
+        .showSeconds=${slot.config.show_seconds}
+        .decimals=${slot.config.decimals}
+        .unitSuperscript=${slot.config.unit_superscript}
+        .timeFormat=${slot.config.time_format}
+        .stateFormat=${slot.config.state_format}
+        .min=${slot.min}
+        .max=${slot.max}
       ></modern-circular-gauge-state>
-      `;
-    }
-
-    const bigState = typeof this._config?.secondary == "object" ? this._config?.secondary?.state_size == "big" : false;
-
-    if (!(tertiary.show_state ?? true) || bigState) {
-      return html``;
-    }
-
-    const stateObj = this.hass.states[tertiary.entity || ""];
-    const templatedState = this._templateResults?.tertiaryEntity?.result;
-
-    if (!stateObj && templatedState === undefined) {
-      return html``;
-    }
-
-    if (stateObj?.state === "unavailable") {
-      return html`
-      <modern-circular-gauge-state
-        class=${classMap({ "preview": this._inCardPicker!, "tertiary": true })}
-        .hass=${this.hass}
-        .gaugeType=${this._config?.gauge_type}
-        .verticalOffset=${this._config?.gauge_type == "half" ? (!this._hasSecondary ? -28 : (threeGauges ? -29 : -31)) : -19}
-        .stateMargin=${this._stateMargin}
-        .stateOverride=${this.hass.localize("state.default.unavailable")}
-        .label=${this._config?.gauge_type == "half" ? "" : this._templateResults?.tertiaryLabel?.result ?? (isTemplate(String(tertiary.label)) ? "" : tertiary.label)}
-        small
-      ></modern-circular-gauge-state>
-      `;
-    }
-
-    const attributes = stateObj?.attributes ?? undefined;
-    const unit = tertiary.unit;
-    const state = Number(templatedState ?? attributes[tertiary.attribute!] ?? stateObj.state);
-    const stateOverride = this._templateResults?.tertiaryStateText?.result ?? (isTemplate(String(tertiary.state_text)) ? "" : (tertiary.state_text || undefined));
-    const segments = (this._templateResults?.tertiarySegments?.result as unknown) as SegmentsConfig[] ?? tertiary.segments;
-    const segmentsLabel = this._getSegmentLabel(state, segments);
-
-    let adaptiveColor;
-
-    if (tertiary.adaptive_state_color || tertiary.adaptive_label_color) {
-      adaptiveColor = "var(--gauge-color)";
-      if (tertiary.show_gauge == "outter" || tertiary.show_gauge == "outer") {
-        adaptiveColor = computeSegments(state, (this._templateResults?.segments?.result as unknown) as SegmentsConfig[] ?? this._config?.segments, this._config?.smooth_segments, this);
-      } else if (segments) {
-        adaptiveColor = computeSegments(state, segments, this._config?.smooth_segments, this);
-      }
-
-      if (tertiary.gauge_foreground_style?.color && tertiary.gauge_foreground_style?.color != "adaptive") {
-        adaptiveColor = computeCssColor(tertiary.gauge_foreground_style?.color);
-      }
-    }
-
-    return html`
-    <modern-circular-gauge-state
-      class=${classMap({ "preview": this._inCardPicker!, "tertiary": true })}
-      style=${styleMap({ "--state-text-color-override": tertiary.adaptive_state_color ? adaptiveColor : undefined,
-        "--state-font-size-override": tertiary.state_font_size ? `${tertiary.state_font_size}px` : (this._config?.gauge_type == "half" && threeGauges ? "6px" : undefined),
-        "--state-label-color-override": tertiary.adaptive_label_color ? (adaptiveColor ?? "var(--gauge-color)") : undefined,
-        "font-family": tertiary.state_font_family ? tertiary.state_font_family : undefined })}
-      .hass=${this.hass}
-      .stateObj=${stateObj}
-      .entityAttribute=${tertiary.attribute}
-      .stateOverride=${(segmentsLabel || stateOverride) ?? templatedState}
-      .unit=${unit}
-      .verticalOffset=${this._config?.gauge_type == "half" ? (!this._hasSecondary ? -28 : (threeGauges ? -29 : -31)) : -19}
-      .stateMargin=${this._stateMargin}
-      .showUnit=${tertiary.show_unit ?? true}
-      .label=${this._config?.gauge_type == "half" ? "" : this._templateResults?.tertiaryLabel?.result ?? (isTemplate(String(tertiary.label)) ? "" : tertiary.label)}
-      .gaugeType=${this._config?.gauge_type}
-      .labelFontSize=${tertiary.label_font_size}
-      .showSeconds=${tertiary.show_seconds}
-      .decimals=${tertiary.decimals}
-      .unitSuperscript=${tertiary.unit_superscript}
-      .timeFormat=${tertiary.time_format}
-      .stateFormat=${tertiary.state_format}
-      .min=${parseNumericValue(this._templateResults?.tertiaryMin?.result ?? tertiary.min) ?? DEFAULT_MIN}
-      .max=${parseNumericValue(this._templateResults?.tertiaryMax?.result ?? tertiary.max) ?? DEFAULT_MAX}
-      small
-    ></modern-circular-gauge-state>
-    `;
+    `;;
   }
 
   private _getSegmentLabel(numberState: number, segments: SegmentsConfig[] | undefined): string {
@@ -1167,6 +913,14 @@ export class ModernCircularGauge extends LitElement {
       }
     }
     return "";
+  }
+
+  private _templateResult(key: string) {
+    return this._templateResults?.[key]?.result;
+  }
+
+  private _slotTemplate(slot: EntityNames, field: TemplateField) {
+    return this._templateResult(SLOT_TEMPLATE_KEYS[slot][field]);
   }
 
   private async _tryConnect(): Promise<void> {
@@ -1638,55 +1392,6 @@ export class ModernCircularGauge extends LitElement {
       left: 0;
       right: 0;
       padding: inherit;
-    }
-
-    svg {
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-    g {
-      fill: none;
-    }
-    .arc {
-      fill: none;
-      stroke-linecap: round;
-      stroke-width: var(--gauge-stroke-width);
-    }
-
-    .arc.clear {
-      stroke: var(--primary-background-color);
-    }
-
-    .arc.current {
-      stroke: var(--gauge-color);
-      transition: all 1s ease 0s;
-    }
-
-    .segment {
-      fill: none;
-      stroke-width: var(--gauge-stroke-width);
-      filter: brightness(100%);
-    }
-
-    .segments {
-      opacity: 0.35;
-    }
-
-    .needle {
-      fill: none;
-      stroke-linecap: round;
-      stroke-width: var(--gauge-stroke-width);
-      stroke: var(--gauge-color);
-      transition: all 1s ease 0s;
-    }
-
-    .needle-border {
-      fill: none;
-      stroke-linecap: round;
-      stroke-width: calc(var(--gauge-stroke-width) + 4px);
-      stroke: var(--card-background-color);
-      transition: all 1s ease 0s, stroke 0.3s ease-out;
     }
 
     .secondary {

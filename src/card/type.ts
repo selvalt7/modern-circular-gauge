@@ -1,3 +1,4 @@
+import { HassEntity } from "home-assistant-js-websocket";
 import { EntityNameItem } from "../ha/data/entity_name";
 import { LovelaceCardConfig } from "../ha/data/lovelace";
 
@@ -18,6 +19,7 @@ export interface BaseEntityConfig {
     max?: number | string;
     decimals?: number;
     needle?: boolean;
+    needle_config?: NeedleConfig;
     show_seconds?: boolean;
     show_gauge?: "none" | "inner" | "outter" | "outer";
     show_state?: boolean;
@@ -28,6 +30,7 @@ export interface BaseEntityConfig {
     state_font_size?: number;
     state_font_family?: string;
     start_from_zero?: boolean;
+    state_size?: "small" | "big";
     inverted_mode?: boolean;
     gauge_radius?: number;
     smooth_segments?: boolean;
@@ -42,7 +45,6 @@ export interface BaseEntityConfig {
 
 export interface SecondaryEntity extends BaseEntityConfig {
     template?: string;
-    state_size?: "small" | "big";
     gauge_width?: number;
     [key: string]: any;
 };
@@ -71,6 +73,23 @@ export interface NeedleConfig {
 }
 
 export type EntityNames = "primary" | "secondary" | "tertiary";
+
+export interface GaugeSlot {
+  name: EntityNames;
+  className: string;          // "", "secondary", "tertiary"
+  config: BaseEntityConfig;
+  stateObj?: HassEntity;
+  stateOverride?: string | number;
+  value?: number;
+  label?: string;
+  min?: number;
+  max?: number;
+  segments?: SegmentsConfig[];
+//   radius: number;
+//   showGauge: "none" | "inner" | "outer";
+  error?: "blank" | "missing" | "unavailable" | "nan";
+  isTimerOrTimestamp?: boolean;
+}
 
 export interface ModernCircularGaugeConfig extends LovelaceCardConfig {
     entity: string;

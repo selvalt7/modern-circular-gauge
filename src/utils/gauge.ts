@@ -1,6 +1,6 @@
 import { TemplateResult, svg } from "lit";
 import { MAX_ANGLE } from "../const";
-import type { SegmentsConfig } from "../card/type";
+import type { EntityNames, GaugeType, SegmentsConfig } from "../card/type";
 import { interpolateColor, rgbToHex } from "./color";
 import { DirectiveResult } from "lit/directive";
 import { styleMap, StyleMapDirective } from "lit/directives/style-map.js";
@@ -141,6 +141,32 @@ export function renderColorSegments(segments: SegmentsConfig[], min: number, max
   } else {
     return renderSegments(segments, min, max, radius, maxAngle);
   }
+}
+
+export function stateLayout(slot: EntityNames, ctx: {
+  gaugeType: GaugeType;
+  hasSecondary: boolean;
+  secondaryBig: boolean;
+  iconCenter: boolean;
+  threeGauges: boolean;
+}): { x: number; y: number; fontPx?: number } {
+  const half = ctx.gaugeType === "half";
+  if (slot === "primary") {
+    if (ctx.secondaryBig) return { x: half ? 16 : 0, y: -14, fontPx: half ? 15 : undefined };
+    if (half) return { x: 0, y: ctx.hasSecondary ? -15 : -10 };
+    return { x: 0, y: 0 };
+  }
+  if (slot === "secondary") {
+    if (ctx.secondaryBig) return { x: half ? -16 : 0, y: half ? -14 : 14, fontPx: half ? 15 : undefined };
+    if (ctx.iconCenter) return { x: 0, y: 22 };
+    if (half) return { x: 0, y: -1 };
+    return { x: 0, y: 17 };
+  }
+  // tertiary
+  if (!half) return { x: 0, y: -19 };
+  if (!ctx.hasSecondary) return { x: 0, y: -28 };
+  if (ctx.threeGauges) return { x: 0, y: -29, fontPx: 6 };
+  return { x: 0, y: -31 };
 }
 
 export function renderSegmentsGradient(segments: SegmentsConfig[], min: number, max: number, maxAngle: number = MAX_ANGLE): TemplateResult[] {

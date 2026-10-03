@@ -30,7 +30,9 @@ export class ModernCircularGaugeState extends LitElement {
 
   @property({ type: String }) public gaugeType: GaugeType = "standard";
 
-  @property({ type: Boolean }) public small = false;
+  // @property({ type: Boolean }) public small = false;
+
+  @property({ type: String }) public stateSize?: "small" | "big";
 
   @property({ type: Number}) public verticalOffset?: number;
 
@@ -116,14 +118,14 @@ export class ModernCircularGaugeState extends LitElement {
     const verticalOffset = this.verticalOffset ?? 0;
 
     return html`
-    <svg class="state ${classMap({ "small": this.small })}" overflow="visible" viewBox="${-50 + (this.horizontalOffset ?? 0)} -50 100 ${this.gaugeType == "half" ? 50 : 100}">
+    <svg class="state ${classMap({ "small": this.stateSize === "small" })}" overflow="visible" viewBox="${-50 + (this.horizontalOffset ?? 0)} -50 100 ${this.gaugeType == "half" ? 50 : 100}">
       <text x="0" y=${verticalOffset} class="value">
         ${state}
-        ${this.showUnit ? !(this.unitSuperscript ?? !this.small) ? unit : svg`
-        <tspan class="unit" dx=${this.small ? "-2" : "-4"} dy=${this.small ? "-0.3em" : "-0.8em"}>${unit}</tspan>
+        ${this.showUnit ? !(this.unitSuperscript ?? this.stateSize !== "small") ? unit : svg`
+        <tspan class="unit" dx=${this.stateSize === "small" ? "-2" : "-4"} dy=${this.stateSize === "small" ? "-0.3em" : "-0.8em"}>${unit}</tspan>
         ` : nothing}
       </text>
-      <text class="state-label" style=${styleMap({ "font-size": this.labelFontSize ? `${this.labelFontSize}px` : undefined })} y=${verticalOffset + (this.small ? (9 * Math.sign(verticalOffset)) : 13)}>
+      <text class="state-label" style=${styleMap({ "font-size": this.labelFontSize ? `${this.labelFontSize}px` : undefined })} y=${verticalOffset + (this.stateSize === "small" ? (9 * Math.sign(verticalOffset)) : 13)}>
         ${this.label}
       </text>
     </svg>
